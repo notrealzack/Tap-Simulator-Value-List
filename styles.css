@@ -13,7 +13,7 @@
   --text-secondary: #a8b3cf;
   --text-muted: #6b7794;
   
-  /* Rarity colors (from Tap Simulator) */
+  /* Rarity colors from Tap Simulator */
   --rarity-mythical: #ff6b9d;
   --rarity-secret-i: #ffae42;
   --rarity-secret-ii: #00d4ff;
@@ -85,6 +85,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--spacing-md);
 }
 
 header h1 {
@@ -92,12 +93,20 @@ header h1 {
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+/* Group header-actions and game-icon on the right side */
+.header-content > :not(h1) {
+  margin-left: auto;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
+  margin-left: auto;
+  margin-right: var(--spacing-md);
 }
 
 .admin-icon-btn {
@@ -140,6 +149,7 @@ header h1 {
 .game-icon-container {
   width: 45px;
   height: 45px;
+  flex-shrink: 0;
 }
 
 .game-icon-placeholder {
@@ -274,7 +284,7 @@ main {
   border-color: var(--accent-primary);
 }
 
-/* Pet image container (1:1 square) */
+/* Pet image container 1:1 square */
 .pet-image {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -293,7 +303,7 @@ main {
   object-fit: cover;
 }
 
-/* Pet info - name and rarity stacked vertically */
+/* Pet info name and rarity stacked vertically */
 .pet-info {
   display: flex;
   flex-direction: column;
@@ -357,7 +367,7 @@ main {
   border: 1px solid rgba(0, 255, 136, 0.3);
 }
 
-/* Pet stats - vertical list */
+/* Pet stats vertical list */
 .pet-stats {
   display: flex;
   flex-direction: column;
@@ -393,7 +403,7 @@ main {
   padding-top: var(--spacing-sm);
 }
 
-/* Admin actions (only visible to admins) */
+/* Admin actions only visible to admins */
 .pet-admin-actions {
   display: none;
   gap: var(--spacing-sm);
@@ -637,6 +647,12 @@ main {
 
   .header-actions {
     gap: var(--spacing-sm);
+    margin-right: var(--spacing-sm);
+  }
+
+  .game-icon-container {
+    width: 35px;
+    height: 35px;
   }
 
   .container {
