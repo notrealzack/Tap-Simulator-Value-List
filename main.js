@@ -79,8 +79,8 @@ function on(element, event, handler) {
 // Pet list logic
 // =======================
 
-// Debug warning: For now, API endpoints are placeholders and will be configured when backend is ready.
-const API_BASE = ""; // e.g. "https://your-vercel-domain.vercel.app"; keep empty for now
+// Debug warning: API_BASE now points to your live Vercel backend
+const API_BASE = "https://ts-value-list-proxy-qcd33g150-astros-projects-7d607cbf.vercel.app/";
 const PETS_ENDPOINT = "/api/pets";
 const ONLINE_ENDPOINT = "/api/online";
 
@@ -106,11 +106,6 @@ async function loadPets() {
   if (cachedPets) return;
 
   // No valid cache, fetch from backend
-  if (!API_BASE) {
-    console.warn("[DEBUG-WARNING] API_BASE is empty; pets cannot be fetched yet.");
-    return;
-  }
-
   try {
     const res = await fetch(API_BASE + PETS_ENDPOINT, {
       method: "GET",
@@ -123,6 +118,7 @@ async function loadPets() {
 
     if (!res.ok) {
       console.warn("[DEBUG-WARNING] Failed to fetch pets. Status:", res.status);
+      petListContainer.innerHTML = `<p class="placeholder">Failed to load pets. Try refreshing.</p>`;
       return;
     }
 
@@ -137,13 +133,14 @@ async function loadPets() {
     renderPets(data);
   } catch (err) {
     console.warn("[DEBUG-WARNING] Error fetching pets:", err);
+    petListContainer.innerHTML = `<p class="placeholder">Network error. Check your connection.</p>`;
   }
 }
 
 /**
  * Render pet cards into #pet-list.
  * For now, expect data to be an array of objects with keys:
- * { id, name, rarity, stats, value, imageUrl }
+ * { id, name, rarity, stats, value, image_url }
  */
 function renderPets(pets) {
   const petListContainer = $("#pet-list");
@@ -161,7 +158,7 @@ function renderPets(pets) {
       const safeName = escapeHtml(pet.name || "Unknown Pet");
       const safeStats = escapeHtml(pet.stats || "");
       const safeValue = Number.isFinite(pet.value) ? pet.value : "?";
-      const imageUrl = pet.imageUrl || "";
+      const imageUrl = pet.image_url || "";
 
       return `
         <article class="card pet-card" data-pet-id="${pet.id || ""}">
@@ -233,11 +230,6 @@ async function loadOnlineCount() {
 
   // Respect rule: only fetch once per page load if there is no valid cache
   if (cachedOnline != null) return;
-
-  if (!API_BASE) {
-    console.warn("[DEBUG-WARNING] API_BASE is empty; online counter cannot be fetched yet.");
-    return;
-  }
 
   try {
     const res = await fetch(API_BASE + ONLINE_ENDPOINT, {
@@ -392,7 +384,7 @@ function initAddPetModal() {
       rarity,
       stats,
       value,
-      imageUrl: ""
+      image_url: ""
     };
 
     // Merge with existing cached pets and re-render
