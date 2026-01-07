@@ -12,6 +12,9 @@ const CACHE_KEY = `rpv_pets_cache_${CACHE_VERSION}`;
 const ADMIN_KEY = "rpv_admin_session";
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 
+// Track current rarity filter for dynamic welcome message
+let currentRarityFilter = null;
+
 // Clear old cache versions on load
 function clearOldCaches() {
   const keys = Object.keys(localStorage);
@@ -264,8 +267,33 @@ async function loadPets(forceRefresh = false) {
   }
 }
 
+// Update welcome message based on current filter
+function updateWelcomeMessage(filterRarity) {
+  const welcomeDiv = document.querySelector('.welcome');
+  if (!welcomeDiv) return;
+
+  let title, subtitle;
+
+  if (!filterRarity || filterRarity === 'all') {
+    title = 'Tap Simulator Value List';
+    subtitle = 'Browse all pets and their current values';
+  } else {
+    title = `${filterRarity} Pets`;
+    subtitle = `Viewing ${filterRarity} rarity pets`;
+  }
+
+  welcomeDiv.innerHTML = `
+    <h2>${title}</h2>
+    <p>${subtitle}</p>
+  `;
+}
+
 function renderPets(filterRarity = null) {
   const container = document.getElementById('pets-container');
+  
+  // Update current filter and welcome message
+  currentRarityFilter = filterRarity;
+  updateWelcomeMessage(filterRarity);
 
   // Filter by rarity if specified
   let petsToRender = allPets;
@@ -415,7 +443,7 @@ async function addPet(petData) {
     const newPet = await res.json();
     allPets.push(newPet);
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-    renderPets();
+    renderPets(currentRarityFilter);
     return true;
   } catch (err) {
     console.warn('[DEBUG-WARNING] Add pet error:', err);
@@ -460,7 +488,7 @@ async function updatePet(petId, petData) {
     const index = allPets.findIndex(p => p.id === petId);
     if (index !== -1) allPets[index] = updatedPet;
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-    renderPets();
+    renderPets(currentRarityFilter);
     return true;
   } catch (err) {
     console.warn('[DEBUG-WARNING] Update pet error:', err);
@@ -503,7 +531,7 @@ async function deletePet(petId) {
 
     allPets = allPets.filter(p => p.id !== petId);
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-    renderPets();
+    renderPets(currentRarityFilter);
   } catch (err) {
     console.warn('[DEBUG-WARNING] Delete pet error:', err);
     alert('Failed to delete pet. Please try again.');
@@ -734,7 +762,7 @@ function initEventListeners() {
       document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
       e.target.classList.add('active');
 
-      // Filter pets
+      // Filter pets and update welcome message
       renderPets(rarity === 'all' ? null : rarity);
     }
   });
