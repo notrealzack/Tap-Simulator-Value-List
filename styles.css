@@ -69,7 +69,7 @@ body {
 }
 
 /* ========================================
-   HEADER
+   HEADER - Fixed Alignment
    ======================================== */
 header {
   position: fixed;
@@ -92,9 +92,11 @@ header {
   gap: var(--space-lg);
 }
 
-/* Game Icon */
+/* Game Icon - Perfectly Centered */
 .game-icon-container {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .game-icon {
@@ -103,24 +105,44 @@ header {
   border-radius: 8px;
   object-fit: cover;
   border: 2px solid var(--border-color);
+  display: block;
 }
 
-/* Title */
+/* Title Section - Vertically Centered with Subtitle */
+.header-title-section {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
 header h1 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--text-primary);
-  white-space: nowrap;
-  flex-shrink: 0;
+  line-height: 1.2;
+  margin: 0;
 }
 
-/* Search and Filter Container */
+.header-subtitle {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  line-height: 1;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Search and Filter Container - Centered */
 .search-filter-container {
   display: flex;
   gap: var(--space-sm);
   flex: 1;
   max-width: 500px;
   margin: 0 auto;
+  align-items: center;
 }
 
 /* Search Box */
@@ -242,12 +264,13 @@ header h1 {
   font-weight: 500;
 }
 
-/* Header Actions */
+/* Header Actions - Aligned */
 .header-actions {
   display: flex;
   gap: var(--space-sm);
   margin-left: auto;
   flex-shrink: 0;
+  align-items: center;
 }
 
 .admin-icon-btn,
@@ -261,6 +284,9 @@ header h1 {
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-icon-btn:hover,
@@ -770,7 +796,10 @@ form {
 
   header h1 {
     font-size: 1.2rem;
-    flex: 1;
+  }
+
+  .header-subtitle {
+    font-size: 0.65rem;
   }
 
   .search-filter-container {
