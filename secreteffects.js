@@ -27,9 +27,9 @@
       animationDuration: '1.5s'
     },
     'Exclusive': {
-      glowColor: 'rgba(0, 255, 136, 0.4)',
+      glowColor: 'rgba(0, 255, 136, 0.5)',
       borderColor: '#00ff88',
-      animationDuration: '2.5s'
+      animationDuration: '2s'
     }
   };
 
@@ -71,6 +71,29 @@
     }
   }
 
+  // Apply exclusive particle effect for Exclusive rarity
+  function applyExclusiveEffect(card, rarity) {
+    if (rarity !== 'Exclusive') return;
+
+    // Create particle container if not exists
+    let particleContainer = card.querySelector('.exclusive-particles');
+    if (!particleContainer) {
+      particleContainer = document.createElement('div');
+      particleContainer.className = 'exclusive-particles';
+      
+      // Add 6 floating particles
+      for (let i = 0; i < 6; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'exclusive-particle';
+        particle.style.animationDelay = `${i * 0.5}s`;
+        particle.style.left = `${Math.random() * 80 + 10}%`;
+        particleContainer.appendChild(particle);
+      }
+      
+      card.appendChild(particleContainer);
+    }
+  }
+
   // Initialize effects on all pet cards
   function initSecretEffects() {
     const petCards = document.querySelectorAll('.pet-card');
@@ -85,6 +108,7 @@
       if (rarityEffects[rarity]) {
         applyGlowEffect(card, rarity);
         applySparkleEffect(card, rarity);
+        applyExclusiveEffect(card, rarity);
       }
     });
   }
@@ -174,6 +198,59 @@
           transform: scale(0);
         }
       }
+
+      /* Exclusive particle container */
+      .exclusive-particles {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        border-radius: 12px;
+      }
+
+      /* Individual exclusive particle */
+      .exclusive-particle {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: #00ff88;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(0, 255, 136, 0.8),
+                    0 0 20px rgba(0, 255, 136, 0.4);
+        animation: exclusiveFloat 4s ease-in-out infinite;
+        opacity: 0;
+      }
+
+      @keyframes exclusiveFloat {
+        0% {
+          top: 50%;
+          opacity: 0;
+          transform: translateY(0) scale(0);
+        }
+        10% {
+          opacity: 1;
+          transform: translateY(-10px) scale(1);
+        }
+        50% {
+          transform: translateY(-50px) scale(1.2);
+        }
+        90% {
+          opacity: 1;
+          transform: translateY(-90px) scale(1);
+        }
+        100% {
+          top: -10%;
+          opacity: 0;
+          transform: translateY(-100px) scale(0);
+        }
+      }
+
+      .exclusive-particle:nth-child(1) { animation-delay: 0s; }
+      .exclusive-particle:nth-child(2) { animation-delay: 0.5s; }
+      .exclusive-particle:nth-child(3) { animation-delay: 1s; }
+      .exclusive-particle:nth-child(4) { animation-delay: 1.5s; }
+      .exclusive-particle:nth-child(5) { animation-delay: 2s; }
+      .exclusive-particle:nth-child(6) { animation-delay: 2.5s; }
 
       /* Enhanced hover effect for glow cards */
       .pet-card-glow:hover {
