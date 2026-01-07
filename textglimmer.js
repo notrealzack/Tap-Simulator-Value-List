@@ -1,10 +1,10 @@
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /textglimmer.js
 
-// Debug warning: Text glimmer effect for rarity badges, uses CSS animations (no 24/7 loops)
+// Debug warning: Text glimmer effect for pet names and rarity badges, uses CSS animations (no 24/7 loops)
 
 (function() {
-  // Rarity gradient configurations
+  // Rarity gradient configurations for badges
   const rarityGradients = {
     'Mythical': {
       colors: ['#ff6b9d', '#ff8fab', '#ff6b9d'],
@@ -32,6 +32,12 @@
     }
   };
 
+  // Pet name glimmer configuration (subtle white-to-cyan shimmer)
+  const petNameGradient = {
+    colors: ['#ffffff', '#e0f2fe', '#bae6fd', '#e0f2fe', '#ffffff'],
+    animationDuration: '4s'
+  };
+
   // Apply glimmer effect to rarity badges
   function applyGlimmerEffect(element, rarity) {
     if (!rarityGradients[rarity]) return;
@@ -50,14 +56,44 @@
     element.style.animation = `glimmer ${config.animationDuration} ease-in-out infinite`;
   }
 
-  // Initialize glimmer on all rarity elements
-  function initGlimmer() {
+  // Apply subtle glimmer to pet names
+  function applyPetNameGlimmer(element) {
+    const gradient = `linear-gradient(90deg, ${petNameGradient.colors.join(', ')})`;
+
+    // Set gradient background
+    element.style.backgroundImage = gradient;
+    element.style.backgroundSize = '300% 100%';
+    element.style.backgroundClip = 'text';
+    element.style.webkitBackgroundClip = 'text';
+    element.style.color = 'transparent';
+
+    // Add animation
+    element.style.animation = `glimmer ${petNameGradient.animationDuration} ease-in-out infinite`;
+  }
+
+  // Initialize glimmer on all rarity badges
+  function initRarityGlimmer() {
     const rarityElements = document.querySelectorAll('.pet-rarity');
     
     rarityElements.forEach(element => {
       const rarityText = element.textContent.trim();
       applyGlimmerEffect(element, rarityText);
     });
+  }
+
+  // Initialize glimmer on all pet names
+  function initPetNameGlimmer() {
+    const nameElements = document.querySelectorAll('.pet-name');
+    
+    nameElements.forEach(element => {
+      applyPetNameGlimmer(element);
+    });
+  }
+
+  // Initialize all glimmers
+  function initGlimmer() {
+    initRarityGlimmer();
+    initPetNameGlimmer();
   }
 
   // Create CSS animation keyframes dynamically
@@ -77,6 +113,12 @@
         100% {
           background-position: 0% 50%;
         }
+      }
+
+      /* Ensure pet names maintain readability */
+      .pet-name {
+        font-weight: 600;
+        letter-spacing: 0.3px;
       }
     `;
     document.head.appendChild(style);
