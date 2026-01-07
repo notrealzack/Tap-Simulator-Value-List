@@ -8,176 +8,171 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Roblox Pet Values</title>
+  <title>TS Pet Values</title>
 
-  <!-- Simple reset + base styles -->
+  <!-- Favicon placeholder (add later to avoid 404) -->
+  <link rel="icon" href="data:," />
+
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Debug warning: Frontend is in early setup stage, no real data yet -->
-  <meta name="debug-warning" content="Frontend shell only, API and Supabase not wired yet." />
+  <!-- Debug warning: Frontend redesigned with sidebar navigation and rarity categories -->
+  <meta name="debug-warning" content="New design with admin CRUD, no online counter" />
 </head>
 <body>
-  <!-- Simple top header -->
-  <header class="site-header">
-    <div class="logo">Roblox Pet Values</div>
+  <!-- Particle canvas background -->
+  <canvas id="particles-canvas"></canvas>
 
-    <!-- Basic navigation, can expand later -->
-    <nav class="main-nav">
-      <a href="#pets">Pets</a>
-      <a href="#online">Online</a>
-      <a href="#admin-login">Admin</a>
+  <!-- Sidebar navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h1 class="sidebar-title">TS Pet Values</h1>
+    </div>
+
+    <nav class="sidebar-nav">
+      <!-- World Pets section -->
+      <div class="nav-section">
+        <button class="nav-section-toggle" data-section="world-pets">
+          <span class="nav-arrow">▼</span>
+          World Pets
+        </button>
+        <div class="nav-section-content" data-section-content="world-pets">
+          <a href="#mythical" class="nav-link" data-rarity="Mythical">Mythical</a>
+          <a href="#secret-i" class="nav-link" data-rarity="Secret I">Secret I</a>
+          <a href="#secret-ii" class="nav-link" data-rarity="Secret II">Secret II</a>
+          <a href="#secret-iii" class="nav-link" data-rarity="Secret III">Secret III</a>
+        </div>
+      </div>
+
+      <!-- Leaderboard section -->
+      <div class="nav-section">
+        <a href="#leaderboard" class="nav-link nav-link-single" data-rarity="Leaderboard">
+          Leaderboard
+        </a>
+      </div>
+
+      <!-- Exclusive section -->
+      <div class="nav-section">
+        <a href="#exclusive" class="nav-link nav-link-single" data-rarity="Exclusive">
+          Exclusive
+        </a>
+      </div>
+
+      <!-- Admin section (only visible when logged in) -->
+      <div class="nav-section admin-only hidden" id="admin-nav-section">
+        <button class="nav-section-toggle" data-section="admin">
+          <span class="nav-arrow">▼</span>
+          Admin Panel
+        </button>
+        <div class="nav-section-content" data-section-content="admin">
+          <a href="#add-pet" class="nav-link" id="nav-add-pet">Add Pet</a>
+          <a href="#logout" class="nav-link" id="nav-logout">Logout</a>
+        </div>
+      </div>
     </nav>
-  </header>
+  </aside>
 
-  <main>
-    <!-- Pets section: list is filled by main.js later -->
-    <section id="pets" class="section">
-      <h1>Pet Value List</h1>
-      <p class="section-note">
-        This list will be cached in your browser for 30 minutes to keep the site fast.
-      </p>
-
-      <!-- Container where JS will render pet cards -->
-      <div id="pet-list" class="pet-list">
-        <!-- Debug warning (HTML comment): JS should replace this placeholder with live data -->
-        <!-- DEBUG-WARNING: Pet list is currently static placeholder content. -->
-        <p class="placeholder">
-          Loading pets... If nothing appears, the API is not connected yet.
-        </p>
+  <!-- Main content area -->
+  <main class="main-content">
+    <!-- Admin login panel (visible when not logged in) -->
+    <section class="login-panel" id="login-panel">
+      <div class="login-card">
+        <h2>Admin Login</h2>
+        <form id="login-form">
+          <input type="text" id="login-username" placeholder="Username" autocomplete="username" required />
+          <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" required />
+          <button type="submit" class="btn-primary">Login</button>
+          <p class="form-message" id="login-message"></p>
+        </form>
       </div>
     </section>
 
-    <!-- Online counter area -->
-    <section id="online" class="section">
-      <h2>People Online</h2>
-      <p class="section-note">
-        This value is fetched once per page load and cached for 30 minutes.
-      </p>
-
-      <div id="online-counter" class="online-counter">
-        <!-- DEBUG-WARNING: Placeholder text, main.js will replace with /api/online response -->
-        <span class="online-label">Currently online:</span>
-        <span id="online-value" class="online-value">...</span>
-      </div>
-    </section>
-
-    <!-- Admin login form (basic shell, no real auth yet) -->
-    <section id="admin-login" class="section">
-      <h2>Admin Login</h2>
-      <p class="section-note">
-        Admins can add, edit, or remove pets. This form will talk to the backend later.
-      </p>
-
-      <form id="login-form" class="card">
-        <!-- DEBUG-WARNING: Login form is frontend-only right now, no API call is wired. -->
-        <label>
-          Username
-          <input type="text" id="login-username" name="username" autocomplete="username" required />
-        </label>
-
-        <label>
-          Password
-          <input type="password" id="login-password" name="password" autocomplete="current-password" required />
-        </label>
-
-        <button type="submit">Log In</button>
-
-        <p id="login-message" class="form-message"></p>
-      </form>
-    </section>
-
-    <!-- Admin panel shell (hidden by default, shown after login by JS later) -->
-    <section id="admin-panel" class="section hidden">
-      <h2>Admin Panel</h2>
-      <p class="section-note">
-        Only visible to logged-in admins. Add, edit, or remove pets here.
-      </p>
-
-      <!-- DEBUG-WARNING: Button is wired only on frontend for now, no backend calls yet. -->
-      <button id="open-add-pet" class="primary-btn">
-        + Add Pet
-      </button>
-
-      <!-- Placeholder admin info -->
-      <div id="admin-info" class="admin-info">
-        Role: <span id="admin-role">Unknown</span>
-      </div>
+    <!-- Pet display area -->
+    <section class="pets-container" id="pets-container">
+      <!-- Debug warning: Pet cards will be dynamically inserted here by main.js -->
+      <div class="pets-loading">Loading pets...</div>
     </section>
   </main>
 
-  <!-- Add Pet popup (hidden by default, toggled by JS later) -->
-  <div id="add-pet-modal" class="modal hidden" aria-hidden="true">
+  <!-- Add/Edit Pet Modal -->
+  <div class="modal hidden" id="pet-modal" aria-hidden="true">
     <div class="modal-backdrop"></div>
-
     <div class="modal-content">
-      <h3>Add Pet</h3>
-      <p class="section-note">
-        After adding, you might need to refresh after 30 minutes to see updated values.
-      </p>
+      <div class="modal-header">
+        <h3 id="modal-title">Add Pet</h3>
+        <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+      </div>
 
-      <form id="add-pet-form">
-        <!-- Image upload or URL can be decided when backend is ready -->
-        <label>
-          Image
-          <input type="file" id="pet-image" name="image" accept="image/*" />
-        </label>
+      <form id="pet-form">
+        <!-- Hidden field for edit mode -->
+        <input type="hidden" id="pet-id" />
 
-        <label>
-          Name
-          <input type="text" id="pet-name" name="name" required />
-        </label>
-
-        <label>
-          Rarity
-          <select id="pet-rarity" name="rarity" required>
-            <option value="">Select rarity...</option>
-            <option value="Common">Common</option>
-            <option value="Uncommon">Uncommon</option>
-            <option value="Rare">Rare</option>
-            <option value="Legendary">Legendary</option>
-            <option value="Exclusive">Exclusive</option>
-          </select>
-        </label>
-
-        <label>
-          Base stats
-          <textarea
-            id="pet-stats"
-            name="stats"
-            placeholder="HP: 100, Speed: 50"
-            rows="3"
-          ></textarea>
-        </label>
-
-        <label>
-          Current value
-          <input type="number" id="pet-value" name="value" min="0" step="1" required />
-        </label>
-
-        <div class="modal-actions">
-          <button type="submit" class="primary-btn">Submit</button>
-          <button type="button" id="close-add-pet" class="secondary-btn">Cancel</button>
+        <!-- Image upload -->
+        <div class="form-group">
+          <label for="pet-image">Image (1:1 ratio recommended)</label>
+          <input type="file" id="pet-image" accept="image/*" />
+          <div class="image-preview hidden" id="image-preview">
+            <img id="preview-img" src="" alt="Preview" />
+          </div>
         </div>
 
-        <p id="add-pet-message" class="form-message"></p>
+        <!-- Name -->
+        <div class="form-group">
+          <label for="pet-name">Name *</label>
+          <input type="text" id="pet-name" required />
+        </div>
 
-        <!-- DEBUG-WARNING: Submitting this form will only be handled locally until API is wired. -->
+        <!-- Rarity -->
+        <div class="form-group">
+          <label for="pet-rarity">Rarity *</label>
+          <select id="pet-rarity" required>
+            <option value="">Select rarity...</option>
+            <option value="Mythical">Mythical</option>
+            <option value="Secret I">Secret I</option>
+            <option value="Secret II">Secret II</option>
+            <option value="Secret III">Secret III</option>
+            <option value="Leaderboard">Leaderboard</option>
+            <option value="Exclusive">Exclusive</option>
+          </select>
+        </div>
+
+        <!-- Tap Stats -->
+        <div class="form-group">
+          <label for="pet-tap-stats">Tap Stats *</label>
+          <input type="number" id="pet-tap-stats" min="0" step="1" required />
+        </div>
+
+        <!-- Gem Stats -->
+        <div class="form-group">
+          <label for="pet-gem-stats">Gem Stats *</label>
+          <input type="number" id="pet-gem-stats" min="0" step="1" required />
+        </div>
+
+        <!-- Current Value -->
+        <div class="form-group">
+          <label for="pet-value">Current Value *</label>
+          <input type="number" id="pet-value" min="0" step="1" required />
+        </div>
+
+        <!-- Form actions -->
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Save</button>
+          <button type="button" class="btn-secondary" id="cancel-btn">Cancel</button>
+        </div>
+
+        <p class="form-message" id="pet-form-message"></p>
       </form>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="site-footer">
-    <p>Roblox Pet Values · Static frontend on GitHub Pages</p>
-  </footer>
-
-  <!-- Main JS file where logic, caching, and API calls will live -->
+  <!-- Scripts -->
+  <script src="particles.js"></script>
+  <script src="textglimmer.js"></script>
+  <script src="secreteffects.js"></script>
+  <script src="sidebar.js"></script>
   <script src="main.js"></script>
 
-  <!-- Debug warning: main.js must handle localStorage cache and all API calls -->
-  <script>
-    // DEBUG-WARNING: Ensure main.js implements 30-minute cache and no 24/7 loops.
-  </script>
+  <!-- Debug warning: All effects and logic are modular for easy maintenance -->
 </body>
 </html>
 
