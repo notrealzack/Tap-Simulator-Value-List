@@ -16,83 +16,103 @@
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Debug warning: Frontend redesigned with sidebar navigation and rarity categories -->
-  <meta name="debug-warning" content="New design with admin CRUD, no online counter" />
+  <!-- Debug warning: Added top bar and discreet admin login -->
+  <meta name="debug-warning" content="Top bar added, admin login via icon" />
 </head>
 <body>
   <!-- Particle canvas background -->
   <canvas id="particles-canvas"></canvas>
 
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <h1 class="top-bar-title">Tap Simulator Value List</h1>
+    <div class="top-bar-actions">
+      <!-- Admin icon (only shows login modal) -->
+      <button class="admin-icon-btn" id="admin-icon-btn" aria-label="Admin Login" title="Admin Login">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </button>
+      <!-- Logout button (only visible when logged in) -->
+      <button class="logout-btn hidden" id="logout-btn" title="Logout">
+        Logout
+      </button>
+    </div>
+  </header>
+
   <!-- Sidebar navigation -->
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <h1 class="sidebar-title">TS Pet Values</h1>
-    </div>
-
     <nav class="sidebar-nav">
-      <!-- World Pets section -->
+      <!-- Direct rarity links (no World Pets wrapper) -->
       <div class="nav-section">
-        <button class="nav-section-toggle" data-section="world-pets">
-          <span class="nav-arrow">▼</span>
-          World Pets
-        </button>
-        <div class="nav-section-content" data-section-content="world-pets">
-          <a href="#mythical" class="nav-link" data-rarity="Mythical">Mythical</a>
-          <a href="#secret-i" class="nav-link" data-rarity="Secret I">Secret I</a>
-          <a href="#secret-ii" class="nav-link" data-rarity="Secret II">Secret II</a>
-          <a href="#secret-iii" class="nav-link" data-rarity="Secret III">Secret III</a>
-        </div>
+        <a href="#mythical" class="nav-link" data-rarity="Mythical">Mythical</a>
       </div>
 
-      <!-- Leaderboard section -->
       <div class="nav-section">
-        <a href="#leaderboard" class="nav-link nav-link-single" data-rarity="Leaderboard">
-          Leaderboard
-        </a>
+        <a href="#secret-i" class="nav-link" data-rarity="Secret I">Secret I</a>
       </div>
 
-      <!-- Exclusive section -->
       <div class="nav-section">
-        <a href="#exclusive" class="nav-link nav-link-single" data-rarity="Exclusive">
-          Exclusive
-        </a>
+        <a href="#secret-ii" class="nav-link" data-rarity="Secret II">Secret II</a>
+      </div>
+
+      <div class="nav-section">
+        <a href="#secret-iii" class="nav-link" data-rarity="Secret III">Secret III</a>
+      </div>
+
+      <div class="nav-section">
+        <a href="#leaderboard" class="nav-link" data-rarity="Leaderboard">Leaderboard</a>
+      </div>
+
+      <div class="nav-section">
+        <a href="#exclusive" class="nav-link" data-rarity="Exclusive">Exclusive</a>
       </div>
 
       <!-- Admin section (only visible when logged in) -->
       <div class="nav-section admin-only hidden" id="admin-nav-section">
-        <button class="nav-section-toggle" data-section="admin">
-          <span class="nav-arrow">▼</span>
-          Admin Panel
-        </button>
-        <div class="nav-section-content" data-section-content="admin">
-          <a href="#add-pet" class="nav-link" id="nav-add-pet">Add Pet</a>
-          <a href="#logout" class="nav-link" id="nav-logout">Logout</a>
-        </div>
+        <a href="#add-pet" class="nav-link" id="nav-add-pet">+ Add Pet</a>
       </div>
     </nav>
   </aside>
 
   <!-- Main content area -->
   <main class="main-content">
-    <!-- Admin login panel (visible when not logged in) -->
-    <section class="login-panel" id="login-panel">
-      <div class="login-card">
-        <h2>Admin Login</h2>
-        <form id="login-form">
-          <input type="text" id="login-username" placeholder="Username" autocomplete="username" required />
-          <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" required />
-          <button type="submit" class="btn-primary">Login</button>
-          <p class="form-message" id="login-message"></p>
-        </form>
-      </div>
-    </section>
-
     <!-- Pet display area -->
     <section class="pets-container" id="pets-container">
       <!-- Debug warning: Pet cards will be dynamically inserted here by main.js -->
       <div class="pets-loading">Loading pets...</div>
     </section>
   </main>
+
+  <!-- Admin Login Modal (hidden by default, triggered by icon) -->
+  <div class="modal hidden" id="login-modal" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Admin Login</h3>
+        <button class="modal-close" id="login-modal-close" aria-label="Close">&times;</button>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-username">Username</label>
+          <input type="text" id="login-username" placeholder="Enter username" autocomplete="username" required />
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password" required />
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Login</button>
+        </div>
+
+        <p class="form-message" id="login-message"></p>
+      </form>
+    </div>
+  </div>
 
   <!-- Add/Edit Pet Modal -->
   <div class="modal hidden" id="pet-modal" aria-hidden="true">
@@ -172,7 +192,7 @@
   <script src="sidebar.js"></script>
   <script src="main.js"></script>
 
-  <!-- Debug warning: All effects and logic are modular for easy maintenance -->
+  <!-- Debug warning: Admin login is discreet, credentials stored in Supabase -->
 </body>
 </html>
 
