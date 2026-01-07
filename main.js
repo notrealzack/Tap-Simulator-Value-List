@@ -383,6 +383,7 @@ function renderPets(filterRarity = null) {
   }
 }
 
+// FIXED: All class names now match styles.css exactly
 function createPetCard(pet) {
   const rarityClass = getRarityClass(pet.rarity);
   const imageUrl = pet.image_url;
@@ -390,37 +391,35 @@ function createPetCard(pet) {
 
   return `
     <div class="pet-card" data-pet-id="${pet.id}">
-      <div class="pet-image-container">
+      <div class="pet-image">
         ${imageUrl ? 
-          `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" class="pet-image">` :
-          `<div class="pet-image-placeholder">No Image</div>`
+          `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}">` :
+          `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">No Image</div>`
         }
       </div>
       <div class="pet-info">
         <h3 class="pet-name">${escapeHtml(pet.name)}</h3>
-        <span class="rarity-badge rarity-badge-${rarityClass}">${escapeHtml(pet.rarity)}</span>
+        <span class="pet-rarity pet-rarity-${rarityClass}">${escapeHtml(pet.rarity)}</span>
       </div>
       <div class="pet-stats">
-        <div class="stat-row">
-          <span class="stat-label">Stats</span>
-          <span class="stat-value">${formatNumber(pet.stats || 0)}</span>
+        <div class="pet-stat-row">
+          <span class="pet-stat-label">Stats</span>
+          <span class="pet-stat-value">${formatNumber(pet.stats || 0)}</span>
         </div>
-        <div class="stat-row">
-          <span class="stat-label">Normal</span>
-          <span class="stat-value">${formatNumber(pet.value_normal || 0)}</span>
+        <div class="pet-stat-row">
+          <span class="pet-stat-label">Normal</span>
+          <span class="pet-stat-value">${formatNumber(pet.value_normal || 0)}</span>
         </div>
-        <div class="stat-row">
-          <span class="stat-label">Golden</span>
-          <span class="stat-value">${formatNumber(pet.value_golden || 0)}</span>
+        <div class="pet-stat-row">
+          <span class="pet-stat-label">Golden</span>
+          <span class="pet-stat-value">${formatNumber(pet.value_golden || 0)}</span>
         </div>
-        <div class="stat-row">
-          <span class="stat-label">Rainbow</span>
-          <span class="stat-value">${formatNumber(pet.value_rainbow || 0)}</span>
+        <div class="pet-stat-row">
+          <span class="pet-stat-label">Rainbow</span>
+          <span class="pet-stat-value">${formatNumber(pet.value_rainbow || 0)}</span>
         </div>
       </div>
-      <div class="pet-footer">
-        <span class="pet-updated">Updated: ${lastUpdated}</span>
-      </div>
+      <div class="pet-updated">Updated: ${lastUpdated}</div>
       <div class="pet-admin-actions">
         <button class="btn-edit" onclick="editPet(${pet.id})">Edit</button>
         <button class="btn-delete" onclick="deletePet(${pet.id})">Delete</button>
@@ -840,6 +839,7 @@ function initEventListeners() {
   // Filter button - toggle dropdown
   const filterBtn = document.getElementById('filter-btn');
   const filterMenu = document.getElementById('filter-menu');
+  
   if (filterBtn && filterMenu) {
     filterBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -884,9 +884,9 @@ function initEventListeners() {
   document.addEventListener('click', (e) => {
     const navLink = e.target.closest('.nav-link');
     if (!navLink) return;
-
+    
     e.preventDefault();
-
+    
     // Trade Calculator button
     if (navLink.id === 'nav-trade-calculator') {
       if (typeof window.openTradeCalculator === 'function') {
@@ -896,13 +896,13 @@ function initEventListeners() {
       }
       return;
     }
-
+    
     // Add Pet
     if (navLink.id === 'nav-add-pet') {
       openPetModal();
       return;
     }
-
+    
     // Clear Cache
     if (navLink.id === 'nav-clear-cache') {
       clearCache(CACHE_KEY);
@@ -910,7 +910,7 @@ function initEventListeners() {
       alert('Cache cleared. Pets reloaded from server.');
       return;
     }
-
+    
     // Rarity filter
     const rarity = navLink.dataset.rarity;
     if (rarity !== undefined) {
@@ -919,7 +919,7 @@ function initEventListeners() {
         link.classList.remove('active');
       });
       navLink.classList.add('active');
-
+      
       // Render pets with rarity filter
       renderPets(rarity);
     }
