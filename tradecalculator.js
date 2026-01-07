@@ -110,6 +110,32 @@ Object.defineProperty(window, 'isTradeCalculatorOpen', {
 });
 
 // =======================
+// Helper Functions (MOVED TO TOP FOR USE IN OTHER FUNCTIONS)
+// =======================
+
+// Debug warning: Use global value translator for accurate value comparisons
+function getNumericValue(textValue) {
+  // Use the global parseValueToNumber function from main.js
+  if (typeof window.parseValueToNumber === 'function') {
+    return window.parseValueToNumber(textValue);
+  }
+  // Fallback if function not available
+  return parseFloat(textValue) || 0;
+}
+
+function formatNumber(num) {
+  if (num == null) return '0';
+  return Number(num).toLocaleString();
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// =======================
 // Pet Management (Allows Duplicates)
 // =======================
 function addPetToSide(pet, side) {
@@ -122,7 +148,7 @@ function addPetToSide(pet, side) {
     id: pet.id,
     uniqueId: Date.now() + Math.random(),
     name: pet.name,
-    value_normal: pet.value_normal || 0,
+    value_normal: pet.value_normal || '0',
     image_url: pet.image_url,
     rarity: pet.rarity
   });
@@ -162,13 +188,15 @@ function updateTokenValue(value, side) {
 }
 
 // =======================
-// Value Calculations
+// Value Calculations (UPDATED - Uses value translator)
 // =======================
+
+// Debug warning: Converts text values to numbers for accurate calculations
 function calculateTotalValue(side) {
   if (!side) return 0;
   
   const petsTotal = tradeState[side].pets.reduce((sum, pet) => {
-    return sum + (pet.value_normal || 0);
+    return sum + getNumericValue(pet.value_normal);
   }, 0);
   
   const total = petsTotal + tradeState[side].tokens;
@@ -249,6 +277,7 @@ function searchPets(query) {
   );
 }
 
+// Debug warning: Display keeps text format (15K, 1.5M) for user readability
 function renderSearchResults(pets) {
   const resultsContainer = document.getElementById('trade-search-results');
   if (!resultsContainer) return;
@@ -268,7 +297,7 @@ function renderSearchResults(pets) {
       }
       <div class="trade-result-pet-info">
         <span class="trade-result-pet-name">${escapeHtml(pet.name)}</span>
-        <span class="trade-result-pet-value">${formatNumber(pet.value_normal || 0)}</span>
+        <span class="trade-result-pet-value">${pet.value_normal || '0'}</span>
       </div>
     </div>
   `).join('');
@@ -347,6 +376,7 @@ function renderTradePanel() {
   updateTradeResult();
 }
 
+// Debug warning: Display keeps text format (15K, 1.5M) in pet cards
 function renderSidePets(side) {
   const container = document.getElementById(`${side}-pets`);
   if (!container) return;
@@ -367,7 +397,7 @@ function renderSidePets(side) {
           `<div class="trade-pet-placeholder">?</div>`
         }
         <div class="trade-pet-name">${escapeHtml(pet.name)}</div>
-        <div class="trade-pet-value">${formatNumber(pet.value_normal || 0)}</div>
+        <div class="trade-pet-value">${pet.value_normal || '0'}</div>
         <button class="trade-remove-btn" data-unique-id="${pet.uniqueId}" data-side="${side}">×</button>
       </div>
     `;
@@ -480,21 +510,6 @@ function attachTradeEventListeners() {
       }
     }
   });
-}
-
-// =======================
-// Helper Functions
-// =======================
-function formatNumber(num) {
-  if (num == null) return '0';
-  return Number(num).toLocaleString();
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }
 
 // =======================
