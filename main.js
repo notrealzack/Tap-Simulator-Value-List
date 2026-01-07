@@ -67,7 +67,7 @@ function clearCache(key) {
 }
 
 // =======================
-// Sidebar generation (Trade button at bottom)
+// Sidebar generation (Trade button at bottom, no emoji)
 // =======================
 function generateSidebar() {
   const sidebarContent = document.querySelector('.sidebar-content');
@@ -92,16 +92,13 @@ function generateSidebar() {
     
     <nav id="admin-nav-section" class="nav-section admin-only" style="display:none;">
       <a href="#" class="nav-link" id="nav-add-pet">+ Add Pet</a>
-      <a href="#" class="nav-link" id="nav-clear-cache">🔄 Clear Cache</a>
+      <a href="#" class="nav-link" id="nav-clear-cache">Clear Cache</a>
     </nav>
     
     <div class="nav-spacer"></div>
     
     <nav class="nav-section nav-bottom">
-      <a href="#" class="nav-link nav-link-trade" id="nav-trade-calculator">
-        <span class="nav-icon">🔄</span>
-        <span>Trade Calculator</span>
-      </a>
+      <a href="#" class="nav-link nav-link-trade" id="nav-trade-calculator">Trade Calculator</a>
     </nav>
   `;
 
