@@ -1,13 +1,12 @@
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /sidebar.js
 
-// Debug warning: Sidebar navigation helpers - supplementary to main.js
-// Note: Core sidebar generation and nav-link handling is in main.js to avoid duplicate listeners
+// Debug warning: Sidebar navigation logic, event-driven (no 24/7 loops)
 
 (function() {
   let currentRarity = null;
 
-  // Toggle collapsible sections (for future expandable sidebar sections)
+  // Toggle collapsible sections
   function initCollapsibleSections() {
     const toggleButtons = document.querySelectorAll('.nav-section-toggle');
 
@@ -32,17 +31,53 @@
     });
   }
 
-  // Show/hide admin section (called from main.js events)
+  // Handle navigation link clicks
+  function initNavLinks() {
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        // Special handling for admin links
+        if (link.id === 'nav-add-pet') {
+          window.dispatchEvent(new CustomEvent('openAddPetModal'));
+          return;
+        }
+
+        if (link.id === 'nav-logout') {
+          window.dispatchEvent(new CustomEvent('adminLogout'));
+          return;
+        }
+
+        // Get rarity from data attribute
+        const rarity = link.getAttribute('data-rarity');
+        if (!rarity) return;
+
+        // Update current rarity filter
+        currentRarity = rarity;
+
+        // Update active state
+        navLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+
+        // Dispatch event for main.js to filter pets
+        window.dispatchEvent(new CustomEvent('rarityFilterChanged', {
+          detail: { rarity }
+        }));
+      });
+    });
+  }
+
+  // Show/hide admin section
   function toggleAdminSection(isVisible) {
     const adminSection = document.getElementById('admin-nav-section');
     if (!adminSection) return;
 
     if (isVisible) {
-      adminSection.style.display = 'block';
       adminSection.classList.remove('hidden');
       adminSection.classList.add('visible');
     } else {
-      adminSection.style.display = 'none';
       adminSection.classList.add('hidden');
       adminSection.classList.remove('visible');
     }
@@ -53,62 +88,37 @@
     return currentRarity;
   }
 
-  // Set current rarity (called from main.js when filter changes)
-  function setCurrentRarity(rarity) {
-    currentRarity = rarity;
-  }
-
   // Reset navigation (clear all filters)
   function resetNavigation() {
     currentRarity = null;
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => link.classList.remove('active'));
-    
-    // Set "All Pets" as active
-    const allPetsLink = document.querySelector('.nav-link[data-rarity="all"]');
-    if (allPetsLink) {
-      allPetsLink.classList.add('active');
-    }
   }
 
-  // Initialize sidebar (called from index.html)
-  function initSidebar() {
-    console.log('[Sidebar] Initializing sidebar helpers');
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', () => {
     initCollapsibleSections();
-    
-    // Listen for admin login/logout events from main.js
-    window.addEventListener('adminLoggedIn', () => {
-      toggleAdminSection(true);
-    });
+    initNavLinks();
+  });
 
-    window.addEventListener('adminLoggedOut', () => {
-      toggleAdminSection(false);
-    });
+  // Listen for admin login/logout events from main.js
+  window.addEventListener('adminLoggedIn', () => {
+    toggleAdminSection(true);
+  });
 
-    // Listen for rarity filter changes from main.js
-    window.addEventListener('rarityFilterChanged', (e) => {
-      if (e.detail && e.detail.rarity !== undefined) {
-        setCurrentRarity(e.detail.rarity);
-      }
-    });
-  }
+  window.addEventListener('adminLoggedOut', () => {
+    toggleAdminSection(false);
+  });
 
-  // Public API for main.js and other scripts
+  // Public API for main.js
   window.Sidebar = {
     showAdminSection: () => toggleAdminSection(true),
     hideAdminSection: () => toggleAdminSection(false),
     getCurrentRarity,
-    setCurrentRarity,
-    resetNavigation,
-    init: initSidebar
+    resetNavigation
   };
 
-  // Make initSidebar globally accessible for index.html initialization
-  window.initSidebar = initSidebar;
-
-  // Debug warning: Navigation link clicks handled by main.js event delegation
-  // Debug warning: Sidebar generation handled by generateSidebar() in main.js
-  // Debug warning: All sidebar interactions are event-driven, no polling loops
+  // Debug warning: All sidebar interactions are event-driven, no polling
 })();
 
 // File type: Client-side JavaScript (for GitHub Pages)
