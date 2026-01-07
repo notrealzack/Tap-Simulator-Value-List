@@ -1,7 +1,7 @@
 // File type: Client-side JavaScript (for GitHub Pages)
-// Path: /main.js (UPDATED - Better debugging and credential handling)
+// Path: /main.js
 
-// Debug warning: Main application logic with improved credential debugging
+// Debug warning: Main application logic with admin authentication
 
 // =======================
 // Configuration
@@ -222,8 +222,8 @@ function renderPets(filterRarity = null) {
     return;
   }
 
-  // Sort by value descending
-  petsToRender.sort((a, b) => (b.value || 0) - (a.value || 0));
+  // Sort by normal value descending
+  petsToRender.sort((a, b) => (b.value_normal || 0) - (a.value_normal || 0));
 
   const html = petsToRender.map(pet => createPetCard(pet)).join('');
   container.innerHTML = html;
@@ -249,21 +249,28 @@ function createPetCard(pet) {
       <div class="pet-image">
         ${imageUrl ? `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" loading="lazy" />` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);">No Image</div>'}
       </div>
-      <div class="pet-header">
+      <div class="pet-info">
         <div class="pet-name">${escapeHtml(pet.name)}</div>
         <div class="pet-rarity pet-rarity-${rarityClass}">${escapeHtml(pet.rarity)}</div>
       </div>
       <div class="pet-stats">
         <div class="pet-stat-row">
-          <span class="pet-stat-label">Tap Stats:</span>
-          <span class="pet-stat-value">${formatNumber(pet.tap_stats)}</span>
+          <span class="pet-stat-label">Stats:</span>
+          <span class="pet-stat-value">${formatNumber(pet.stats)}</span>
         </div>
         <div class="pet-stat-row">
-          <span class="pet-stat-label">Gem Stats:</span>
-          <span class="pet-stat-value">${formatNumber(pet.gem_stats)}</span>
+          <span class="pet-stat-label">Normal:</span>
+          <span class="pet-stat-value">${formatNumber(pet.value_normal)}</span>
+        </div>
+        <div class="pet-stat-row">
+          <span class="pet-stat-label">Golden:</span>
+          <span class="pet-stat-value">${formatNumber(pet.value_golden)}</span>
+        </div>
+        <div class="pet-stat-row">
+          <span class="pet-stat-label">Rainbow:</span>
+          <span class="pet-stat-value">${formatNumber(pet.value_rainbow)}</span>
         </div>
       </div>
-      <div class="pet-value">Value: ${formatNumber(pet.value)}</div>
       <div class="pet-updated">Updated: ${lastUpdated}</div>
       <div class="pet-admin-actions">
         <button class="btn-edit" onclick="editPet(${pet.id})">Edit</button>
@@ -502,9 +509,10 @@ function openPetModal(pet = null) {
     document.getElementById('pet-id').value = pet.id;
     document.getElementById('pet-name').value = pet.name;
     document.getElementById('pet-rarity').value = pet.rarity;
-    document.getElementById('pet-tap-stats').value = pet.tap_stats || 0;
-    document.getElementById('pet-gem-stats').value = pet.gem_stats || 0;
-    document.getElementById('pet-value').value = pet.value || 0;
+    document.getElementById('pet-stats').value = pet.stats || 0;
+    document.getElementById('pet-value-normal').value = pet.value_normal || 0;
+    document.getElementById('pet-value-golden').value = pet.value_golden || 0;
+    document.getElementById('pet-value-rainbow').value = pet.value_rainbow || 0;
 
     // Show current image if exists
     if (pet.image_url) {
@@ -599,9 +607,10 @@ function initEventListeners() {
     const petData = {
       name: document.getElementById('pet-name').value.trim(),
       rarity: document.getElementById('pet-rarity').value,
-      tap_stats: parseInt(document.getElementById('pet-tap-stats').value) || 0,
-      gem_stats: parseInt(document.getElementById('pet-gem-stats').value) || 0,
-      value: parseInt(document.getElementById('pet-value').value) || 0,
+      stats: parseInt(document.getElementById('pet-stats').value) || 0,
+      value_normal: parseInt(document.getElementById('pet-value-normal').value) || 0,
+      value_golden: parseInt(document.getElementById('pet-value-golden').value) || 0,
+      value_rainbow: parseInt(document.getElementById('pet-value-rainbow').value) || 0,
       image_url: document.getElementById('preview-img').src || ''
     };
 
