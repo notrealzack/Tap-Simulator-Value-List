@@ -1,8 +1,8 @@
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /tradecalculator.js
 
-// Debug warning: Trade calculator logic - displays inline in content area, no modal popup
-// Debug warning: Allows multiple of same pet type, cleaner UI without excessive frames
+// Debug warning: Trade calculator logic - displays inline in content area without destroying pets-container
+// Debug warning: Allows multiple of same pet type, proper DOM handling
 
 // =======================
 // Configuration
@@ -40,7 +40,6 @@ function loadTradeFromCache() {
     }
   } catch (err) {
     console.warn('[DEBUG-WARNING] Failed to load trade state:', err);
-    // Reset to default if cache corrupted
     tradeState = {
       you: { pets: [], tokens: 0 },
       them: { pets: [], tokens: 0 }
@@ -57,7 +56,7 @@ function clearTradeCache() {
 }
 
 // =======================
-// Trade Calculator Display
+// Trade Calculator Display (FIXED - Preserves DOM)
 // =======================
 function openTradeCalculator() {
   console.log('[Trade Calculator] Opening...');
@@ -69,7 +68,7 @@ function openTradeCalculator() {
   
   isTradeCalculatorOpen = true;
   
-  // Hide pets grid and welcome
+  // Hide pets grid and welcome (don't remove them!)
   const petsContainer = document.getElementById('pets-container');
   const welcomeDiv = document.querySelector('.welcome');
   if (petsContainer) petsContainer.style.display = 'none';
@@ -89,24 +88,26 @@ function closeTradeCalculator() {
   
   isTradeCalculatorOpen = false;
   
-  // Hide trade calculator
+  // Remove trade calculator
   const contentArea = document.getElementById('content');
   if (contentArea) {
     const tradeCalc = contentArea.querySelector('.trade-calculator-inline');
     if (tradeCalc) tradeCalc.remove();
   }
   
-  // Show pets grid and welcome
+  // Show pets grid and welcome (they were just hidden, not removed)
   const petsContainer = document.getElementById('pets-container');
   const welcomeDiv = document.querySelector('.welcome');
   if (petsContainer) petsContainer.style.display = 'grid';
   if (welcomeDiv) welcomeDiv.style.display = 'block';
-  
-  // Re-render pets if function exists
-  if (typeof window.renderPets === 'function') {
-    window.renderPets();
-  }
 }
+
+// Expose flag globally
+window.isTradeCalculatorOpen = false;
+Object.defineProperty(window, 'isTradeCalculatorOpen', {
+  get: function() { return isTradeCalculatorOpen; },
+  set: function(value) { isTradeCalculatorOpen = value; }
+});
 
 // =======================
 // Pet Management (Allows Duplicates)
@@ -117,10 +118,9 @@ function addPetToSide(pet, side) {
     return;
   }
   
-  // Add pet to side (allows duplicates by adding new entry each time)
   tradeState[side].pets.push({
     id: pet.id,
-    uniqueId: Date.now() + Math.random(), // Unique identifier for this instance
+    uniqueId: Date.now() + Math.random(),
     name: pet.name,
     value_normal: pet.value_normal || 0,
     image_url: pet.image_url,
@@ -138,7 +138,6 @@ function removePetFromSide(uniqueId, side) {
     return;
   }
   
-  // Filter out the specific pet instance
   tradeState[side].pets = tradeState[side].pets.filter(p => p.uniqueId !== uniqueId);
   
   saveTradeToCache();
@@ -155,7 +154,7 @@ function updateTokenValue(value, side) {
   }
   
   const tokenValue = parseInt(value) || 0;
-  tradeState[side].tokens = Math.max(0, tokenValue); // Prevent negative
+  tradeState[side].tokens = Math.max(0, tokenValue);
   
   saveTradeToCache();
   updateTotalDisplay();
@@ -168,12 +167,10 @@ function updateTokenValue(value, side) {
 function calculateTotalValue(side) {
   if (!side) return 0;
   
-  // Sum pet values
   const petsTotal = tradeState[side].pets.reduce((sum, pet) => {
     return sum + (pet.value_normal || 0);
   }, 0);
   
-  // Add tokens
   const total = petsTotal + tradeState[side].tokens;
   return total;
 }
@@ -182,7 +179,6 @@ function compareTrades() {
   const youTotal = calculateTotalValue('you');
   const themTotal = calculateTotalValue('them');
   
-  // Avoid division by zero
   if (themTotal === 0 && youTotal === 0) {
     return { status: 'neutral', text: 'Add pets to compare', class: 'neutral' };
   }
@@ -194,17 +190,14 @@ function compareTrades() {
   const difference = youTotal - themTotal;
   const percentageDiff = (Math.abs(difference) / themTotal) * 100;
   
-  // Fair trade (within 5% difference)
   if (percentageDiff <= 5) {
     return { status: 'fair', text: 'Fair Trade ✓', class: 'fair' };
   }
   
-  // You're giving more (losing)
   if (difference > 0) {
     return { status: 'lose', text: `You Lose (-${formatNumber(Math.abs(difference))})`, class: 'lose' };
   }
   
-  // You're giving less (winning)
   return { status: 'win', text: `You Win! (+${formatNumber(Math.abs(difference))})`, class: 'win' };
 }
 
@@ -228,14 +221,10 @@ function openSearchDropdown(side) {
     return;
   }
   
-  // Clear previous search
   searchInput.value = '';
-  
-  // Show dropdown
   dropdown.classList.remove('hidden');
   searchInput.focus();
   
-  // Render all pets initially
   renderSearchResults(window.allPets);
 }
 
@@ -250,12 +239,10 @@ function closeSearchDropdown() {
 function searchPets(query) {
   if (!window.allPets) return [];
   
-  // If empty query, return all pets
   if (!query || !query.trim()) {
     return window.allPets;
   }
   
-  // Filter by name (case-insensitive)
   const lowerQuery = query.toLowerCase();
   return window.allPets.filter(pet => 
     pet.name && pet.name.toLowerCase().includes(lowerQuery)
@@ -271,7 +258,6 @@ function renderSearchResults(pets) {
     return;
   }
   
-  // Limit to first 50 results for performance
   const limitedPets = pets.slice(0, 50);
   
   const html = limitedPets.map(pet => `
@@ -291,7 +277,7 @@ function renderSearchResults(pets) {
 }
 
 // =======================
-// Rendering Functions
+// Rendering Functions (FIXED - Creates alongside existing elements)
 // =======================
 function renderTradeCalculatorInline() {
   const contentArea = document.getElementById('content');
@@ -301,51 +287,53 @@ function renderTradeCalculatorInline() {
   const existing = contentArea.querySelector('.trade-calculator-inline');
   if (existing) existing.remove();
   
-  const html = `
-    <div class="trade-calculator-inline">
-      <!-- Header -->
-      <div class="trade-calc-header">
-        <h2>🔄 Trade Calculator</h2>
-      </div>
-      
-      <!-- Trade Sides Container -->
-      <div class="trade-sides-container">
-        <!-- YOUR OFFER -->
-        <div class="trade-side-section" data-side="you">
-          <h3 class="trade-side-title you-title">YOU</h3>
-          <div class="trade-pets-grid" id="you-pets"></div>
-          <div class="trade-input-group">
-            <label>Tokens</label>
-            <input type="number" id="you-tokens" placeholder="0" min="0" value="${tradeState.you.tokens}">
-          </div>
-          <div class="trade-total">Total: <span id="you-total">0</span></div>
+  // Create trade calculator element
+  const tradeCalcDiv = document.createElement('div');
+  tradeCalcDiv.className = 'trade-calculator-inline';
+  tradeCalcDiv.innerHTML = `
+    <!-- Header -->
+    <div class="trade-calc-header">
+      <h2>🔄 Trade Calculator</h2>
+    </div>
+    
+    <!-- Trade Sides Container -->
+    <div class="trade-sides-container">
+      <!-- YOUR OFFER -->
+      <div class="trade-side-section" data-side="you">
+        <h3 class="trade-side-title you-title">YOU</h3>
+        <div class="trade-pets-grid" id="you-pets"></div>
+        <div class="trade-input-group">
+          <label>Tokens</label>
+          <input type="number" id="you-tokens" placeholder="0" min="0" value="${tradeState.you.tokens}">
         </div>
-        
-        <!-- THEIR OFFER -->
-        <div class="trade-side-section" data-side="them">
-          <h3 class="trade-side-title them-title">THEM</h3>
-          <div class="trade-pets-grid" id="them-pets"></div>
-          <div class="trade-input-group">
-            <label>Tokens</label>
-            <input type="number" id="them-tokens" placeholder="0" min="0" value="${tradeState.them.tokens}">
-          </div>
-          <div class="trade-total">Total: <span id="them-total">0</span></div>
+        <div class="trade-total">Total: <span id="you-total">0</span></div>
+      </div>
+      
+      <!-- THEIR OFFER -->
+      <div class="trade-side-section" data-side="them">
+        <h3 class="trade-side-title them-title">THEM</h3>
+        <div class="trade-pets-grid" id="them-pets"></div>
+        <div class="trade-input-group">
+          <label>Tokens</label>
+          <input type="number" id="them-tokens" placeholder="0" min="0" value="${tradeState.them.tokens}">
         </div>
+        <div class="trade-total">Total: <span id="them-total">0</span></div>
       </div>
-      
-      <!-- Trade Result -->
-      <div id="trade-calc-result" class="trade-calc-result neutral">
-        <span id="trade-result-text">Add pets to compare</span>
-      </div>
-      
-      <!-- Actions -->
-      <div class="trade-calc-actions">
-        <button id="trade-calc-reset-btn" class="trade-calc-btn">Reset</button>
-      </div>
+    </div>
+    
+    <!-- Trade Result -->
+    <div id="trade-calc-result" class="trade-calc-result neutral">
+      <span id="trade-result-text">Add pets to compare</span>
+    </div>
+    
+    <!-- Actions -->
+    <div class="trade-calc-actions">
+      <button id="trade-calc-reset-btn" class="trade-calc-btn">Reset</button>
     </div>
   `;
   
-  contentArea.innerHTML = html;
+  // Insert at the beginning of content area (before welcome and pets-container)
+  contentArea.insertBefore(tradeCalcDiv, contentArea.firstChild);
   
   // Render initial state
   renderTradePanel();
@@ -365,14 +353,12 @@ function renderSidePets(side) {
   
   const pets = tradeState[side].pets;
   
-  // Always show the add button
   let html = `
     <div class="trade-add-card" data-side="${side}">
       <div class="trade-add-icon">+</div>
     </div>
   `;
   
-  // Add selected pets as square cards
   pets.forEach(pet => {
     html += `
       <div class="trade-pet-card" data-unique-id="${pet.uniqueId}">
@@ -391,14 +377,12 @@ function renderSidePets(side) {
 }
 
 function updateTotalDisplay() {
-  // Update You total
   const youTotal = calculateTotalValue('you');
   const youTotalElement = document.getElementById('you-total');
   if (youTotalElement) {
     youTotalElement.textContent = formatNumber(youTotal);
   }
   
-  // Update Them total
   const themTotal = calculateTotalValue('them');
   const themTotalElement = document.getElementById('them-total');
   if (themTotalElement) {
@@ -413,7 +397,6 @@ function updateTradeResult() {
   
   if (!resultElement || !resultText) return;
   
-  // Update text and class
   resultText.textContent = result.text;
   resultElement.className = `trade-calc-result ${result.class}`;
 }
@@ -422,7 +405,6 @@ function updateTradeResult() {
 // Event Listeners
 // =======================
 function attachTradeEventListeners() {
-  // Reset button
   const resetBtn = document.getElementById('trade-calc-reset-btn');
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
@@ -434,7 +416,6 @@ function attachTradeEventListeners() {
         clearTradeCache();
         renderTradePanel();
         
-        // Clear token inputs
         const youTokens = document.getElementById('you-tokens');
         const themTokens = document.getElementById('them-tokens');
         if (youTokens) youTokens.value = '';
@@ -443,7 +424,6 @@ function attachTradeEventListeners() {
     });
   }
   
-  // Token inputs
   const youTokensInput = document.getElementById('you-tokens');
   const themTokensInput = document.getElementById('them-tokens');
   
@@ -459,7 +439,6 @@ function attachTradeEventListeners() {
     });
   }
   
-  // Search input - live search
   const searchInput = document.getElementById('trade-pet-search-input');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
@@ -468,9 +447,7 @@ function attachTradeEventListeners() {
     });
   }
   
-  // Event delegation for dynamic elements
   document.addEventListener('click', (e) => {
-    // Add pet button
     const addCard = e.target.closest('.trade-add-card');
     if (addCard) {
       const side = addCard.dataset.side;
@@ -478,7 +455,6 @@ function attachTradeEventListeners() {
       return;
     }
     
-    // Remove pet button
     const removeBtn = e.target.closest('.trade-remove-btn');
     if (removeBtn) {
       const uniqueId = parseFloat(removeBtn.dataset.uniqueId);
@@ -487,7 +463,6 @@ function attachTradeEventListeners() {
       return;
     }
     
-    // Search result item
     const searchResultItem = e.target.closest('.trade-search-result-item');
     if (searchResultItem && currentSearchSide) {
       const petId = parseInt(searchResultItem.dataset.petId);
@@ -498,7 +473,6 @@ function attachTradeEventListeners() {
       return;
     }
     
-    // Close search dropdown when clicking outside
     const dropdown = document.getElementById('trade-pet-search-dropdown');
     if (dropdown && !dropdown.classList.contains('hidden')) {
       if (!dropdown.contains(e.target) && !e.target.closest('.trade-add-card')) {
