@@ -1,7 +1,7 @@
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /particles.js
 
-// Debug warning: Particle system for background effect, runs on requestAnimationFrame (not 24/7 loop)
+// Debug warning: Particle system for background effect with floating movement (not falling)
 
 (function() {
   const canvas = document.getElementById('particles-canvas');
@@ -16,8 +16,8 @@
 
   // Particle configuration
   const config = {
-    particleCount: 50,
-    particleSpeed: 0.5,
+    particleCount: 60,
+    particleSpeed: 0.3,
     particleSize: 2,
     particleColor: 'rgba(88, 101, 242, 0.3)',
     lineColor: 'rgba(88, 101, 242, 0.1)',
@@ -28,15 +28,21 @@
   class Particle {
     constructor() {
       this.reset();
-      // Start particles at random positions
+      // Start particles at random positions on screen
+      this.x = Math.random() * canvas.width;
       this.y = Math.random() * canvas.height;
     }
 
     reset() {
       this.x = Math.random() * canvas.width;
-      this.y = -10;
-      this.vx = (Math.random() - 0.5) * config.particleSpeed;
-      this.vy = Math.random() * config.particleSpeed + 0.5;
+      this.y = Math.random() * canvas.height;
+      
+      // Random velocity in all directions for floating effect
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * config.particleSpeed + 0.2;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      
       this.size = Math.random() * config.particleSize + 1;
     }
 
@@ -44,12 +50,15 @@
       this.x += this.vx;
       this.y += this.vy;
 
-      // Reset particle when it goes off screen
-      if (this.y > canvas.height + 10) {
-        this.reset();
+      // Bounce off edges instead of resetting
+      if (this.x < 0 || this.x > canvas.width) {
+        this.vx *= -1;
+        this.x = Math.max(0, Math.min(canvas.width, this.x));
       }
-      if (this.x < -10 || this.x > canvas.width + 10) {
-        this.x = Math.random() * canvas.width;
+      
+      if (this.y < 0 || this.y > canvas.height) {
+        this.vy *= -1;
+        this.y = Math.max(0, Math.min(canvas.height, this.y));
       }
     }
 
