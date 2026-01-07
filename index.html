@@ -71,14 +71,10 @@
 
       <!-- Admin Actions -->
       <div class="header-actions">
-        <!-- Admin icon button opens login modal -->
-        <button id="admin-icon-btn" class="admin-icon-btn" aria-label="Admin Login" title="Admin Login">
-          🔐
-        </button>
-        <!-- Logout button hidden by default -->
-        <button id="logout-btn" class="logout-btn hidden" aria-label="Logout" title="Logout">
-          Logout
-        </button>
+        <!-- Admin icon button (opens login modal) -->
+        <button id="admin-icon-btn" class="admin-icon-btn" aria-label="Admin Login" title="Admin Login">🔑</button>
+        <!-- Logout button (hidden by default) -->
+        <button id="logout-btn" class="logout-btn hidden" aria-label="Logout" title="Logout">Logout</button>
       </div>
     </div>
   </header>
@@ -95,10 +91,11 @@
     <!-- Content Area -->
     <main id="content">
       <div class="welcome">
-        <h2>Welcome to Tap Simulator Wiki</h2>
-        <p>Select an egg from the sidebar to view pet details and stats.</p>
+        <h2>Tap Simulator Value List</h2>
+        <p>Browse all pets and their current values</p>
       </div>
-      <!-- Pets container for admin view -->
+
+      <!-- Pets container for pet grid display -->
       <div id="pets-container" class="pets-grid"></div>
     </main>
   </div>
@@ -128,7 +125,7 @@
     </div>
   </div>
 
-  <!-- Pet Modal Add Edit -->
+  <!-- Pet Modal (Add/Edit) -->
   <div id="pet-modal" class="modal hidden" role="dialog" aria-hidden="true" aria-labelledby="modal-title">
     <div class="modal-backdrop"></div>
     <div class="modal-content">
@@ -138,7 +135,7 @@
       </div>
       <form id="pet-form">
         <input type="hidden" id="pet-id">
-        
+
         <div class="form-group">
           <label for="pet-name">Pet Name</label>
           <input type="text" id="pet-name" name="name" required placeholder="Enter pet name">
@@ -196,62 +193,11 @@
     </div>
   </div>
 
-  <!-- Trade Calculator Modal -->
-  <div id="trade-calculator-modal" class="modal hidden" role="dialog" aria-hidden="true" aria-labelledby="trade-calculator-title">
-    <div class="modal-backdrop"></div>
-    <div class="trade-calculator-content">
-      <!-- Trade Header -->
-      <div class="trade-header">
-        <h2 id="trade-calculator-title">Trade Calculator</h2>
-        <button id="trade-close-btn" class="modal-close" aria-label="Close">&times;</button>
-      </div>
-      
-      <!-- Trade Boxes Container -->
-      <div class="trade-boxes">
-        <!-- YOUR OFFER (LEFT SIDE) -->
-        <div class="trade-side" data-side="you">
-          <h3>YOU</h3>
-          <div class="trade-pets-container" id="you-pets">
-            <!-- Add button rendered by JS -->
-          </div>
-          <div class="token-input-container">
-            <label>Tokens</label>
-            <input type="number" id="you-tokens" placeholder="0" min="0">
-          </div>
-          <div class="total-value">Total: <span id="you-total">0</span></div>
-        </div>
-        
-        <!-- THEIR OFFER (RIGHT SIDE) -->
-        <div class="trade-side" data-side="them">
-          <h3>THEM</h3>
-          <div class="trade-pets-container" id="them-pets">
-            <!-- Add button rendered by JS -->
-          </div>
-          <div class="token-input-container">
-            <label>Tokens</label>
-            <input type="number" id="them-tokens" placeholder="0" min="0">
-          </div>
-          <div class="total-value">Total: <span id="them-total">0</span></div>
-        </div>
-      </div>
-      
-      <!-- Pet Search Dropdown (appears when + clicked) -->
-      <div id="pet-search-dropdown" class="pet-search-dropdown hidden">
-        <input type="text" id="pet-search-input" placeholder="Search pet name..." autocomplete="off">
-        <div id="search-results" class="search-results">
-          <!-- Search results rendered by JS -->
-        </div>
-      </div>
-      
-      <!-- Trade Result Indicator -->
-      <div id="trade-result" class="trade-result neutral">
-        <span id="result-text">Add pets to compare</span>
-      </div>
-      
-      <!-- Trade Actions -->
-      <div class="trade-actions">
-        <button id="trade-reset-btn" class="btn-secondary">Reset</button>
-      </div>
+  <!-- Pet Search Dropdown (for Trade Calculator) -->
+  <div id="trade-pet-search-dropdown" class="trade-pet-search-dropdown hidden">
+    <input type="text" id="trade-pet-search-input" placeholder="Search pet name..." autocomplete="off">
+    <div id="trade-search-results" class="trade-search-results">
+      <!-- Search results rendered by JS -->
     </div>
   </div>
 
@@ -272,17 +218,17 @@
       if (typeof initSidebar === 'function') {
         initSidebar();
       }
-      
+
       // Initialize particle effects
       if (typeof initParticles === 'function') {
         initParticles();
       }
-      
+
       // Initialize secret effects
       if (typeof initSecretEffects === 'function') {
         initSecretEffects();
       }
-      
+
       // Initialize text glimmer
       if (typeof initTextGlimmer === 'function') {
         initTextGlimmer();
