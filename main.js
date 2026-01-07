@@ -67,7 +67,7 @@ function clearCache(key) {
 }
 
 // =======================
-// Sidebar generation
+// Sidebar generation (Trade button at bottom)
 // =======================
 function generateSidebar() {
   const sidebarContent = document.querySelector('.sidebar-content');
@@ -89,12 +89,19 @@ function generateSidebar() {
         <a href="#" class="nav-link" data-rarity="${r.value}">${r.name}</a>
       `).join('')}
     </nav>
-    <nav class="nav-section nav-tools">
-      <a href="#" class="nav-link" id="nav-trade-calculator">🔄 Trade Calculator</a>
-    </nav>
+    
     <nav id="admin-nav-section" class="nav-section admin-only" style="display:none;">
       <a href="#" class="nav-link" id="nav-add-pet">+ Add Pet</a>
       <a href="#" class="nav-link" id="nav-clear-cache">🔄 Clear Cache</a>
+    </nav>
+    
+    <div class="nav-spacer"></div>
+    
+    <nav class="nav-section nav-bottom">
+      <a href="#" class="nav-link nav-link-trade" id="nav-trade-calculator">
+        <span class="nav-icon">🔄</span>
+        <span>Trade Calculator</span>
+      </a>
     </nav>
   `;
 
@@ -245,6 +252,11 @@ window.allPets = allPets;
 
 async function loadPets(forceRefresh = false) {
   const container = document.getElementById('pets-container');
+  if (!container) {
+    console.warn('[DEBUG-WARNING] pets-container not found');
+    return;
+  }
+  
   container.innerHTML = '<div class="pets-loading">Loading pets...</div>';
 
   // Try cache first unless force refresh
@@ -354,6 +366,12 @@ function filterAndSortPets() {
 
 function renderPets(filterRarity = null) {
   const container = document.getElementById('pets-container');
+  
+  // Check if container exists before trying to set innerHTML
+  if (!container) {
+    console.warn('[DEBUG-WARNING] pets-container not found in renderPets');
+    return;
+  }
   
   // Update current filter and welcome message
   if (filterRarity !== null) {
@@ -914,9 +932,14 @@ function initEventListeners() {
       return;
     }
     
-    // Rarity filter
+    // Rarity filter - close trade calculator if open
     const rarity = navLink.dataset.rarity;
     if (rarity !== undefined) {
+      // Close trade calculator if open
+      if (typeof window.closeTradeCalculator === 'function' && window.isTradeCalculatorOpen) {
+        window.closeTradeCalculator();
+      }
+      
       // Update active state
       document.querySelectorAll('.nav-link[data-rarity]').forEach(link => {
         link.classList.remove('active');
