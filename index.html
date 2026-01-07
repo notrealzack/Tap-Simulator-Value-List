@@ -1,0 +1,185 @@
+<!-- File type: Static HTML (for GitHub Pages) -->
+<!-- Path: /index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Basic meta setup -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Roblox Pet Values</title>
+
+  <!-- Simple reset + base styles -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Debug warning: Frontend is in early setup stage, no real data yet -->
+  <meta name="debug-warning" content="Frontend shell only, API and Supabase not wired yet." />
+</head>
+<body>
+  <!-- Simple top header -->
+  <header class="site-header">
+    <div class="logo">Roblox Pet Values</div>
+
+    <!-- Basic navigation, can expand later -->
+    <nav class="main-nav">
+      <a href="#pets">Pets</a>
+      <a href="#online">Online</a>
+      <a href="#admin-login">Admin</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Pets section: list is filled by main.js later -->
+    <section id="pets" class="section">
+      <h1>Pet Value List</h1>
+      <p class="section-note">
+        This list will be cached in your browser for 30 minutes to keep the site fast.
+      </p>
+
+      <!-- Container where JS will render pet cards -->
+      <div id="pet-list" class="pet-list">
+        <!-- Debug warning (HTML comment): JS should replace this placeholder with live data -->
+        <!-- DEBUG-WARNING: Pet list is currently static placeholder content. -->
+        <p class="placeholder">
+          Loading pets... If nothing appears, the API is not connected yet.
+        </p>
+      </div>
+    </section>
+
+    <!-- Online counter area -->
+    <section id="online" class="section">
+      <h2>People Online</h2>
+      <p class="section-note">
+        This value is fetched once per page load and cached for 30 minutes.
+      </p>
+
+      <div id="online-counter" class="online-counter">
+        <!-- DEBUG-WARNING: Placeholder text, main.js will replace with /api/online response -->
+        <span class="online-label">Currently online:</span>
+        <span id="online-value" class="online-value">...</span>
+      </div>
+    </section>
+
+    <!-- Admin login form (basic shell, no real auth yet) -->
+    <section id="admin-login" class="section">
+      <h2>Admin Login</h2>
+      <p class="section-note">
+        Admins can add, edit, or remove pets. This form will talk to the backend later.
+      </p>
+
+      <form id="login-form" class="card">
+        <!-- DEBUG-WARNING: Login form is frontend-only right now, no API call is wired. -->
+        <label>
+          Username
+          <input type="text" id="login-username" name="username" autocomplete="username" required />
+        </label>
+
+        <label>
+          Password
+          <input type="password" id="login-password" name="password" autocomplete="current-password" required />
+        </label>
+
+        <button type="submit">Log In</button>
+
+        <p id="login-message" class="form-message"></p>
+      </form>
+    </section>
+
+    <!-- Admin panel shell (hidden by default, shown after login by JS later) -->
+    <section id="admin-panel" class="section hidden">
+      <h2>Admin Panel</h2>
+      <p class="section-note">
+        Only visible to logged-in admins. Add, edit, or remove pets here.
+      </p>
+
+      <!-- DEBUG-WARNING: Button is wired only on frontend for now, no backend calls yet. -->
+      <button id="open-add-pet" class="primary-btn">
+        + Add Pet
+      </button>
+
+      <!-- Placeholder admin info -->
+      <div id="admin-info" class="admin-info">
+        Role: <span id="admin-role">Unknown</span>
+      </div>
+    </section>
+  </main>
+
+  <!-- Add Pet popup (hidden by default, toggled by JS later) -->
+  <div id="add-pet-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+
+    <div class="modal-content">
+      <h3>Add Pet</h3>
+      <p class="section-note">
+        After adding, you might need to refresh after 30 minutes to see updated values.
+      </p>
+
+      <form id="add-pet-form">
+        <!-- Image upload or URL can be decided when backend is ready -->
+        <label>
+          Image
+          <input type="file" id="pet-image" name="image" accept="image/*" />
+        </label>
+
+        <label>
+          Name
+          <input type="text" id="pet-name" name="name" required />
+        </label>
+
+        <label>
+          Rarity
+          <select id="pet-rarity" name="rarity" required>
+            <option value="">Select rarity...</option>
+            <option value="Common">Common</option>
+            <option value="Uncommon">Uncommon</option>
+            <option value="Rare">Rare</option>
+            <option value="Legendary">Legendary</option>
+            <option value="Exclusive">Exclusive</option>
+          </select>
+        </label>
+
+        <label>
+          Base stats
+          <textarea
+            id="pet-stats"
+            name="stats"
+            placeholder="HP: 100, Speed: 50"
+            rows="3"
+          ></textarea>
+        </label>
+
+        <label>
+          Current value
+          <input type="number" id="pet-value" name="value" min="0" step="1" required />
+        </label>
+
+        <div class="modal-actions">
+          <button type="submit" class="primary-btn">Submit</button>
+          <button type="button" id="close-add-pet" class="secondary-btn">Cancel</button>
+        </div>
+
+        <p id="add-pet-message" class="form-message"></p>
+
+        <!-- DEBUG-WARNING: Submitting this form will only be handled locally until API is wired. -->
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>Roblox Pet Values · Static frontend on GitHub Pages</p>
+  </footer>
+
+  <!-- Main JS file where logic, caching, and API calls will live -->
+  <script src="main.js"></script>
+
+  <!-- Debug warning: main.js must handle localStorage cache and all API calls -->
+  <script>
+    // DEBUG-WARNING: Ensure main.js implements 30-minute cache and no 24/7 loops.
+  </script>
+</body>
+</html>
+
+<!-- File type: Static HTML (for GitHub Pages) -->
+<!-- Path: /index.html -->
