@@ -244,14 +244,11 @@ async function loadPets(forceRefresh = false) {
     }
   }
 
-  // Fetch from backend
+  // Fetch from backend with timestamp to prevent caching
   try {
     const res = await fetch(`${API_BASE}/api/pets?t=${Date.now()}`, {
       method: 'GET',
-      headers: { 
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache'
-      }
+      headers: { 'Accept': 'application/json' }
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
