@@ -7,7 +7,7 @@
 // Configuration
 // =======================
 const API_BASE = "https://ts-value-list-proxy.vercel.app";
-const CACHE_KEY = "rpv_pets_cache";
+const CACHE_KEY = "rpv_pets_cache_v2";
 const ADMIN_KEY = "rpv_admin_session";
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 
