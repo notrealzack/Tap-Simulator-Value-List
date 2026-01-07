@@ -89,6 +89,9 @@ function generateSidebar() {
         <a href="#" class="nav-link" data-rarity="${r.value}">${r.name}</a>
       `).join('')}
     </nav>
+    <nav class="nav-section nav-tools">
+      <a href="#" class="nav-link" id="nav-trade-calculator">🔄 Trade Calculator</a>
+    </nav>
     <nav id="admin-nav-section" class="nav-section admin-only" style="display:none;">
       <a href="#" class="nav-link" id="nav-add-pet">+ Add Pet</a>
       <a href="#" class="nav-link" id="nav-clear-cache">🔄 Clear Cache</a>
@@ -237,6 +240,9 @@ function hideAdminUI() {
 // =======================
 let allPets = [];
 
+// Make allPets globally accessible for trade calculator
+window.allPets = allPets;
+
 async function loadPets(forceRefresh = false) {
   const container = document.getElementById('pets-container');
   container.innerHTML = '<div class="pets-loading">Loading pets...</div>';
@@ -246,6 +252,7 @@ async function loadPets(forceRefresh = false) {
     const cached = getCache(CACHE_KEY);
     if (cached && Array.isArray(cached)) {
       allPets = cached;
+      window.allPets = allPets; // Update global reference
       renderPets();
       return;
     }
@@ -262,6 +269,7 @@ async function loadPets(forceRefresh = false) {
 
     const data = await res.json();
     allPets = Array.isArray(data) ? data : [];
+    window.allPets = allPets; // Update global reference
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
     renderPets();
     console.log('[DEBUG] Loaded', allPets.length, 'pets from API');
@@ -381,44 +389,47 @@ function createPetCard(pet) {
   const lastUpdated = formatLastUpdated(pet.updated_at);
 
   return `
-    <article class="pet-card" data-pet-id="${pet.id}">
-      <div class="pet-image">
+    <div class="pet-card" data-pet-id="${pet.id}">
+      <div class="pet-image-container">
         ${imageUrl ? 
-          `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" loading="lazy">` :
-          `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);">No Image</div>`
+          `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" class="pet-image">` :
+          `<div class="pet-image-placeholder">No Image</div>`
         }
       </div>
       <div class="pet-info">
-        <div class="pet-name">${escapeHtml(pet.name)}</div>
-        <div class="pet-rarity pet-rarity-${rarityClass}">${escapeHtml(pet.rarity)}</div>
+        <h3 class="pet-name">${escapeHtml(pet.name)}</h3>
+        <span class="rarity-badge rarity-badge-${rarityClass}">${escapeHtml(pet.rarity)}</span>
       </div>
       <div class="pet-stats">
-        <div class="pet-stat-row">
-          <span class="pet-stat-label">Stats:</span>
-          <span class="pet-stat-value">${formatNumber(pet.stats)}</span>
+        <div class="stat-row">
+          <span class="stat-label">Stats</span>
+          <span class="stat-value">${formatNumber(pet.stats || 0)}</span>
         </div>
-        <div class="pet-stat-row">
-          <span class="pet-stat-label">Normal:</span>
-          <span class="pet-stat-value">${formatNumber(pet.value_normal)}</span>
+        <div class="stat-row">
+          <span class="stat-label">Normal</span>
+          <span class="stat-value">${formatNumber(pet.value_normal || 0)}</span>
         </div>
-        <div class="pet-stat-row">
-          <span class="pet-stat-label">Golden:</span>
-          <span class="pet-stat-value">${formatNumber(pet.value_golden)}</span>
+        <div class="stat-row">
+          <span class="stat-label">Golden</span>
+          <span class="stat-value">${formatNumber(pet.value_golden || 0)}</span>
         </div>
-        <div class="pet-stat-row">
-          <span class="pet-stat-label">Rainbow:</span>
-          <span class="pet-stat-value">${formatNumber(pet.value_rainbow)}</span>
+        <div class="stat-row">
+          <span class="stat-label">Rainbow</span>
+          <span class="stat-value">${formatNumber(pet.value_rainbow || 0)}</span>
         </div>
       </div>
-      <div class="pet-updated">Updated: ${lastUpdated}</div>
+      <div class="pet-footer">
+        <span class="pet-updated">Updated: ${lastUpdated}</span>
+      </div>
       <div class="pet-admin-actions">
         <button class="btn-edit" onclick="editPet(${pet.id})">Edit</button>
         <button class="btn-delete" onclick="deletePet(${pet.id})">Delete</button>
       </div>
-    </article>
+    </div>
   `;
 }
 
+// Helper function to get rarity class
 function getRarityClass(rarity) {
   const map = {
     'Mythical': 'mythical',
@@ -431,41 +442,44 @@ function getRarityClass(rarity) {
   return map[rarity] || 'mythical';
 }
 
+// Helper function to format last updated timestamp
 function formatLastUpdated(timestamp) {
   if (!timestamp) return 'Unknown';
-  const date = new Date(timestamp);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const day = date.getDate();
-  const month = months[date.getMonth()];
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${day} ${month} - ${hours}:${minutes}`;
+  
+  try {
+    const date = new Date(timestamp);
+    const day = date.getDate();
+    const month = date.toLocaleString('en', { month: 'short' });
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${day} ${month} - ${hours}:${minutes}`;
+  } catch (err) {
+    console.warn('[DEBUG-WARNING] Failed to format timestamp:', err);
+    return 'Unknown';
+  }
 }
 
+// Helper function to format numbers
 function formatNumber(num) {
   if (num == null) return '0';
   return Number(num).toLocaleString();
 }
 
+// Helper function to escape HTML
 function escapeHtml(str) {
   if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 // =======================
-// CRUD operations
+// CRUD Operations
 // =======================
 async function addPet(petData) {
-  if (!(await verifyAdminBeforeAction())) {
-    alert('Your session has expired or credentials are invalid. Please login again.');
+  if (!await verifyAdminBeforeAction()) {
     return false;
   }
-
-  console.log('[DEBUG] Sending add request with credentials:', adminCredentials.username);
 
   try {
     const res = await fetch(`${API_BASE}/api/pets`, {
@@ -478,8 +492,6 @@ async function addPet(petData) {
       body: JSON.stringify(petData)
     });
 
-    console.log('[DEBUG] Add pet response status:', res.status);
-
     if (res.status === 401) {
       console.warn('[DEBUG] Unauthorized - logging out');
       adminLogout();
@@ -487,15 +499,16 @@ async function addPet(petData) {
     }
 
     if (!res.ok) {
-      const errorData = await res.json();
-      console.warn('[DEBUG] Add pet failed:', errorData);
-      throw new Error(`HTTP ${res.status}`);
+      console.warn('[DEBUG] Failed to add pet:', res.status);
+      return false;
     }
 
     const newPet = await res.json();
     allPets.push(newPet);
+    window.allPets = allPets; // Update global reference
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-    renderPets();
+    renderPets(currentRarityFilter);
+    console.log('[DEBUG] Pet added:', newPet.name);
     return true;
   } catch (err) {
     console.warn('[DEBUG-WARNING] Add pet error:', err);
@@ -504,12 +517,9 @@ async function addPet(petData) {
 }
 
 async function updatePet(petId, petData) {
-  if (!(await verifyAdminBeforeAction())) {
-    alert('Your session has expired or credentials are invalid. Please login again.');
+  if (!await verifyAdminBeforeAction()) {
     return false;
   }
-
-  console.log('[DEBUG] Sending update request for pet:', petId, 'with credentials:', adminCredentials.username);
 
   try {
     const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
@@ -522,8 +532,6 @@ async function updatePet(petId, petData) {
       body: JSON.stringify(petData)
     });
 
-    console.log('[DEBUG] Update pet response status:', res.status);
-
     if (res.status === 401) {
       console.warn('[DEBUG] Unauthorized - logging out');
       adminLogout();
@@ -531,18 +539,19 @@ async function updatePet(petId, petData) {
     }
 
     if (!res.ok) {
-      const errorData = await res.json();
-      console.warn('[DEBUG] Update pet failed:', errorData);
-      throw new Error(`HTTP ${res.status}`);
+      console.warn('[DEBUG] Failed to update pet:', res.status);
+      return false;
     }
 
     const updatedPet = await res.json();
     const index = allPets.findIndex(p => p.id === petId);
     if (index !== -1) {
       allPets[index] = updatedPet;
+      window.allPets = allPets; // Update global reference
+      setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
+      renderPets(currentRarityFilter);
     }
-    setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-    renderPets();
+    console.log('[DEBUG] Pet updated:', updatedPet.name);
     return true;
   } catch (err) {
     console.warn('[DEBUG-WARNING] Update pet error:', err);
@@ -555,12 +564,9 @@ async function deletePet(petId) {
     return;
   }
 
-  if (!(await verifyAdminBeforeAction())) {
-    alert('Your session has expired or credentials are invalid. Please login again.');
+  if (!await verifyAdminBeforeAction()) {
     return;
   }
-
-  console.log('[DEBUG] Sending delete request for pet:', petId);
 
   try {
     const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
@@ -571,8 +577,6 @@ async function deletePet(petId) {
       }
     });
 
-    console.log('[DEBUG] Delete pet response status:', res.status);
-
     if (res.status === 401) {
       console.warn('[DEBUG] Unauthorized - logging out');
       adminLogout();
@@ -580,104 +584,114 @@ async function deletePet(petId) {
     }
 
     if (!res.ok) {
-      const errorData = await res.json();
-      console.warn('[DEBUG] Delete pet failed:', errorData);
-      throw new Error(`HTTP ${res.status}`);
+      console.warn('[DEBUG] Failed to delete pet:', res.status);
+      alert('Failed to delete pet. Please try again.');
+      return;
     }
 
     allPets = allPets.filter(p => p.id !== petId);
+    window.allPets = allPets; // Update global reference
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-    renderPets();
+    renderPets(currentRarityFilter);
+    console.log('[DEBUG] Pet deleted:', petId);
   } catch (err) {
     console.warn('[DEBUG-WARNING] Delete pet error:', err);
     alert('Failed to delete pet. Please try again.');
   }
 }
 
-// Make deletePet available globally for onclick handlers
+// Make deletePet globally accessible
 window.deletePet = deletePet;
 
 function editPet(petId) {
   const pet = allPets.find(p => p.id === petId);
-  if (!pet) {
-    alert('Pet not found');
-    return;
+  if (pet) {
+    openPetModal(pet);
   }
-  openPetModal(pet);
 }
 
-// Make editPet available globally for onclick handlers
+// Make editPet globally accessible
 window.editPet = editPet;
 
 // =======================
-// Modal management
+// Modal Management
 // =======================
+let currentEditingPetId = null;
+
 function openLoginModal() {
   const modal = document.getElementById('login-modal');
   const form = document.getElementById('login-form');
   const message = document.getElementById('login-message');
   
-  form.reset();
-  message.textContent = '';
-  message.className = 'form-message';
-  modal.classList.remove('hidden');
-  modal.setAttribute('aria-hidden', 'false');
+  if (form) form.reset();
+  if (message) message.textContent = '';
+  
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+  }
 }
 
 function closeLoginModal() {
   const modal = document.getElementById('login-modal');
-  modal.classList.add('hidden');
-  modal.setAttribute('aria-hidden', 'true');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+  }
 }
-
-let currentEditingPetId = null;
 
 function openPetModal(pet = null) {
   const modal = document.getElementById('pet-modal');
   const form = document.getElementById('pet-form');
-  const title = document.getElementById('modal-title');
+  const modalTitle = document.getElementById('modal-title');
   const message = document.getElementById('pet-form-message');
-  const preview = document.getElementById('image-preview');
-
-  form.reset();
-  message.textContent = '';
-  message.className = 'form-message';
-  preview.classList.add('hidden');
-
+  const imagePreview = document.getElementById('image-preview');
+  
+  if (form) form.reset();
+  if (message) message.textContent = '';
+  if (imagePreview) imagePreview.classList.add('hidden');
+  
   if (pet) {
     // Edit mode
-    title.textContent = 'Edit Pet';
     currentEditingPetId = pet.id;
+    if (modalTitle) modalTitle.textContent = 'Edit Pet';
+    
+    // Populate form fields
     document.getElementById('pet-name').value = pet.name || '';
     document.getElementById('pet-rarity').value = pet.rarity || '';
-    document.getElementById('pet-stats').value = pet.stats || 0;
-    document.getElementById('pet-value-normal').value = pet.value_normal || 0;
-    document.getElementById('pet-value-golden').value = pet.value_golden || 0;
-    document.getElementById('pet-value-rainbow').value = pet.value_rainbow || 0;
+    document.getElementById('pet-stats').value = pet.stats || '';
+    document.getElementById('pet-value-normal').value = pet.value_normal || '';
+    document.getElementById('pet-value-golden').value = pet.value_golden || '';
+    document.getElementById('pet-value-rainbow').value = pet.value_rainbow || '';
     
-    if (pet.image_url) {
+    // Show image preview if exists
+    if (pet.image_url && imagePreview) {
       document.getElementById('preview-img').src = pet.image_url;
-      preview.classList.remove('hidden');
+      imagePreview.classList.remove('hidden');
     }
   } else {
     // Add mode
-    title.textContent = 'Add Pet';
     currentEditingPetId = null;
+    if (modalTitle) modalTitle.textContent = 'Add Pet';
   }
-
-  modal.classList.remove('hidden');
-  modal.setAttribute('aria-hidden', 'false');
+  
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+  }
 }
 
 function closePetModal() {
   const modal = document.getElementById('pet-modal');
-  modal.classList.add('hidden');
-  modal.setAttribute('aria-hidden', 'true');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+  }
   currentEditingPetId = null;
 }
 
 // =======================
-// Event listeners
+// Event Listeners
 // =======================
 function initEventListeners() {
   // Admin icon button
@@ -694,66 +708,92 @@ function initEventListeners() {
 
   // Login modal close
   const loginModalClose = document.getElementById('login-modal-close');
-  const loginModalBackdrop = document.querySelector('#login-modal .modal-backdrop');
-  if (loginModalClose) loginModalClose.addEventListener('click', closeLoginModal);
-  if (loginModalBackdrop) loginModalBackdrop.addEventListener('click', closeLoginModal);
+  if (loginModalClose) {
+    loginModalClose.addEventListener('click', closeLoginModal);
+  }
 
-  // Login form submit
+  const loginModal = document.getElementById('login-modal');
+  if (loginModal) {
+    const backdrop = loginModal.querySelector('.modal-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', closeLoginModal);
+    }
+  }
+
+  // Login form
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const username = document.getElementById('login-username').value.trim();
+      const username = document.getElementById('login-username').value;
       const password = document.getElementById('login-password').value;
       const message = document.getElementById('login-message');
-
+      
       message.textContent = 'Verifying credentials...';
       message.className = 'form-message';
-
+      
       const success = await adminLogin(username, password);
-
+      
       if (success) {
         message.textContent = 'Login successful!';
-        message.classList.add('success');
+        message.className = 'form-message success';
       } else {
         message.textContent = 'Invalid username or password.';
-        message.classList.add('error');
+        message.className = 'form-message error';
       }
     });
   }
 
   // Pet modal close
-  const petModalClose = document.getElementById('modal-close');
-  const petModalBackdrop = document.querySelector('#pet-modal .modal-backdrop');
-  const cancelBtn = document.getElementById('cancel-btn');
-  if (petModalClose) petModalClose.addEventListener('click', closePetModal);
-  if (petModalBackdrop) petModalBackdrop.addEventListener('click', closePetModal);
-  if (cancelBtn) cancelBtn.addEventListener('click', closePetModal);
+  const modalClose = document.getElementById('modal-close');
+  if (modalClose) {
+    modalClose.addEventListener('click', closePetModal);
+  }
 
-  // Pet form submit
+  const cancelBtn = document.getElementById('cancel-btn');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', closePetModal);
+  }
+
+  const petModal = document.getElementById('pet-modal');
+  if (petModal) {
+    const backdrop = petModal.querySelector('.modal-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', closePetModal);
+    }
+  }
+
+  // Pet form submission
   const petForm = document.getElementById('pet-form');
   if (petForm) {
     petForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const message = document.getElementById('pet-form-message');
       
       const petData = {
-        name: document.getElementById('pet-name').value.trim(),
+        name: document.getElementById('pet-name').value,
         rarity: document.getElementById('pet-rarity').value,
         stats: parseInt(document.getElementById('pet-stats').value) || 0,
         value_normal: parseInt(document.getElementById('pet-value-normal').value) || 0,
         value_golden: parseInt(document.getElementById('pet-value-golden').value) || 0,
-        value_rainbow: parseInt(document.getElementById('pet-value-rainbow').value) || 0,
-        image_url: document.getElementById('preview-img').src || null
+        value_rainbow: parseInt(document.getElementById('pet-value-rainbow').value) || 0
       };
 
-      const message = document.getElementById('pet-form-message');
-
-      if (!petData.name || !petData.rarity) {
-        message.textContent = 'Name and rarity are required.';
-        message.className = 'form-message error';
-        return;
+      // Handle image if provided
+      const imageInput = document.getElementById('pet-image');
+      if (imageInput && imageInput.files && imageInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          petData.image_url = event.target.result;
+          await submitPet(petData, message);
+        };
+        reader.readAsDataURL(imageInput.files[0]);
+      } else {
+        await submitPet(petData, message);
       }
+    });
 
+    async function submitPet(petData, message) {
       let success;
       if (currentEditingPetId) {
         success = await updatePet(currentEditingPetId, petData);
@@ -769,7 +809,7 @@ function initEventListeners() {
         message.textContent = 'Failed to save pet. Please try again.';
         message.className = 'form-message error';
       }
-    });
+    }
   }
 
   // Image preview
@@ -847,6 +887,16 @@ function initEventListeners() {
 
     e.preventDefault();
 
+    // Trade Calculator button
+    if (navLink.id === 'nav-trade-calculator') {
+      if (typeof window.openTradeCalculator === 'function') {
+        window.openTradeCalculator();
+      } else {
+        console.warn('[DEBUG-WARNING] Trade calculator not initialized');
+      }
+      return;
+    }
+
     // Add Pet
     if (navLink.id === 'nav-add-pet') {
       openPetModal();
@@ -885,6 +935,14 @@ document.addEventListener('DOMContentLoaded', () => {
   checkAdminSession();
   loadPets();
   initEventListeners();
+  
+  // Initialize trade calculator
+  if (typeof window.initTradeCalculator === 'function') {
+    window.initTradeCalculator();
+    console.log('[DEBUG] Trade calculator initialized');
+  } else {
+    console.warn('[DEBUG-WARNING] Trade calculator script not loaded');
+  }
 });
 
 // File type: Client-side JavaScript (for GitHub Pages)
