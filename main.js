@@ -80,7 +80,7 @@ function on(element, event, handler) {
 // =======================
 
 // Debug warning: API_BASE now points to your live Vercel backend
-const API_BASE = "https://ts-value-list-proxy-qcd33g150-astros-projects-7d607cbf.vercel.app/";
+const API_BASE = "https://ts-value-list-proxy-qcd33g150-astros-projects-7d607cbf.vercel.app";
 const PETS_ENDPOINT = "/api/pets";
 const ONLINE_ENDPOINT = "/api/online";
 
