@@ -166,32 +166,33 @@
           </select>
         </div>
 
-        <!-- Debug warning: Changed from number to text input to allow custom formats like "30B", "1.5M", "250%" -->
+        <!-- Debug warning: Text input allows custom formats like "30B", "1.5M", "250%" -->
         <div class="form-group">
           <label for="pet-stats">Stats</label>
           <input type="text" id="pet-stats" name="stats" placeholder="e.g., 30B, 1.5M, 250%">
         </div>
 
-        <!-- Debug warning: Changed from number to text input for custom value formats -->
+        <!-- Debug warning: Text input for custom value formats -->
         <div class="form-group">
           <label for="pet-value-normal">Normal Value</label>
-          <input type="text" id="pet-value-normal" name="value_normal" placeholder="e.g., 500M, 2B">
+          <input type="text" id="pet-value-normal" name="value_normal" placeholder="e.g., 500M, 2B, 15K">
         </div>
 
         <div class="form-group">
           <label for="pet-value-golden">Golden Value</label>
-          <input type="text" id="pet-value-golden" name="value_golden" placeholder="e.g., 1.5B, 10B">
+          <input type="text" id="pet-value-golden" name="value_golden" placeholder="e.g., 1.5B, 10B, 50K">
         </div>
 
         <div class="form-group">
           <label for="pet-value-rainbow">Rainbow Value</label>
-          <input type="text" id="pet-value-rainbow" name="value_rainbow" placeholder="e.g., 5B, 50B">
+          <input type="text" id="pet-value-rainbow" name="value_rainbow" placeholder="e.g., 5B, 50B, 100K">
         </div>
 
-        <!-- Pet Image Upload -->
+        <!-- Debug warning: Changed from file upload to URL input for external hosting -->
         <div class="form-group">
-          <label for="pet-image">Pet Image</label>
-          <input type="file" id="pet-image" name="image" accept="image/*">
+          <label for="pet-image-url">Pet Image URL</label>
+          <input type="url" id="pet-image-url" name="image_url" placeholder="https://example.com/image.png">
+          <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">Enter the direct URL to an image hosted elsewhere</small>
         </div>
 
         <!-- Image Preview -->
