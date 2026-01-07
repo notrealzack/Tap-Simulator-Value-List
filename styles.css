@@ -571,6 +571,7 @@ header h1 {
   color: var(--text-primary);
   font-weight: 500;
   font-size: 0.8rem;
+  color: rgb(156, 215, 6);
 }
 
 /* Pet Updated Timestamp */
@@ -876,3 +877,80 @@ form {
 
 /* File type: CSS Stylesheet (for GitHub Pages) */
 /* Path: /styles.css */
+
+
+/* File type: CSS Stylesheet (for GitHub Pages)
+ * Path: /styles.css
+ * Section: Pet Card Stats Styling
+ */
+
+/* ============================================
+ * PET CARD STATS - COLOR SEPARATED
+ * ============================================ */
+
+/* Stats Row - Label and Value */
+.pet-stats-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Stats Label */
+.pet-stats-label {
+  color: #a1a1a1; /* White - Stats label */
+  font-weight: 200;
+  font-size: 0.77rem;
+}
+
+/* Stats Value */
+.pet-stats-value {
+  color: #ffffff; /* White - Stats value */
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+/* Normal Row - Label and Value */
+.pet-normal-label {
+  color: #a1a1a1; /* White - Normal label */
+  font-weight: 200;
+  font-size: 0.77rem;
+}
+
+.pet-normal-value {
+  color: #a1a1a1b3; /* White - Normal value */
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+/* Golden Row - Label and Value */
+.pet-golden-label {
+  color: #a1a1a1; /* White - Golden label */
+  font-weight: 200;
+  font-size: 0.77rem;
+}
+
+.pet-golden-value {
+  color: #ffde21; /* White - Golden value */
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+/* Rainbow Row - Label and Value */
+.pet-rainbow-label {
+  color: #a1a1a1; /* White - Rainbow label */
+  font-weight: 200;
+  font-size: 0.77rem;
+}
+
+.pet-rainbow-value {
+  color: #f42bd6; /* White - Rainbow value */
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+/* Debug warning: All colors set to white by default, change individual classes to customize */
+
+/* File type: CSS Stylesheet (for GitHub Pages)
+ * Path: /styles.css
+ */
