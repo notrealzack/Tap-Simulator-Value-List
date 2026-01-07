@@ -2,7 +2,7 @@
 // Path: /tradecalculator.js
 
 // Debug warning: Trade calculator logic - displays inline in content area, no modal popup
-// Debug warning: Allows multiple of same pet type, uses grid layout with square cards
+// Debug warning: Allows multiple of same pet type, cleaner UI without excessive frames
 
 // =======================
 // Configuration
@@ -11,6 +11,9 @@ const TRADE_CACHE_KEY = "rpv_trade_state_v2";
 
 // Track which side is being searched (you/them)
 let currentSearchSide = null;
+
+// Track if trade calculator is open
+let isTradeCalculatorOpen = false;
 
 // Trade state object - stores pets with quantities
 let tradeState = {
@@ -24,7 +27,6 @@ let tradeState = {
 function saveTradeToCache() {
   try {
     localStorage.setItem(TRADE_CACHE_KEY, JSON.stringify(tradeState));
-    console.log('[Trade Calculator] State saved to cache');
   } catch (err) {
     console.warn('[DEBUG-WARNING] Failed to save trade state:', err);
   }
@@ -35,7 +37,6 @@ function loadTradeFromCache() {
     const cached = localStorage.getItem(TRADE_CACHE_KEY);
     if (cached) {
       tradeState = JSON.parse(cached);
-      console.log('[Trade Calculator] State loaded from cache');
     }
   } catch (err) {
     console.warn('[DEBUG-WARNING] Failed to load trade state:', err);
@@ -50,7 +51,6 @@ function loadTradeFromCache() {
 function clearTradeCache() {
   try {
     localStorage.removeItem(TRADE_CACHE_KEY);
-    console.log('[Trade Calculator] Cache cleared');
   } catch (err) {
     console.warn('[DEBUG-WARNING] Failed to clear trade cache:', err);
   }
@@ -60,7 +60,14 @@ function clearTradeCache() {
 // Trade Calculator Display
 // =======================
 function openTradeCalculator() {
-  console.log('[Trade Calculator] Opening inline display...');
+  console.log('[Trade Calculator] Opening...');
+  
+  if (isTradeCalculatorOpen) {
+    console.log('[Trade Calculator] Already open');
+    return;
+  }
+  
+  isTradeCalculatorOpen = true;
   
   // Hide pets grid and welcome
   const petsContainer = document.getElementById('pets-container');
@@ -73,7 +80,14 @@ function openTradeCalculator() {
 }
 
 function closeTradeCalculator() {
-  console.log('[Trade Calculator] Closing inline display...');
+  console.log('[Trade Calculator] Closing...');
+  
+  if (!isTradeCalculatorOpen) {
+    console.log('[Trade Calculator] Already closed');
+    return;
+  }
+  
+  isTradeCalculatorOpen = false;
   
   // Hide trade calculator
   const contentArea = document.getElementById('content');
@@ -88,7 +102,7 @@ function closeTradeCalculator() {
   if (petsContainer) petsContainer.style.display = 'grid';
   if (welcomeDiv) welcomeDiv.style.display = 'block';
   
-  // Re-render pets
+  // Re-render pets if function exists
   if (typeof window.renderPets === 'function') {
     window.renderPets();
   }
@@ -116,7 +130,6 @@ function addPetToSide(pet, side) {
   saveTradeToCache();
   renderTradePanel();
   closeSearchDropdown();
-  console.log('[Trade Calculator] Pet added:', pet.name, 'to', side);
 }
 
 function removePetFromSide(uniqueId, side) {
@@ -130,7 +143,6 @@ function removePetFromSide(uniqueId, side) {
   
   saveTradeToCache();
   renderTradePanel();
-  console.log('[Trade Calculator] Pet removed:', uniqueId, 'from', side);
 }
 
 // =======================
@@ -148,7 +160,6 @@ function updateTokenValue(value, side) {
   saveTradeToCache();
   updateTotalDisplay();
   updateTradeResult();
-  console.log('[Trade Calculator] Tokens updated:', side, tokenValue);
 }
 
 // =======================
@@ -226,8 +237,6 @@ function openSearchDropdown(side) {
   
   // Render all pets initially
   renderSearchResults(window.allPets);
-  
-  console.log('[Trade Calculator] Search opened for side:', side);
 }
 
 function closeSearchDropdown() {
@@ -296,8 +305,7 @@ function renderTradeCalculatorInline() {
     <div class="trade-calculator-inline">
       <!-- Header -->
       <div class="trade-calc-header">
-        <h2>Trade Calculator</h2>
-        <button id="trade-calc-close-btn" class="trade-calc-close-btn">×</button>
+        <h2>🔄 Trade Calculator</h2>
       </div>
       
       <!-- Trade Sides Container -->
@@ -306,7 +314,7 @@ function renderTradeCalculatorInline() {
         <div class="trade-side-section" data-side="you">
           <h3 class="trade-side-title you-title">YOU</h3>
           <div class="trade-pets-grid" id="you-pets"></div>
-          <div class="trade-token-section">
+          <div class="trade-input-group">
             <label>Tokens</label>
             <input type="number" id="you-tokens" placeholder="0" min="0" value="${tradeState.you.tokens}">
           </div>
@@ -317,7 +325,7 @@ function renderTradeCalculatorInline() {
         <div class="trade-side-section" data-side="them">
           <h3 class="trade-side-title them-title">THEM</h3>
           <div class="trade-pets-grid" id="them-pets"></div>
-          <div class="trade-token-section">
+          <div class="trade-input-group">
             <label>Tokens</label>
             <input type="number" id="them-tokens" placeholder="0" min="0" value="${tradeState.them.tokens}">
           </div>
@@ -332,13 +340,7 @@ function renderTradeCalculatorInline() {
       
       <!-- Actions -->
       <div class="trade-calc-actions">
-        <button id="trade-calc-reset-btn" class="trade-calc-reset-btn">Reset</button>
-      </div>
-      
-      <!-- Pet Search Dropdown -->
-      <div id="trade-pet-search-dropdown" class="trade-pet-search-dropdown hidden">
-        <input type="text" id="trade-pet-search-input" placeholder="Search pet name..." autocomplete="off">
-        <div id="trade-search-results" class="trade-search-results"></div>
+        <button id="trade-calc-reset-btn" class="trade-calc-btn">Reset</button>
       </div>
     </div>
   `;
@@ -367,7 +369,6 @@ function renderSidePets(side) {
   let html = `
     <div class="trade-add-card" data-side="${side}">
       <div class="trade-add-icon">+</div>
-      <div class="trade-add-text">Add Pet</div>
     </div>
   `;
   
@@ -376,11 +377,11 @@ function renderSidePets(side) {
     html += `
       <div class="trade-pet-card" data-unique-id="${pet.uniqueId}">
         ${pet.image_url ? 
-          `<img src="${pet.image_url}" alt="${escapeHtml(pet.name)}" class="trade-pet-card-img">` :
-          `<div class="trade-pet-card-placeholder">?</div>`
+          `<img src="${pet.image_url}" alt="${escapeHtml(pet.name)}" class="trade-pet-img">` :
+          `<div class="trade-pet-placeholder">?</div>`
         }
-        <div class="trade-pet-card-name">${escapeHtml(pet.name)}</div>
-        <div class="trade-pet-card-value">${formatNumber(pet.value_normal || 0)}</div>
+        <div class="trade-pet-name">${escapeHtml(pet.name)}</div>
+        <div class="trade-pet-value">${formatNumber(pet.value_normal || 0)}</div>
         <button class="trade-remove-btn" data-unique-id="${pet.uniqueId}" data-side="${side}">×</button>
       </div>
     `;
@@ -421,12 +422,6 @@ function updateTradeResult() {
 // Event Listeners
 // =======================
 function attachTradeEventListeners() {
-  // Close button
-  const closeBtn = document.getElementById('trade-calc-close-btn');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeTradeCalculator);
-  }
-  
   // Reset button
   const resetBtn = document.getElementById('trade-calc-reset-btn');
   if (resetBtn) {
@@ -444,8 +439,6 @@ function attachTradeEventListeners() {
         const themTokens = document.getElementById('them-tokens');
         if (youTokens) youTokens.value = '';
         if (themTokens) themTokens.value = '';
-        
-        console.log('[Trade Calculator] Reset complete');
       }
     });
   }
@@ -534,7 +527,6 @@ function escapeHtml(str) {
 // Initialization
 // =======================
 function initTradeCalculator() {
-  console.log('[Trade Calculator] Initializing...');
   loadTradeFromCache();
 }
 
