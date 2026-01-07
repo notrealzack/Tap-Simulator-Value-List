@@ -1,36 +1,47 @@
 /* File type: CSS Stylesheet (for GitHub Pages) */
 /* Path: /styles.css */
 
-/* Debug warning: Fixed header layout to match actual HTML structure */
+/* Debug warning: Added sidebar trade calculator button positioning at bottom */
 
-/* ============================================
-   CSS VARIABLES
-   ============================================ */
-
+/* ========================================
+   CSS VARIABLES (Design Tokens)
+   ======================================== */
 :root {
-  /* Colors */
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
+  /* Colors - Blue Dark Theme (from Tap Simulator Wiki) */
+  --bg-primary: #0d1117;
+  --bg-secondary: #1a2332;
+  --bg-tertiary: #212d3d;
+  --text-primary: #ffffff;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
   --accent-primary: #3b82f6;
-  --accent-hover: #2563eb;
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
-  --border-color: #334155;
-  
+  --accent-hover: #60a5fa;
+  --border-color: #2d3948;
+  --border-hover: #3d4958;
+
+  /* Rarity Colors */
+  --rarity-mythical: #ff6ec7;
+  --rarity-secret-i: #ff9500;
+  --rarity-secret-ii: #ff4500;
+  --rarity-secret-iii: #ff0000;
+  --rarity-leaderboard: #ffd700;
+  --rarity-exclusive: #00ff88;
+
   /* Spacing */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
   --space-lg: 24px;
   --space-xl: 32px;
+
+  /* Layout */
+  --header-height: 70px;
+  --sidebar-width: 240px;
 }
 
-/* ============================================
-   GLOBAL RESET
-   ============================================ */
-
+/* ========================================
+   BASE STYLES
+   ======================================== */
 * {
   margin: 0;
   padding: 0;
@@ -38,101 +49,108 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: var(--bg-primary);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
 }
 
-/* ============================================
-   PARTICLE CANVAS
-   ============================================ */
-
+/* ========================================
+   PARTICLES CANVAS
+   ======================================== */
 #particles-canvas {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
   pointer-events: none;
+  z-index: 0;
+  opacity: 0.8;
 }
 
-/* ============================================
-   HEADER (FIXED - 3 Sections)
-   ============================================ */
-
+/* ========================================
+   HEADER - Fixed Alignment
+   ======================================== */
 header {
-  position: sticky;
+  position: fixed;
   top: 0;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(12px);
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background-color: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
   z-index: 100;
-  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-lg);
 }
 
 .header-content {
-  max-width: 100%;
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-lg);
 }
 
-/* Left section wrapper */
-.header-content > div:first-child {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
+/* Game Icon - Perfectly Centered */
 .game-icon-container {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .game-icon {
-  width: 45px;
-  height: 45px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
   object-fit: cover;
+  border: 2px solid var(--border-color);
+  display: block;
 }
 
+/* Title Section - Vertically Centered with Subtitle */
 .header-title-section {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
 }
 
-.header-title-section h1 {
-  font-size: 1.25rem;
-  font-weight: 700;
+header h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.2;
   margin: 0;
-  white-space: nowrap;
 }
 
 .header-subtitle {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-weight: 400;
+  line-height: 1;
   margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Middle section - Search + Filter */
+/* Search and Filter Container - Centered */
 .search-filter-container {
   display: flex;
   gap: var(--space-sm);
+  flex: 1;
   max-width: 500px;
-  width: 100%;
-  flex-shrink: 1;
+  margin: 0 auto;
+  align-items: center;
 }
 
+/* Search Box */
 .search-box {
   position: relative;
   flex: 1;
-  min-width: 200px;
 }
 
 .search-icon {
@@ -146,25 +164,28 @@ header {
 
 #search-input {
   width: 100%;
-  padding: 9px 12px 9px 38px;
-  background: var(--bg-secondary);
+  height: 40px;
+  padding: 0 var(--space-md) 0 40px;
+  background-color: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   color: var(--text-primary);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   transition: all 0.2s ease;
-}
-
-#search-input:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 #search-input::placeholder {
   color: var(--text-muted);
 }
 
+#search-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  background-color: var(--bg-secondary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Filter Dropdown */
 .filter-dropdown {
   position: relative;
   flex-shrink: 0;
@@ -173,41 +194,49 @@ header {
 .filter-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  background: var(--bg-secondary);
+  gap: var(--space-sm);
+  height: 40px;
+  padding: 0 var(--space-md);
+  background-color: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   color: var(--text-primary);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
-.filter-btn:hover,
-.filter-btn.active {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
-  color: white;
+.filter-btn:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-hover);
 }
 
 .filter-icon,
 .dropdown-arrow {
-  flex-shrink: 0;
+  color: var(--text-secondary);
 }
 
+.dropdown-arrow {
+  transition: transform 0.2s ease;
+}
+
+.filter-btn.active .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Filter Menu (Dropdown) */
 .filter-menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: var(--bg-secondary);
+  min-width: 180px;
+  background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 6px;
-  min-width: 180px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  z-index: 200;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  z-index: 1000;
 }
 
 .filter-menu.hidden {
@@ -216,162 +245,157 @@ header {
 
 .filter-option {
   display: block;
-  padding: 9px 12px;
+  padding: 12px var(--space-md);
   color: var(--text-secondary);
   text-decoration: none;
-  border-radius: 6px;
+  font-size: 0.9rem;
   transition: all 0.2s ease;
   cursor: pointer;
-  font-size: 0.85rem;
+  border-left: 3px solid transparent;
 }
 
 .filter-option:hover {
-  background: rgba(59, 130, 246, 0.1);
-  color: var(--accent-primary);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .filter-option.active {
-  background: var(--accent-primary);
-  color: white;
+  color: var(--accent-primary);
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left-color: var(--accent-primary);
+  font-weight: 500;
 }
 
-/* Right section - Admin Actions */
+/* Header Actions - Aligned */
 .header-actions {
   display: flex;
   gap: var(--space-sm);
-  align-items: center;
+  margin-left: auto;
   flex-shrink: 0;
+  align-items: center;
 }
 
 .admin-icon-btn,
 .logout-btn {
-  padding: 9px 14px;
-  background: var(--bg-secondary);
+  height: 40px;
+  padding: 0 var(--space-md);
+  background-color: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   color: var(--text-primary);
-  font-size: 0.85rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-icon-btn:hover,
 .logout-btn:hover {
-  background: var(--accent-primary);
+  background-color: var(--accent-primary);
   border-color: var(--accent-primary);
-  color: white;
 }
 
 .logout-btn.hidden {
   display: none;
 }
 
-/* ============================================
-   CONTAINER & LAYOUT (SIDEBAR RIGHT)
-   ============================================ */
-
+/* ========================================
+   LAYOUT CONTAINER
+   ======================================== */
 .container {
-  position: relative;
-  z-index: 10;
-  display: grid;
-  grid-template-columns: 1fr 200px;
-  gap: var(--space-md);
-  width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  padding: var(--space-md) var(--space-lg);
-  min-height: calc(100vh - 90px);
-}
-
-/* ============================================
-   SIDEBAR (RIGHT SIDE)
-   ============================================ */
-
-#sidebar {
-  position: sticky;
-  top: 90px;
-  height: calc(100vh - 110px);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: var(--space-md);
-  overflow: hidden;
   display: flex;
-  flex-direction: column;
-  order: 2;
+  margin-top: var(--header-height);
+  min-height: calc(100vh - var(--header-height));
 }
 
+/* ========================================
+   SIDEBAR (Updated with bottom trade button)
+   ======================================== */
+#sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  padding: var(--space-lg);
+  position: sticky;
+  top: var(--header-height);
+  height: calc(100vh - var(--header-height));
+  overflow-y: auto;
+  z-index: 10;
+}
+
+/* Sidebar content uses flexbox to push trade button to bottom */
 .sidebar-content {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
 }
 
 .nav-section {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--space-xs);
   flex-shrink: 0;
 }
 
+/* Add spacing between nav sections */
 .nav-section:not(:last-child) {
-  margin-bottom: var(--space-sm);
-  padding-bottom: var(--space-sm);
-  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--space-md);
 }
 
-/* Spacer to push trade button to bottom */
+/* Spacer pushes trade button to bottom */
 .nav-spacer {
   flex: 1;
-  min-height: 10px;
+  min-height: var(--space-lg);
 }
 
-/* Bottom section for trade button */
+/* Bottom section for trade calculator */
 .nav-bottom {
   margin-top: auto;
-  padding-top: var(--space-sm);
+  padding-top: var(--space-md);
   border-top: 1px solid var(--border-color);
   flex-shrink: 0;
 }
 
 .nav-link {
   display: block;
-  padding: 8px 10px;
+  padding: 12px var(--space-md);
   color: var(--text-secondary);
   text-decoration: none;
   border-radius: 6px;
-  font-size: 0.8rem;
   transition: all 0.2s ease;
-  cursor: pointer;
+  font-size: 0.95rem;
 }
 
 .nav-link:hover {
-  background: rgba(59, 130, 246, 0.1);
-  color: var(--accent-primary);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .nav-link.active {
-  background: var(--accent-primary);
+  background-color: var(--accent-primary);
   color: white;
+  font-weight: 500;
 }
 
-/* Trade Calculator Button */
+/* Trade Calculator Button - Subtle highlight */
 .nav-link-trade {
-  background: rgba(59, 130, 246, 0.08);
+  background-color: rgba(59, 130, 246, 0.08);
   border: 1px solid rgba(59, 130, 246, 0.2);
   font-weight: 500;
 }
 
 .nav-link-trade:hover {
-  background: rgba(59, 130, 246, 0.15);
+  background-color: rgba(59, 130, 246, 0.15);
   border-color: rgba(59, 130, 246, 0.4);
   transform: translateY(-1px);
 }
 
-/* Admin section */
+/* Admin Navigation Section */
 .admin-only {
+  border-top: 1px solid var(--border-color);
+  padding-top: var(--space-md);
   display: none;
 }
 
@@ -379,41 +403,41 @@ header {
   display: flex;
 }
 
-/* ============================================
-   CONTENT AREA (LEFT SIDE)
-   ============================================ */
-
+/* ========================================
+   MAIN CONTENT AREA
+   ======================================== */
 #content {
+  flex: 1;
+  padding: var(--space-xl);
   position: relative;
-  z-index: 10;
-  order: 1;
-  min-width: 0;
+  z-index: 1;
 }
 
+/* Welcome Section */
 .welcome {
-  margin-bottom: var(--space-md);
+  text-align: center;
+  padding: var(--space-md) 0;
+  margin-bottom: var(--space-lg);
 }
 
 .welcome h2 {
   font-size: 1.5rem;
-  font-weight: 700;
+  margin-bottom: var(--space-xs);
   color: var(--text-primary);
-  margin-bottom: 4px;
 }
 
 .welcome p {
-  color: var(--text-secondary);
   font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
-/* ============================================
-   PETS GRID (7 CARDS PER ROW)
-   ============================================ */
-
+/* ========================================
+   PETS GRID - 7 cards per row minimum
+   ======================================== */
 .pets-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-md);
 }
 
 .pets-loading {
@@ -421,36 +445,38 @@ header {
   text-align: center;
   padding: var(--space-xl);
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
-/* ============================================
-   PET CARD (OPTIMIZED FOR 7 PER ROW)
-   ============================================ */
-
+/* ========================================
+   PET CARDS
+   ======================================== */
 .pet-card {
-  background: var(--bg-secondary);
+  background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 10px;
-  transition: all 0.3s ease;
-  position: relative;
+  border-radius: 12px;
   overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
 .pet-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
   border-color: var(--accent-primary);
 }
 
+/* Pet Image */
 .pet-image {
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 6px;
+  background-color: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  margin-bottom: 8px;
-  background: rgba(0, 0, 0, 0.2);
 }
 
 .pet-image img {
@@ -459,104 +485,107 @@ header {
   object-fit: cover;
 }
 
+/* Pet Info - Name on top, Rarity below */
 .pet-info {
-  margin-bottom: 8px;
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .pet-name {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.3;
 }
 
+/* Pet Rarity Badge */
 .pet-rarity {
-  display: inline-block;
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 4px;
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
+  border: 1px solid;
+  width: fit-content;
 }
 
 .pet-rarity-mythical {
-  background: rgba(168, 85, 247, 0.2);
-  color: #a855f7;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background-color: rgba(255, 110, 199, 0.15);
+  color: var(--rarity-mythical);
+  border-color: var(--rarity-mythical);
 }
 
 .pet-rarity-secret-i {
-  background: rgba(255, 174, 66, 0.2);
-  color: #ffae42;
-  border: 1px solid rgba(255, 174, 66, 0.3);
+  background-color: rgba(255, 149, 0, 0.15);
+  color: var(--rarity-secret-i);
+  border-color: var(--rarity-secret-i);
 }
 
 .pet-rarity-secret-ii {
-  background: rgba(0, 212, 255, 0.2);
-  color: #00d4ff;
-  border: 1px solid rgba(0, 212, 255, 0.3);
+  background-color: rgba(255, 69, 0, 0.15);
+  color: var(--rarity-secret-ii);
+  border-color: var(--rarity-secret-ii);
 }
 
 .pet-rarity-secret-iii {
-  background: rgba(179, 136, 255, 0.2);
-  color: #b388ff;
-  border: 1px solid rgba(179, 136, 255, 0.3);
+  background-color: rgba(255, 0, 0, 0.15);
+  color: var(--rarity-secret-iii);
+  border-color: var(--rarity-secret-iii);
 }
 
 .pet-rarity-leaderboard {
-  background: rgba(255, 215, 0, 0.2);
-  color: #ffd700;
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  background-color: rgba(255, 215, 0, 0.15);
+  color: var(--rarity-leaderboard);
+  border-color: var(--rarity-leaderboard);
 }
 
 .pet-rarity-exclusive {
-  background: rgba(0, 255, 136, 0.2);
-  color: #00ff88;
-  border: 1px solid rgba(0, 255, 136, 0.3);
+  background-color: rgba(0, 255, 136, 0.15);
+  color: var(--rarity-exclusive);
+  border-color: var(--rarity-exclusive);
 }
 
+/* Pet Stats */
 .pet-stats {
+  padding: 0 var(--space-md) var(--space-sm);
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-bottom: 8px;
+  gap: 4px;
 }
 
 .pet-stat-row {
   display: flex;
   justify-content: space-between;
-  padding: 5px 8px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
+  font-size: 0.8rem;
 }
 
 .pet-stat-label {
   color: var(--text-secondary);
-  font-size: 0.7rem;
-  font-weight: 500;
+  font-size: 0.75rem;
 }
 
 .pet-stat-value {
-  color: var(--accent-primary);
-  font-size: 0.7rem;
-  font-weight: 600;
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.8rem;
 }
 
+/* Pet Updated Timestamp */
 .pet-updated {
-  font-size: 0.6rem;
+  padding: 0 var(--space-md) var(--space-sm);
+  font-size: 0.65rem;
   color: var(--text-muted);
-  text-align: center;
-  margin-top: 4px;
 }
 
+/* Admin Action Buttons */
 .pet-admin-actions {
   display: none;
-  gap: 5px;
-  margin-top: 8px;
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+  gap: var(--space-sm);
+  border-top: 1px solid var(--border-color);
 }
 
 .pet-admin-actions.visible {
@@ -566,50 +595,44 @@ header {
 .btn-edit,
 .btn-delete {
   flex: 1;
-  padding: 5px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-size: 0.7rem;
+  padding: 6px var(--space-sm);
+  border-radius: 6px;
+  border: none;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-edit {
-  background: var(--accent-primary);
+  background-color: var(--accent-primary);
   color: white;
-  border-color: var(--accent-primary);
 }
 
 .btn-edit:hover {
-  background: var(--accent-hover);
+  background-color: var(--accent-hover);
 }
 
 .btn-delete {
-  background: transparent;
-  color: #ef4444;
-  border-color: #ef4444;
-}
-
-.btn-delete:hover {
-  background: #ef4444;
+  background-color: #ef4444;
   color: white;
 }
 
-/* ============================================
-   MODALS
-   ============================================ */
+.btn-delete:hover {
+  background-color: #dc2626;
+}
 
+/* ========================================
+   MODALS
+   ======================================== */
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--space-lg);
 }
 
 .modal.hidden {
@@ -618,22 +641,17 @@ header {
 
 .modal-backdrop {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(4px);
 }
 
 .modal-content {
   position: relative;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
   border-radius: 12px;
-  padding: var(--space-lg);
+  width: 100%;
   max-width: 500px;
-  width: 90%;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
@@ -641,24 +659,23 @@ header {
 
 .modal-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-lg);
+  justify-content: space-between;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header h2 {
-  font-size: 1.3rem;
-  font-weight: 600;
+  font-size: 1.25rem;
   color: var(--text-primary);
 }
 
 .modal-close {
-  background: transparent;
+  background: none;
   border: none;
+  font-size: 2rem;
   color: var(--text-muted);
-  font-size: 1.5rem;
   cursor: pointer;
-  padding: 4px 8px;
   line-height: 1;
   transition: color 0.2s ease;
 }
@@ -667,13 +684,18 @@ header {
   color: var(--text-primary);
 }
 
+/* Forms */
+form {
+  padding: var(--space-lg);
+}
+
 .form-group {
   margin-bottom: var(--space-md);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--space-xs);
   color: var(--text-secondary);
   font-size: 0.9rem;
   font-weight: 500;
@@ -682,12 +704,12 @@ header {
 .form-group input,
 .form-group select {
   width: 100%;
-  padding: 10px 12px;
-  background: var(--bg-tertiary);
+  padding: 10px var(--space-md);
+  background-color: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--text-primary);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   transition: all 0.2s ease;
 }
 
@@ -699,9 +721,8 @@ header {
 }
 
 .image-preview {
-  margin-top: var(--space-sm);
-  border-radius: 8px;
-  overflow: hidden;
+  margin-bottom: var(--space-md);
+  text-align: center;
 }
 
 .image-preview.hidden {
@@ -709,26 +730,30 @@ header {
 }
 
 .image-preview img {
-  width: 100%;
-  height: auto;
-  display: block;
+  max-width: 150px;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
 }
 
 .form-message {
-  padding: 10px 12px;
+  margin: var(--space-md) 0;
+  padding: var(--space-sm) var(--space-md);
   border-radius: 6px;
-  font-size: 0.85rem;
-  margin-bottom: var(--space-md);
+  font-size: 0.9rem;
+  text-align: center;
+  display: none;
 }
 
 .form-message.success {
-  background: rgba(74, 222, 128, 0.1);
-  color: #4ade80;
-  border: 1px solid rgba(74, 222, 128, 0.3);
+  display: block;
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .form-message.error {
-  background: rgba(239, 68, 68, 0.1);
+  display: block;
+  background-color: rgba(239, 68, 68, 0.1);
   color: #ef4444;
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
@@ -736,111 +761,116 @@ header {
 .modal-actions {
   display: flex;
   gap: var(--space-sm);
-  justify-content: flex-end;
+  margin-top: var(--space-lg);
 }
 
 .btn-primary,
 .btn-secondary {
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  flex: 1;
+  padding: 12px var(--space-lg);
+  border-radius: 6px;
+  border: none;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-primary {
-  background: var(--accent-primary);
+  background-color: var(--accent-primary);
   color: white;
-  border: 1px solid var(--accent-primary);
 }
 
 .btn-primary:hover {
-  background: var(--accent-hover);
+  background-color: var(--accent-hover);
 }
 
 .btn-secondary {
-  background: transparent;
+  background-color: var(--bg-tertiary);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-  background: var(--bg-tertiary);
+  background-color: var(--bg-secondary);
 }
 
-/* ============================================
+/* ========================================
    RESPONSIVE DESIGN
-   ============================================ */
-
-@media (max-width: 1700px) {
+   ======================================== */
+@media (max-width: 1600px) {
   .pets-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-}
-
-@media (max-width: 1400px) {
-  .pets-grid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 }
 
 @media (max-width: 1200px) {
-  .container {
-    grid-template-columns: 1fr 180px;
-  }
-  
   .pets-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (max-width: 1024px) {
-  .header-content {
-    flex-wrap: wrap;
-  }
-  
-  .search-filter-container {
-    order: 3;
-    flex-basis: 100%;
-    max-width: 100%;
-  }
-  
-  .container {
-    grid-template-columns: 1fr;
-  }
-  
-  #sidebar {
-    order: 1;
-    position: static;
-    height: auto;
-    max-height: 400px;
-    overflow-y: auto;
-    margin-bottom: var(--space-md);
-  }
-  
-  #content {
-    order: 2;
-  }
-  
-  .pets-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .pets-grid {
-    grid-template-columns: repeat(2, 1fr);
+  :root {
+    --header-height: 120px;
   }
-}
 
-@media (max-width: 480px) {
-  .pets-grid {
-    grid-template-columns: 1fr;
+  header {
+    height: auto;
+    padding: var(--space-md);
   }
-  
+
+  .header-content {
+    flex-wrap: wrap;
+    gap: var(--space-md);
+  }
+
+  .game-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  header h1 {
+    font-size: 1.2rem;
+  }
+
+  .header-subtitle {
+    font-size: 0.65rem;
+  }
+
+  .search-filter-container {
+    width: 100%;
+    order: 4;
+    max-width: none;
+  }
+
+  .header-actions {
+    margin-left: 0;
+  }
+
   .container {
-    padding: var(--space-sm) var(--space-md);
+    flex-direction: column;
+  }
+
+  #sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  #content {
+    padding: var(--space-lg);
+  }
+
+  .pets-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .modal-content {
+    max-width: 95%;
   }
 }
 
