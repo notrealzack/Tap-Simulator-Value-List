@@ -1,7 +1,7 @@
 // File type: Client-side JavaScript (for GitHub Pages)
-// Path: /main.js
+// Path: /main.js (UPDATED - Better debugging and credential handling)
 
-// Debug warning: Main application logic with Supabase admin authentication and audit logging
+// Debug warning: Main application logic with improved credential debugging
 
 // =======================
 // Configuration
@@ -61,6 +61,7 @@ function checkAdminSession() {
   if (session && session.username && session.password) {
     adminCredentials = session;
     isAdminLoggedIn = true;
+    console.log('[DEBUG] Admin session restored for:', session.username);
     showAdminUI();
     return true;
   }
@@ -69,6 +70,8 @@ function checkAdminSession() {
 
 async function adminLogin(username, password) {
   try {
+    console.log('[DEBUG] Attempting login for username:', username);
+    
     // Verify credentials with backend
     const res = await fetch(`${API_BASE}/api/auth/verify`, {
       method: 'POST',
@@ -76,25 +79,25 @@ async function adminLogin(username, password) {
       body: JSON.stringify({ username, password })
     });
 
-    if (!res.ok) {
+    const data = await res.json();
+    console.log('[DEBUG] Login response:', data);
+
+    if (!res.ok || !data.valid) {
+      console.warn('[DEBUG] Login failed:', data.reason || 'Unknown reason');
       return false;
     }
 
-    const data = await res.json();
-    if (data.valid) {
-      // Store credentials for future requests
-      const session = { username, password, loginTime: Date.now() };
-      setCache(ADMIN_KEY, session, THIRTY_MINUTES_MS);
-      adminCredentials = session;
-      isAdminLoggedIn = true;
-      showAdminUI();
-      closeLoginModal();
-      return true;
-    }
-    
-    return false;
+    // Store credentials for future requests
+    const session = { username, password, loginTime: Date.now() };
+    setCache(ADMIN_KEY, session, THIRTY_MINUTES_MS);
+    adminCredentials = session;
+    isAdminLoggedIn = true;
+    console.log('[DEBUG] Login successful, credentials stored');
+    showAdminUI();
+    closeLoginModal();
+    return true;
   } catch (err) {
-    console.warn('[DEBUG-WARNING] Login failed:', err);
+    console.warn('[DEBUG-WARNING] Login error:', err);
     return false;
   }
 }
@@ -110,9 +113,12 @@ function adminLogout() {
 
 async function verifyAdminBeforeAction() {
   if (!adminCredentials) {
+    console.warn('[DEBUG] No admin credentials found');
     adminLogout();
     return false;
   }
+
+  console.log('[DEBUG] Verifying credentials for:', adminCredentials.username);
 
   try {
     const res = await fetch(`${API_BASE}/api/auth/verify`, {
@@ -124,13 +130,11 @@ async function verifyAdminBeforeAction() {
       })
     });
 
-    if (!res.ok) {
-      adminLogout();
-      return false;
-    }
-
     const data = await res.json();
-    if (!data.valid) {
+    console.log('[DEBUG] Verification response:', data);
+
+    if (!res.ok || !data.valid) {
+      console.warn('[DEBUG] Verification failed:', data.reason || 'Unknown');
       adminLogout();
       return false;
     }
@@ -319,6 +323,8 @@ async function addPet(petData) {
     return false;
   }
 
+  console.log('[DEBUG] Sending add request with credentials:', adminCredentials.username);
+
   try {
     const res = await fetch(`${API_BASE}/api/pets`, {
       method: 'POST',
@@ -330,12 +336,19 @@ async function addPet(petData) {
       body: JSON.stringify(petData)
     });
 
+    console.log('[DEBUG] Add pet response status:', res.status);
+
     if (res.status === 401) {
+      console.warn('[DEBUG] Unauthorized - logging out');
       adminLogout();
       return false;
     }
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.warn('[DEBUG] Add pet failed:', errorData);
+      throw new Error(`HTTP ${res.status}`);
+    }
 
     const newPet = await res.json();
     allPets.push(newPet);
@@ -343,7 +356,7 @@ async function addPet(petData) {
     renderPets();
     return true;
   } catch (err) {
-    console.warn('[DEBUG-WARNING] Add pet failed:', err);
+    console.warn('[DEBUG-WARNING] Add pet error:', err);
     return false;
   }
 }
@@ -354,6 +367,8 @@ async function updatePet(petId, petData) {
     alert('Your session has expired or credentials are invalid. Please login again.');
     return false;
   }
+
+  console.log('[DEBUG] Sending update request for pet', petId, 'with credentials:', adminCredentials.username);
 
   try {
     const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
@@ -366,12 +381,19 @@ async function updatePet(petId, petData) {
       body: JSON.stringify(petData)
     });
 
+    console.log('[DEBUG] Update pet response status:', res.status);
+
     if (res.status === 401) {
+      console.warn('[DEBUG] Unauthorized - logging out');
       adminLogout();
       return false;
     }
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.warn('[DEBUG] Update pet failed:', errorData);
+      throw new Error(`HTTP ${res.status}`);
+    }
 
     const updatedPet = await res.json();
     const index = allPets.findIndex(p => p.id === petId);
@@ -382,7 +404,7 @@ async function updatePet(petId, petData) {
     }
     return true;
   } catch (err) {
-    console.warn('[DEBUG-WARNING] Update pet failed:', err);
+    console.warn('[DEBUG-WARNING] Update pet error:', err);
     return false;
   }
 }
@@ -396,6 +418,8 @@ async function deletePet(petId) {
     return;
   }
 
+  console.log('[DEBUG] Sending delete request for pet', petId, 'with credentials:', adminCredentials.username);
+
   try {
     const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
       method: 'DELETE',
@@ -405,18 +429,25 @@ async function deletePet(petId) {
       }
     });
 
+    console.log('[DEBUG] Delete pet response status:', res.status);
+
     if (res.status === 401) {
+      console.warn('[DEBUG] Unauthorized - logging out');
       adminLogout();
       return;
     }
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.warn('[DEBUG] Delete pet failed:', errorData);
+      throw new Error(`HTTP ${res.status}`);
+    }
 
     allPets = allPets.filter(p => p.id !== petId);
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
     renderPets();
   } catch (err) {
-    console.warn('[DEBUG-WARNING] Delete pet failed:', err);
+    console.warn('[DEBUG-WARNING] Delete pet error:', err);
     alert('Failed to delete pet. Please try again.');
   }
 }
@@ -581,8 +612,10 @@ function initEventListeners() {
 
     let success = false;
     if (currentEditingPetId) {
+      console.log('[DEBUG] Submitting edit for pet ID:', currentEditingPetId);
       success = await updatePet(currentEditingPetId, petData);
     } else {
+      console.log('[DEBUG] Submitting add for new pet');
       success = await addPet(petData);
     }
 
@@ -591,7 +624,7 @@ function initEventListeners() {
       message.style.color = '#00ff88';
       setTimeout(closePetModal, 1000);
     } else {
-      message.textContent = 'Failed to save pet. Check your credentials.';
+      message.textContent = 'Failed to save pet. Check console for details.';
       message.style.color = '#ff4343';
     }
   });
