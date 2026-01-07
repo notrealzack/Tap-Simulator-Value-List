@@ -15,6 +15,8 @@
   
   <!-- Stylesheets -->
   <link rel="stylesheet" href="styles.css">
+  <!-- Trade Calculator Styles -->
+  <link rel="stylesheet" href="tradecalculator.css">
 </head>
 <body>
   <!-- Particle canvas background -->
@@ -194,6 +196,65 @@
     </div>
   </div>
 
+  <!-- Trade Calculator Modal -->
+  <div id="trade-calculator-modal" class="modal hidden" role="dialog" aria-hidden="true" aria-labelledby="trade-calculator-title">
+    <div class="modal-backdrop"></div>
+    <div class="trade-calculator-content">
+      <!-- Trade Header -->
+      <div class="trade-header">
+        <h2 id="trade-calculator-title">Trade Calculator</h2>
+        <button id="trade-close-btn" class="modal-close" aria-label="Close">&times;</button>
+      </div>
+      
+      <!-- Trade Boxes Container -->
+      <div class="trade-boxes">
+        <!-- YOUR OFFER (LEFT SIDE) -->
+        <div class="trade-side" data-side="you">
+          <h3>YOU</h3>
+          <div class="trade-pets-container" id="you-pets">
+            <!-- Add button rendered by JS -->
+          </div>
+          <div class="token-input-container">
+            <label>Tokens</label>
+            <input type="number" id="you-tokens" placeholder="0" min="0">
+          </div>
+          <div class="total-value">Total: <span id="you-total">0</span></div>
+        </div>
+        
+        <!-- THEIR OFFER (RIGHT SIDE) -->
+        <div class="trade-side" data-side="them">
+          <h3>THEM</h3>
+          <div class="trade-pets-container" id="them-pets">
+            <!-- Add button rendered by JS -->
+          </div>
+          <div class="token-input-container">
+            <label>Tokens</label>
+            <input type="number" id="them-tokens" placeholder="0" min="0">
+          </div>
+          <div class="total-value">Total: <span id="them-total">0</span></div>
+        </div>
+      </div>
+      
+      <!-- Pet Search Dropdown (appears when + clicked) -->
+      <div id="pet-search-dropdown" class="pet-search-dropdown hidden">
+        <input type="text" id="pet-search-input" placeholder="Search pet name..." autocomplete="off">
+        <div id="search-results" class="search-results">
+          <!-- Search results rendered by JS -->
+        </div>
+      </div>
+      
+      <!-- Trade Result Indicator -->
+      <div id="trade-result" class="trade-result neutral">
+        <span id="result-text">Add pets to compare</span>
+      </div>
+      
+      <!-- Trade Actions -->
+      <div class="trade-actions">
+        <button id="trade-reset-btn" class="btn-secondary">Reset</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="particles.js"></script>
   <script src="sidebar.js"></script>
@@ -201,6 +262,8 @@
   <script src="secreteffects.js"></script>
   <script src="textglimmer.js"></script>
   <script src="main.js"></script>
+  <!-- Trade Calculator Script -->
+  <script src="tradecalculator.js"></script>
 
   <!-- Initialize systems -->
   <script>
