@@ -335,37 +335,49 @@ function filterAndSortPets() {
     );
   }
 
-  // Apply sort mode
-  switch (currentSortMode) {
-    case 'newest':
-      // Sort by updated_at descending (newest first)
-      filteredPets.sort((a, b) => {
-        const dateA = new Date(a.updated_at || a.created_at || 0);
-        const dateB = new Date(b.updated_at || b.created_at || 0);
-        return dateB - dateA;
-      });
-      break;
-    
-    case 'oldest':
-      // Sort by updated_at ascending (oldest first)
-      filteredPets.sort((a, b) => {
-        const dateA = new Date(a.updated_at || a.created_at || 0);
-        const dateB = new Date(b.updated_at || b.created_at || 0);
-        return dateA - dateB;
-      });
-      break;
-    
-    case 'highest':
-      // Sort by value_normal descending (highest value first)
-      filteredPets.sort((a, b) => (b.value_normal || 0) - (a.value_normal || 0));
-      break;
-    
-    case 'default':
-    default:
-      // Default sort by value_normal descending
-      filteredPets.sort((a, b) => (b.value_normal || 0) - (a.value_normal || 0));
-      break;
-  }
+// =======================
+// UPDATE THIS SECTION IN filterAndSortPets() - REPLACE THE 'highest' AND 'default' CASES
+// =======================
+
+// Apply sort mode
+switch (currentSortMode) {
+  case 'newest':
+    // Sort by updated_at descending (newest first)
+    filteredPets.sort((a, b) => {
+      const dateA = new Date(a.updated_at || a.created_at || 0);
+      const dateB = new Date(b.updated_at || b.created_at || 0);
+      return dateB - dateA;
+    });
+    break;
+  
+  case 'oldest':
+    // Sort by updated_at ascending (oldest first)
+    filteredPets.sort((a, b) => {
+      const dateA = new Date(a.updated_at || a.created_at || 0);
+      const dateB = new Date(b.updated_at || b.created_at || 0);
+      return dateA - dateB;
+    });
+    break;
+  
+  case 'highest':
+    // Debug warning: Sort by value_normal descending using value translator
+    filteredPets.sort((a, b) => {
+      const valueA = parseValueToNumber(a.value_normal);
+      const valueB = parseValueToNumber(b.value_normal);
+      return valueB - valueA;
+    });
+    break;
+  
+  case 'default':
+  default:
+    // Debug warning: Default sort by value_normal descending using value translator
+    filteredPets.sort((a, b) => {
+      const valueA = parseValueToNumber(a.value_normal);
+      const valueB = parseValueToNumber(b.value_normal);
+      return valueB - valueA;
+    });
+    break;
+}
 
   return filteredPets;
 }
@@ -509,6 +521,41 @@ function escapeHtml(str) {
   div.textContent = str;
   return div.innerHTML;
 }
+
+function parseValueToNumber(value) {
+  if (typeof value === 'number') return value;
+  if (!value) return 0;
+  
+  const str = String(value).trim().toUpperCase();
+  
+  // If it's already a plain number
+  if (!isNaN(str)) return parseFloat(str);
+  
+  // Extract number and suffix
+  const match = str.match(/^([\d.]+)([KMBTQ]|QA|QN|SX|SP)?$/);
+  if (!match) return 0;
+  
+  const num = parseFloat(match[1]);
+  const suffix = match[2] || '';
+  
+  // Multiplier map
+  const multipliers = {
+    'K': 1e3,           // Thousand
+    'M': 1e6,           // Million
+    'B': 1e9,           // Billion
+    'T': 1e12,          // Trillion
+    'QA': 1e15,         // Quadrillion
+    'QN': 1e18,         // Quintillion
+    'SX': 1e21,         // Sextillion
+    'SP': 1e24          // Septillion
+  };
+  
+  return num * (multipliers[suffix] || 1);
+}
+
+// Make globally accessible for trade calculator
+window.parseValueToNumber = parseValueToNumber;
+
 
 // =======================
 // CRUD Operations
@@ -677,7 +724,11 @@ function closeLoginModal() {
   }
 }
 
-// Debug warning: Added stats_type field handling for edit mode
+// =======================
+// UPDATE THIS SECTION IN openPetModal() - REPLACE THE IMAGE HANDLING PART
+// =======================
+
+// Debug warning: Handle image URL input instead of file upload
 function openPetModal(pet = null) {
   const modal = document.getElementById('pet-modal');
   const form = document.getElementById('pet-form');
@@ -702,6 +753,7 @@ function openPetModal(pet = null) {
     document.getElementById('pet-value-normal').value = pet.value_normal || '';
     document.getElementById('pet-value-golden').value = pet.value_golden || '';
     document.getElementById('pet-value-rainbow').value = pet.value_rainbow || '';
+    document.getElementById('pet-image-url').value = pet.image_url || '';
     
     // Show image preview if exists
     if (pet.image_url && imagePreview) {
@@ -720,6 +772,7 @@ function openPetModal(pet = null) {
     modal.setAttribute('aria-hidden', 'false');
   }
 }
+
 
 function closePetModal() {
   const modal = document.getElementById('pet-modal');
@@ -803,72 +856,78 @@ function initEventListeners() {
     }
   }
 
-  // Debug warning: Pet form submission now handles text values and stats_type field
-  const petForm = document.getElementById('pet-form');
-  if (petForm) {
-    petForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const message = document.getElementById('pet-form-message');
-      
-      // Get values as text, not as integers
-      const petData = {
-        name: document.getElementById('pet-name').value,
-        rarity: document.getElementById('pet-rarity').value,
-        stats_type: document.getElementById('pet-stats-type').value,
-        stats: document.getElementById('pet-stats').value || '0',
-        value_normal: document.getElementById('pet-value-normal').value || '0',
-        value_golden: document.getElementById('pet-value-golden').value || '0',
-        value_rainbow: document.getElementById('pet-value-rainbow').value || '0'
-      };
+const petForm = document.getElementById('pet-form');
+if (petForm) {
+  petForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = document.getElementById('pet-form-message');
+    
+    // Get values as text, not as integers
+    const petData = {
+      name: document.getElementById('pet-name').value,
+      rarity: document.getElementById('pet-rarity').value,
+      stats_type: document.getElementById('pet-stats-type').value,
+      stats: document.getElementById('pet-stats').value || '0',
+      value_normal: document.getElementById('pet-value-normal').value || '0',
+      value_golden: document.getElementById('pet-value-golden').value || '0',
+      value_rainbow: document.getElementById('pet-value-rainbow').value || '0',
+      image_url: document.getElementById('pet-image-url').value || null
+    };
 
-      // Handle image if provided
-      const imageInput = document.getElementById('pet-image');
-      if (imageInput && imageInput.files && imageInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-          petData.image_url = event.target.result;
-          await submitPet(petData, message);
-        };
-        reader.readAsDataURL(imageInput.files[0]);
-      } else {
-        await submitPet(petData, message);
-      }
-    });
+    // Submit pet data directly (no file upload handling needed)
+    await submitPet(petData, message);
+  });
 
-    async function submitPet(petData, message) {
-      let success;
-      if (currentEditingPetId) {
-        success = await updatePet(currentEditingPetId, petData);
-      } else {
-        success = await addPet(petData);
-      }
+  async function submitPet(petData, message) {
+    let success;
+    if (currentEditingPetId) {
+      success = await updatePet(currentEditingPetId, petData);
+    } else {
+      success = await addPet(petData);
+    }
 
-      if (success) {
-        message.textContent = 'Pet saved successfully!';
-        message.className = 'form-message success';
-        setTimeout(closePetModal, 1000);
-      } else {
-        message.textContent = 'Failed to save pet. Please try again.';
-        message.className = 'form-message error';
-      }
+    if (success) {
+      message.textContent = 'Pet saved successfully!';
+      message.className = 'form-message success';
+      setTimeout(closePetModal, 1000);
+    } else {
+      message.textContent = 'Failed to save pet. Please try again.';
+      message.className = 'form-message error';
     }
   }
+}
+
 
   // Image preview
-  const imageInput = document.getElementById('pet-image');
-  if (imageInput) {
-    imageInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          document.getElementById('preview-img').src = event.target.result;
-          document.getElementById('image-preview').classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
+// Debug warning: Image preview now works with URL input instead of file upload
+const imageUrlInput = document.getElementById('pet-image-url');
+if (imageUrlInput) {
+  imageUrlInput.addEventListener('input', (e) => {
+    const url = e.target.value.trim();
+    if (url) {
+      // Validate URL format
+      try {
+        new URL(url);
+        document.getElementById('preview-img').src = url;
+        document.getElementById('image-preview').classList.remove('hidden');
+      } catch (err) {
+        // Invalid URL, hide preview
+        document.getElementById('image-preview').classList.add('hidden');
       }
+    } else {
+      document.getElementById('image-preview').classList.add('hidden');
+    }
+  });
+  
+  // Handle image load error
+  const previewImg = document.getElementById('preview-img');
+  if (previewImg) {
+    previewImg.addEventListener('error', () => {
+      document.getElementById('image-preview').classList.add('hidden');
     });
   }
+}
+
 
   // Search input - real-time filtering
   const searchInput = document.getElementById('search-input');
