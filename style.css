@@ -1,0 +1,380 @@
+/* File type: Stylesheet (CSS for GitHub Pages) */
+/* Path: /style.css */
+
+/* ==== Base layout & reset ==== */
+/* Small reset to keep things consistent */
+*,
+*::before,
+*::after {
+  box-sizing: border-box; /* Make sizing easier to reason about */
+  margin: 0;
+  padding: 0;
+}
+
+/* Debug warning: Keep CSS lightweight and avoid unnecessary animations */
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: #050814; /* Dark-ish background for Roblox vibe */
+  color: #f5f5f5;
+  line-height: 1.5;
+}
+
+/* Anchors */
+a {
+  color: #66c5ff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ==== Layout containers ==== */
+.site-header,
+.site-footer {
+  background: #050814;
+  border-bottom: 1px solid #1d2333;
+  padding: 0.75rem 1.25rem;
+}
+
+.site-footer {
+  border-top: 1px solid #1d2333;
+  border-bottom: none;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #a5acc4;
+}
+
+/* Flex layout for header */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Logo text */
+.logo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Simple nav */
+.main-nav {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.95rem;
+}
+
+.main-nav a {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.main-nav a:hover {
+  background: #111828;
+  color: #ffffff;
+}
+
+/* Main content max-width */
+main {
+  max-width: 1100px;
+  margin: 1.5rem auto 2rem auto;
+  padding: 0 1rem;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 2rem;
+}
+
+.section h1,
+.section h2,
+.section h3 {
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+.section-note {
+  font-size: 0.9rem;
+  color: #a5acc4;
+  margin-bottom: 0.75rem;
+}
+
+/* ==== Pet list ==== */
+
+/* Grid layout for pet cards, responsive */
+.pet-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1rem;
+}
+
+/* Placeholder text before JS fills data */
+.placeholder {
+  font-size: 0.9rem;
+  color: #a5acc4;
+}
+
+/* Basic card style (can be reused) */
+.card {
+  background: linear-gradient(145deg, #0b1020, #050814);
+  border-radius: 8px;
+  border: 1px solid #1d2333;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Example styling for pet card content (when JS renders it) */
+.pet-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Image wrapper */
+.pet-card-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #111828;
+}
+
+.pet-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Pet title row */
+.pet-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pet-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.pet-rarity {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Example rarity colors (these are hints for JS classes) */
+.pet-rarity-common {
+  background: rgba(156, 163, 175, 0.2);
+  color: #e5e7eb;
+}
+
+.pet-rarity-rare {
+  background: rgba(56, 189, 248, 0.18);
+  color: #7dd3fc;
+}
+
+.pet-rarity-legendary {
+  background: rgba(251, 191, 36, 0.18);
+  color: #facc15;
+}
+
+.pet-rarity-exclusive {
+  background: rgba(236, 72, 153, 0.18);
+  color: #fb7185;
+}
+
+/* Stats and value */
+.pet-stats {
+  font-size: 0.85rem;
+  color: #d1d5db;
+}
+
+.pet-value {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #4ade80;
+}
+
+/* Admin controls row (edit/delete buttons later) */
+.pet-admin-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* ==== Online counter ==== */
+.online-counter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: #050814;
+  border: 1px solid #1d2333;
+}
+
+.online-label {
+  font-size: 0.9rem;
+  color: #a5acc4;
+}
+
+.online-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #4ade80;
+}
+
+/* ==== Forms (login, add pet) ==== */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.9rem;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  padding: 0.4rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid #1f2937;
+  background: #050814;
+  color: #f3f4f6;
+  font-size: 0.9rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.6);
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+  border-radius: 4px;
+  border: none;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+/* Primary button */
+.primary-btn,
+button[type="submit"] {
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  color: #f9fafb;
+}
+
+.primary-btn:hover,
+button[type="submit"]:hover {
+  transform: translateY(-1px);
+}
+
+/* Secondary button */
+.secondary-btn {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+.secondary-btn:hover {
+  background: #1f2937;
+}
+
+/* Form messages */
+.form-message {
+  min-height: 1.2em;
+  font-size: 0.85rem;
+  color: #f97373; /* Error color by default */
+}
+
+/* Admin info */
+.admin-info {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #e5e7eb;
+}
+
+/* ==== Modal (Add Pet popup) ==== */
+.modal.hidden {
+  display: none;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+/* Background overlay */
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+}
+
+/* Modal panel */
+.modal-content {
+  position: relative;
+  max-width: 420px;
+  width: 100%;
+  margin: 5vh auto;
+  background: #050814;
+  border-radius: 8px;
+  border: 1px solid #1d2333;
+  padding: 1.25rem 1.5rem 1.25rem 1.5rem;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+}
+
+.modal-content h3 {
+  margin-bottom: 0.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+/* ==== Utility classes ==== */
+
+/* Simple hidden class for toggling elements with JS */
+.hidden {
+  display: none !important;
+}
+
+/* Debug warning: Avoid 24/7 animations; keep performance good even on low-end devices */
+@media (max-width: 640px) {
+  /* Stack header items on very small screens */
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  main {
+    margin-top: 1rem;
+  }
+}
+
+/* File type: Stylesheet (CSS for GitHub Pages) */
+/* Path: /style.css */
