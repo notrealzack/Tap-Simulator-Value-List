@@ -1,12 +1,11 @@
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /main.js
 
-// Debug warning: Main application logic with admin authentication
+// Debug warning: Main application logic with admin authentication and dynamic sidebar generation
 
 // =======================
 // Configuration
 // =======================
-
 const API_BASE = "https://ts-value-list-proxy.vercel.app";
 const CACHE_KEY = "rpv_pets_cache";
 const ADMIN_KEY = "rpv_admin_session";
@@ -15,7 +14,6 @@ const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 // =======================
 // Cache utilities
 // =======================
-
 function setCache(key, value, ttl) {
   try {
     const item = { value, expiry: ttl ? Date.now() + ttl : null };
@@ -50,9 +48,39 @@ function clearCache(key) {
 }
 
 // =======================
+// Sidebar generation
+// =======================
+function generateSidebar() {
+  const sidebarContent = document.querySelector('.sidebar-content');
+  if (!sidebarContent) return;
+
+  const rarities = [
+    { name: 'Mythical', value: 'Mythical' },
+    { name: 'Secret I', value: 'Secret I' },
+    { name: 'Secret II', value: 'Secret II' },
+    { name: 'Secret III', value: 'Secret III' },
+    { name: 'Leaderboard', value: 'Leaderboard' },
+    { name: 'Exclusive', value: 'Exclusive' }
+  ];
+
+  const html = `
+    <nav class="nav-section">
+      <a href="#" class="nav-link active" data-rarity="all">All Pets</a>
+      ${rarities.map(r => `
+        <a href="#" class="nav-link" data-rarity="${r.value}">${r.name}</a>
+      `).join('')}
+    </nav>
+    <nav id="admin-nav-section" class="nav-section admin-only" style="display:none;">
+      <a href="#" class="nav-link" id="nav-add-pet">+ Add Pet</a>
+    </nav>
+  `;
+
+  sidebarContent.innerHTML = html;
+}
+
+// =======================
 // Admin session management
 // =======================
-
 let isAdminLoggedIn = false;
 let adminCredentials = null;
 
@@ -72,7 +100,6 @@ async function adminLogin(username, password) {
   try {
     console.log('[DEBUG] Attempting login for username:', username);
     
-    // Verify credentials with backend
     const res = await fetch(`${API_BASE}/api/auth/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -87,12 +114,12 @@ async function adminLogin(username, password) {
       return false;
     }
 
-    // Store credentials for future requests
     const session = { username, password, loginTime: Date.now() };
     setCache(ADMIN_KEY, session, THIRTY_MINUTES_MS);
     adminCredentials = session;
     isAdminLoggedIn = true;
     console.log('[DEBUG] Login successful, credentials stored');
+    
     showAdminUI();
     closeLoginModal();
     return true;
@@ -151,8 +178,16 @@ function showAdminUI() {
   const logoutBtn = document.getElementById('logout-btn');
   if (logoutBtn) logoutBtn.classList.remove('hidden');
   
-  window.dispatchEvent(new Event('adminLoggedIn'));
+  // Show admin section in sidebar
+  const adminSection = document.getElementById('admin-nav-section');
+  if (adminSection) {
+    adminSection.style.display = 'block';
+    adminSection.classList.remove('hidden');
+    adminSection.classList.add('visible');
+  }
   
+  window.dispatchEvent(new Event('adminLoggedIn'));
+
   // Show admin action buttons on all pet cards
   const adminActions = document.querySelectorAll('.pet-admin-actions');
   adminActions.forEach(el => el.classList.add('visible'));
@@ -162,8 +197,16 @@ function hideAdminUI() {
   const logoutBtn = document.getElementById('logout-btn');
   if (logoutBtn) logoutBtn.classList.add('hidden');
   
-  window.dispatchEvent(new Event('adminLoggedOut'));
+  // Hide admin section in sidebar
+  const adminSection = document.getElementById('admin-nav-section');
+  if (adminSection) {
+    adminSection.style.display = 'none';
+    adminSection.classList.add('hidden');
+    adminSection.classList.remove('visible');
+  }
   
+  window.dispatchEvent(new Event('adminLoggedOut'));
+
   // Hide admin action buttons
   const adminActions = document.querySelectorAll('.pet-admin-actions');
   adminActions.forEach(el => el.classList.remove('visible'));
@@ -172,7 +215,6 @@ function hideAdminUI() {
 // =======================
 // Pet data management
 // =======================
-
 let allPets = [];
 
 async function loadPets() {
@@ -194,9 +236,7 @@ async function loadPets() {
       headers: { 'Accept': 'application/json' }
     });
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const data = await res.json();
     allPets = Array.isArray(data) ? data : [];
@@ -210,10 +250,10 @@ async function loadPets() {
 
 function renderPets(filterRarity = null) {
   const container = document.getElementById('pets-container');
-  
+
   // Filter by rarity if specified
   let petsToRender = allPets;
-  if (filterRarity) {
+  if (filterRarity && filterRarity !== 'all') {
     petsToRender = allPets.filter(pet => pet.rarity === filterRarity);
   }
 
@@ -241,13 +281,16 @@ function renderPets(filterRarity = null) {
 
 function createPetCard(pet) {
   const rarityClass = getRarityClass(pet.rarity);
-  const imageUrl = pet.image_url || '';
+  const imageUrl = pet.image_url;
   const lastUpdated = formatLastUpdated(pet.updated_at);
 
   return `
     <article class="pet-card" data-pet-id="${pet.id}">
       <div class="pet-image">
-        ${imageUrl ? `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" loading="lazy" />` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);">No Image</div>'}
+        ${imageUrl ? 
+          `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" loading="lazy">` :
+          `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);">No Image</div>`
+        }
       </div>
       <div class="pet-info">
         <div class="pet-name">${escapeHtml(pet.name)}</div>
@@ -294,14 +337,12 @@ function getRarityClass(rarity) {
 
 function formatLastUpdated(timestamp) {
   if (!timestamp) return 'Unknown';
-  
   const date = new Date(timestamp);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const day = date.getDate();
   const month = months[date.getMonth()];
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
-  
   return `${day} ${month} - ${hours}:${minutes}`;
 }
 
@@ -322,9 +363,7 @@ function escapeHtml(str) {
 // =======================
 // CRUD operations
 // =======================
-
 async function addPet(petData) {
-  // Verify credentials before action
   if (!(await verifyAdminBeforeAction())) {
     alert('Your session has expired or credentials are invalid. Please login again.');
     return false;
@@ -369,13 +408,12 @@ async function addPet(petData) {
 }
 
 async function updatePet(petId, petData) {
-  // Verify credentials before action
   if (!(await verifyAdminBeforeAction())) {
     alert('Your session has expired or credentials are invalid. Please login again.');
     return false;
   }
 
-  console.log('[DEBUG] Sending update request for pet', petId, 'with credentials:', adminCredentials.username);
+  console.log('[DEBUG] Sending update request for pet:', petId, 'with credentials:', adminCredentials.username);
 
   try {
     const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
@@ -404,11 +442,9 @@ async function updatePet(petId, petData) {
 
     const updatedPet = await res.json();
     const index = allPets.findIndex(p => p.id === petId);
-    if (index !== -1) {
-      allPets[index] = updatedPet;
-      setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-      renderPets();
-    }
+    if (index !== -1) allPets[index] = updatedPet;
+    setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
+    renderPets();
     return true;
   } catch (err) {
     console.warn('[DEBUG-WARNING] Update pet error:', err);
@@ -419,13 +455,12 @@ async function updatePet(petId, petData) {
 async function deletePet(petId) {
   if (!confirm('Are you sure you want to delete this pet?')) return;
 
-  // Verify credentials before action
   if (!(await verifyAdminBeforeAction())) {
     alert('Your session has expired or credentials are invalid. Please login again.');
     return;
   }
 
-  console.log('[DEBUG] Sending delete request for pet', petId, 'with credentials:', adminCredentials.username);
+  console.log('[DEBUG] Sending delete request for pet:', petId, 'with credentials:', adminCredentials.username);
 
   try {
     const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
@@ -471,14 +506,13 @@ window.deletePet = deletePet;
 // =======================
 // Modal management
 // =======================
-
 let currentEditingPetId = null;
 
 function openLoginModal() {
   const modal = document.getElementById('login-modal');
   const form = document.getElementById('login-form');
   const message = document.getElementById('login-message');
-  
+
   form.reset();
   message.textContent = '';
   modal.classList.remove('hidden');
@@ -497,7 +531,6 @@ function openPetModal(pet = null) {
   const title = document.getElementById('modal-title');
   const message = document.getElementById('pet-form-message');
 
-  // Reset form
   form.reset();
   message.textContent = '';
   document.getElementById('image-preview').classList.add('hidden');
@@ -514,7 +547,6 @@ function openPetModal(pet = null) {
     document.getElementById('pet-value-golden').value = pet.value_golden || 0;
     document.getElementById('pet-value-rainbow').value = pet.value_rainbow || 0;
 
-    // Show current image if exists
     if (pet.image_url) {
       const preview = document.getElementById('image-preview');
       const previewImg = document.getElementById('preview-img');
@@ -541,7 +573,6 @@ function closePetModal() {
 // =======================
 // Event listeners
 // =======================
-
 function initEventListeners() {
   // Admin icon button opens login modal
   const adminIconBtn = document.getElementById('admin-icon-btn');
@@ -570,6 +601,7 @@ function initEventListeners() {
   const loginForm = document.getElementById('login-form');
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value;
     const message = document.getElementById('login-message');
@@ -578,7 +610,7 @@ function initEventListeners() {
     message.style.color = '#a8b3cf';
 
     const success = await adminLogin(username, password);
-    
+
     if (success) {
       message.textContent = 'Login successful!';
       message.style.color = '#00ff88';
@@ -591,7 +623,7 @@ function initEventListeners() {
   // Pet modal controls
   document.getElementById('modal-close').addEventListener('click', closePetModal);
   document.getElementById('cancel-btn').addEventListener('click', closePetModal);
-  
+
   const petModalBackdrop = document.querySelector('#pet-modal .modal-backdrop');
   if (petModalBackdrop) {
     petModalBackdrop.addEventListener('click', closePetModal);
@@ -601,6 +633,7 @@ function initEventListeners() {
   const petForm = document.getElementById('pet-form');
   petForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
     const message = document.getElementById('pet-form-message');
     message.textContent = '';
 
@@ -611,7 +644,7 @@ function initEventListeners() {
       value_normal: parseInt(document.getElementById('pet-value-normal').value) || 0,
       value_golden: parseInt(document.getElementById('pet-value-golden').value) || 0,
       value_rainbow: parseInt(document.getElementById('pet-value-rainbow').value) || 0,
-      image_url: document.getElementById('preview-img').src || ''
+      image_url: document.getElementById('preview-img').src || null
     };
 
     if (!petData.name || !petData.rarity) {
@@ -654,23 +687,38 @@ function initEventListeners() {
     reader.readAsDataURL(file);
   });
 
-  // Custom events from sidebar
-  window.addEventListener('openAddPetModal', () => {
-    if (isAdminLoggedIn) openPetModal();
-  });
+  // Sidebar nav links
+  document.addEventListener('click', (e) => {
+    if (e.target.matches('.nav-link')) {
+      e.preventDefault();
 
-  window.addEventListener('adminLogout', adminLogout);
+      // Handle add pet
+      if (e.target.id === 'nav-add-pet') {
+        if (isAdminLoggedIn) {
+          openPetModal();
+        }
+        return;
+      }
 
-  window.addEventListener('rarityFilterChanged', (e) => {
-    renderPets(e.detail.rarity);
+      // Handle rarity filter
+      const rarity = e.target.getAttribute('data-rarity');
+      if (!rarity) return;
+
+      // Update active state
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      e.target.classList.add('active');
+
+      // Filter pets
+      renderPets(rarity === 'all' ? null : rarity);
+    }
   });
 }
 
 // =======================
 // Initialization
 // =======================
-
 document.addEventListener('DOMContentLoaded', () => {
+  generateSidebar();
   checkAdminSession();
   loadPets();
   initEventListeners();
