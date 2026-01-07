@@ -7,9 +7,21 @@
 // Configuration
 // =======================
 const API_BASE = "https://ts-value-list-proxy.vercel.app";
-const CACHE_KEY = "rpv_pets_cache_v2";
+const CACHE_VERSION = "v3"; // Increment this to force cache clear
+const CACHE_KEY = `rpv_pets_cache_${CACHE_VERSION}`;
 const ADMIN_KEY = "rpv_admin_session";
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+
+// Clear old cache versions on load
+function clearOldCaches() {
+  const keys = Object.keys(localStorage);
+  keys.forEach(key => {
+    if (key.startsWith('rpv_pets_cache_') && key !== CACHE_KEY) {
+      localStorage.removeItem(key);
+      console.log('[DEBUG] Cleared old cache:', key);
+    }
+  });
+}
 
 // =======================
 // Cache utilities
@@ -72,6 +84,7 @@ function generateSidebar() {
     </nav>
     <nav id="admin-nav-section" class="nav-section admin-only" style="display:none;">
       <a href="#" class="nav-link" id="nav-add-pet">+ Add Pet</a>
+      <a href="#" class="nav-link" id="nav-clear-cache">🔄 Clear Cache</a>
     </nav>
   `;
 
@@ -217,23 +230,28 @@ function hideAdminUI() {
 // =======================
 let allPets = [];
 
-async function loadPets() {
+async function loadPets(forceRefresh = false) {
   const container = document.getElementById('pets-container');
   container.innerHTML = '<div class="pets-loading">Loading pets...</div>';
 
-  // Try cache first
-  const cached = getCache(CACHE_KEY);
-  if (cached && Array.isArray(cached)) {
-    allPets = cached;
-    renderPets();
-    return;
+  // Try cache first unless force refresh
+  if (!forceRefresh) {
+    const cached = getCache(CACHE_KEY);
+    if (cached && Array.isArray(cached)) {
+      allPets = cached;
+      renderPets();
+      return;
+    }
   }
 
   // Fetch from backend
   try {
-    const res = await fetch(`${API_BASE}/api/pets`, {
+    const res = await fetch(`${API_BASE}/api/pets?t=${Date.now()}`, {
       method: 'GET',
-      headers: { 'Accept': 'application/json' }
+      headers: { 
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
+      }
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -242,6 +260,7 @@ async function loadPets() {
     allPets = Array.isArray(data) ? data : [];
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
     renderPets();
+    console.log('[DEBUG] Loaded', allPets.length, 'pets from API');
   } catch (err) {
     console.warn('[DEBUG-WARNING] Failed to load pets:', err);
     container.innerHTML = '<div class="pets-loading">Failed to load pets. Try refreshing.</div>';
@@ -700,6 +719,16 @@ function initEventListeners() {
         return;
       }
 
+      // Handle clear cache
+      if (e.target.id === 'nav-clear-cache') {
+        if (isAdminLoggedIn) {
+          clearCache(CACHE_KEY);
+          loadPets(true);
+          alert('Cache cleared and pets reloaded!');
+        }
+        return;
+      }
+
       // Handle rarity filter
       const rarity = e.target.getAttribute('data-rarity');
       if (!rarity) return;
@@ -718,6 +747,7 @@ function initEventListeners() {
 // Initialization
 // =======================
 document.addEventListener('DOMContentLoaded', () => {
+  clearOldCaches();
   generateSidebar();
   checkAdminSession();
   loadPets();
