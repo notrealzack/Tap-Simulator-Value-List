@@ -1,7 +1,7 @@
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /main.js
 
-// Debug warning: Main application logic with admin CRUD operations
+// Debug warning: Main application logic with Supabase admin authentication and audit logging
 
 // =======================
 // Configuration
@@ -11,12 +11,6 @@ const API_BASE = "https://ts-value-list-proxy.vercel.app";
 const CACHE_KEY = "rpv_pets_cache";
 const ADMIN_KEY = "rpv_admin_session";
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
-
-// Hardcoded admin credentials (not visible in UI)
-const ADMIN_CREDENTIALS = {
-  username: "tsadmin",
-  password: "TapSimulator2026!"
-};
 
 // =======================
 // Cache utilities
@@ -60,10 +54,12 @@ function clearCache(key) {
 // =======================
 
 let isAdminLoggedIn = false;
+let adminCredentials = null;
 
 function checkAdminSession() {
   const session = getCache(ADMIN_KEY);
-  if (session && session.username) {
+  if (session && session.username && session.password) {
+    adminCredentials = session;
     isAdminLoggedIn = true;
     showAdminUI();
     return true;
@@ -71,26 +67,86 @@ function checkAdminSession() {
   return false;
 }
 
-function adminLogin(username, password) {
-  if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-    const session = { username, loginTime: Date.now() };
-    setCache(ADMIN_KEY, session, THIRTY_MINUTES_MS);
-    isAdminLoggedIn = true;
-    showAdminUI();
-    return true;
+async function adminLogin(username, password) {
+  try {
+    // Verify credentials with backend
+    const res = await fetch(`${API_BASE}/api/auth/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    if (!res.ok) {
+      return false;
+    }
+
+    const data = await res.json();
+    if (data.valid) {
+      // Store credentials for future requests
+      const session = { username, password, loginTime: Date.now() };
+      setCache(ADMIN_KEY, session, THIRTY_MINUTES_MS);
+      adminCredentials = session;
+      isAdminLoggedIn = true;
+      showAdminUI();
+      closeLoginModal();
+      return true;
+    }
+    
+    return false;
+  } catch (err) {
+    console.warn('[DEBUG-WARNING] Login failed:', err);
+    return false;
   }
-  return false;
 }
 
 function adminLogout() {
   clearCache(ADMIN_KEY);
+  adminCredentials = null;
   isAdminLoggedIn = false;
   hideAdminUI();
+  alert('You have been logged out.');
   location.reload();
 }
 
+async function verifyAdminBeforeAction() {
+  if (!adminCredentials) {
+    adminLogout();
+    return false;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: adminCredentials.username,
+        password: adminCredentials.password
+      })
+    });
+
+    if (!res.ok) {
+      adminLogout();
+      return false;
+    }
+
+    const data = await res.json();
+    if (!data.valid) {
+      adminLogout();
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.warn('[DEBUG-WARNING] Credential verification failed:', err);
+    adminLogout();
+    return false;
+  }
+}
+
 function showAdminUI() {
-  document.getElementById('login-panel').classList.add('hidden');
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) logoutBtn.classList.remove('hidden');
+  
   window.dispatchEvent(new Event('adminLoggedIn'));
   
   // Show admin action buttons on all pet cards
@@ -99,7 +155,9 @@ function showAdminUI() {
 }
 
 function hideAdminUI() {
-  document.getElementById('login-panel').classList.remove('hidden');
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) logoutBtn.classList.add('hidden');
+  
   window.dispatchEvent(new Event('adminLoggedOut'));
   
   // Hide admin action buttons
@@ -255,15 +313,27 @@ function escapeHtml(str) {
 // =======================
 
 async function addPet(petData) {
+  // Verify credentials before action
+  if (!(await verifyAdminBeforeAction())) {
+    alert('Your session has expired or credentials are invalid. Please login again.');
+    return false;
+  }
+
   try {
     const res = await fetch(`${API_BASE}/api/pets`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getCache(ADMIN_KEY)?.username}`
+        'X-Admin-Username': adminCredentials.username,
+        'X-Admin-Password': adminCredentials.password
       },
       body: JSON.stringify(petData)
     });
+
+    if (res.status === 401) {
+      adminLogout();
+      return false;
+    }
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -279,15 +349,27 @@ async function addPet(petData) {
 }
 
 async function updatePet(petId, petData) {
+  // Verify credentials before action
+  if (!(await verifyAdminBeforeAction())) {
+    alert('Your session has expired or credentials are invalid. Please login again.');
+    return false;
+  }
+
   try {
     const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getCache(ADMIN_KEY)?.username}`
+        'X-Admin-Username': adminCredentials.username,
+        'X-Admin-Password': adminCredentials.password
       },
       body: JSON.stringify(petData)
     });
+
+    if (res.status === 401) {
+      adminLogout();
+      return false;
+    }
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -308,13 +390,25 @@ async function updatePet(petId, petData) {
 async function deletePet(petId) {
   if (!confirm('Are you sure you want to delete this pet?')) return;
 
+  // Verify credentials before action
+  if (!(await verifyAdminBeforeAction())) {
+    alert('Your session has expired or credentials are invalid. Please login again.');
+    return;
+  }
+
   try {
     const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${getCache(ADMIN_KEY)?.username}`
+        'X-Admin-Username': adminCredentials.username,
+        'X-Admin-Password': adminCredentials.password
       }
     });
+
+    if (res.status === 401) {
+      adminLogout();
+      return;
+    }
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -341,6 +435,23 @@ window.deletePet = deletePet;
 // =======================
 
 let currentEditingPetId = null;
+
+function openLoginModal() {
+  const modal = document.getElementById('login-modal');
+  const form = document.getElementById('login-form');
+  const message = document.getElementById('login-message');
+  
+  form.reset();
+  message.textContent = '';
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeLoginModal() {
+  const modal = document.getElementById('login-modal');
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+}
 
 function openPetModal(pet = null) {
   const modal = document.getElementById('pet-modal');
@@ -393,15 +504,43 @@ function closePetModal() {
 // =======================
 
 function initEventListeners() {
+  // Admin icon button opens login modal
+  const adminIconBtn = document.getElementById('admin-icon-btn');
+  if (adminIconBtn) {
+    adminIconBtn.addEventListener('click', openLoginModal);
+  }
+
+  // Logout button
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', adminLogout);
+  }
+
+  // Login modal controls
+  const loginModalClose = document.getElementById('login-modal-close');
+  if (loginModalClose) {
+    loginModalClose.addEventListener('click', closeLoginModal);
+  }
+
+  const loginModalBackdrop = document.querySelector('#login-modal .modal-backdrop');
+  if (loginModalBackdrop) {
+    loginModalBackdrop.addEventListener('click', closeLoginModal);
+  }
+
   // Login form
   const loginForm = document.getElementById('login-form');
-  loginForm.addEventListener('submit', (e) => {
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value;
     const message = document.getElementById('login-message');
 
-    if (adminLogin(username, password)) {
+    message.textContent = 'Verifying credentials...';
+    message.style.color = '#a8b3cf';
+
+    const success = await adminLogin(username, password);
+    
+    if (success) {
       message.textContent = 'Login successful!';
       message.style.color = '#00ff88';
     } else {
@@ -410,10 +549,14 @@ function initEventListeners() {
     }
   });
 
-  // Modal controls
+  // Pet modal controls
   document.getElementById('modal-close').addEventListener('click', closePetModal);
   document.getElementById('cancel-btn').addEventListener('click', closePetModal);
-  document.querySelector('.modal-backdrop').addEventListener('click', closePetModal);
+  
+  const petModalBackdrop = document.querySelector('#pet-modal .modal-backdrop');
+  if (petModalBackdrop) {
+    petModalBackdrop.addEventListener('click', closePetModal);
+  }
 
   // Pet form submit
   const petForm = document.getElementById('pet-form');
@@ -448,7 +591,7 @@ function initEventListeners() {
       message.style.color = '#00ff88';
       setTimeout(closePetModal, 1000);
     } else {
-      message.textContent = 'Failed to save pet. Try again.';
+      message.textContent = 'Failed to save pet. Check your credentials.';
       message.style.color = '#ff4343';
     }
   });
