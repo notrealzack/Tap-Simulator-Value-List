@@ -1,7 +1,7 @@
 /* File type: CSS Stylesheet (for GitHub Pages) */
 /* Path: /styles.css */
 
-/* Debug warning: Main stylesheet - sidebar positioned to push trade button to bottom */
+/* Debug warning: Redesigned layout - sidebar right, 7 pets per row, optimized header */
 
 /* ============================================
    CSS VARIABLES
@@ -60,7 +60,7 @@ body {
 }
 
 /* ============================================
-   HEADER
+   HEADER (REDESIGNED - Sides Layout)
    ============================================ */
 
 header {
@@ -74,13 +74,19 @@ header {
 }
 
 .header-content {
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+/* Left section - Icon + Title */
+.header-content > :first-child {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-lg);
-  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .game-icon-container {
@@ -99,25 +105,28 @@ header {
 }
 
 .header-title-section h1 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+  white-space: nowrap;
 }
 
 .header-subtitle {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin: 0;
 }
 
+/* Middle section - Search + Filter */
 .search-filter-container {
   display: flex;
   gap: var(--space-sm);
-  flex: 1;
+  justify-self: center;
   max-width: 600px;
+  width: 100%;
 }
 
 .search-box {
@@ -223,10 +232,12 @@ header {
   color: white;
 }
 
+/* Right section - Admin Actions */
 .header-actions {
   display: flex;
   gap: var(--space-sm);
   align-items: center;
+  justify-self: end;
 }
 
 .admin-icon-btn,
@@ -239,6 +250,7 @@ header {
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .admin-icon-btn:hover,
@@ -253,23 +265,23 @@ header {
 }
 
 /* ============================================
-   CONTAINER & LAYOUT
+   CONTAINER & LAYOUT (SIDEBAR ON RIGHT)
    ============================================ */
 
 .container {
   position: relative;
   z-index: 10;
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 1fr 220px;
   gap: var(--space-lg);
-  max-width: 1600px;
+  max-width: 100%;
   margin: 0 auto;
   padding: var(--space-lg);
   min-height: calc(100vh - 100px);
 }
 
 /* ============================================
-   SIDEBAR (FIXED - Trade Button at Bottom)
+   SIDEBAR (RIGHT SIDE)
    ============================================ */
 
 #sidebar {
@@ -283,6 +295,7 @@ header {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  order: 2;
 }
 
 .sidebar-content {
@@ -322,11 +335,11 @@ header {
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 10px 14px;
+  padding: 10px 12px;
   color: var(--text-secondary);
   text-decoration: none;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: all 0.2s ease;
   cursor: pointer;
   gap: 8px;
@@ -370,12 +383,13 @@ header {
 }
 
 /* ============================================
-   CONTENT AREA
+   CONTENT AREA (LEFT SIDE, ORDER 1)
    ============================================ */
 
 #content {
   position: relative;
   z-index: 10;
+  order: 1;
 }
 
 .welcome {
@@ -395,13 +409,13 @@ header {
 }
 
 /* ============================================
-   PETS GRID
+   PETS GRID (7 CARDS PER ROW)
    ============================================ */
 
 .pets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-lg);
+  grid-template-columns: repeat(7, 1fr);
+  gap: 14px;
 }
 
 .pets-loading {
@@ -413,14 +427,14 @@ header {
 }
 
 /* ============================================
-   PET CARD
+   PET CARD (SMALLER FOR 7 PER ROW)
    ============================================ */
 
 .pet-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: var(--space-md);
+  border-radius: 10px;
+  padding: 12px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -435,9 +449,9 @@ header {
 .pet-image {
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
-  margin-bottom: var(--space-md);
+  margin-bottom: 10px;
   background: rgba(0, 0, 0, 0.2);
 }
 
@@ -448,21 +462,24 @@ header {
 }
 
 .pet-info {
-  margin-bottom: var(--space-md);
+  margin-bottom: 10px;
 }
 
 .pet-name {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pet-rarity {
   display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -507,41 +524,41 @@ header {
 .pet-stats {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: var(--space-md);
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .pet-stat-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  border-radius: 5px;
 }
 
 .pet-stat-label {
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
 .pet-stat-value {
   color: var(--accent-primary);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
 .pet-updated {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
   text-align: center;
-  margin-top: var(--space-sm);
+  margin-top: 6px;
 }
 
 .pet-admin-actions {
   display: none;
-  gap: var(--space-sm);
-  margin-top: var(--space-md);
+  gap: 6px;
+  margin-top: 10px;
 }
 
 .pet-admin-actions.visible {
@@ -551,10 +568,10 @@ header {
 .btn-edit,
 .btn-delete {
   flex: 1;
-  padding: 8px;
+  padding: 6px;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 0.85rem;
+  border-radius: 5px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -755,30 +772,72 @@ header {
 }
 
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE DESIGN
    ============================================ */
 
-@media (max-width: 1024px) {
-  .container {
-    grid-template-columns: 200px 1fr;
+@media (max-width: 1600px) {
+  .pets-grid {
+    grid-template-columns: repeat(6, 1fr);
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1400px) {
+  .pets-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 1200px) {
+  .container {
+    grid-template-columns: 1fr 200px;
+  }
+  
+  .pets-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .header-content {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+  
+  .search-filter-container {
+    justify-self: stretch;
+    max-width: 100%;
+  }
+  
+  .header-actions {
+    justify-self: stretch;
+  }
+  
   .container {
     grid-template-columns: 1fr;
   }
-
+  
   #sidebar {
+    order: 1;
     position: static;
     height: auto;
     max-height: 400px;
     overflow-y: auto;
+    margin-bottom: var(--space-lg);
   }
-
+  
+  #content {
+    order: 2;
+  }
+  
   .pets-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: var(--space-md);
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .pets-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 }
 
@@ -786,14 +845,13 @@ header {
   .pets-grid {
     grid-template-columns: 1fr;
   }
-
-  .header-content {
-    flex-direction: column;
-    align-items: stretch;
+  
+  header {
+    padding: var(--space-sm) var(--space-md);
   }
-
-  .search-filter-container {
-    max-width: 100%;
+  
+  .container {
+    padding: var(--space-md);
   }
 }
 
