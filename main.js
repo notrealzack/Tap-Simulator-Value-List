@@ -383,6 +383,9 @@ function renderPets(filterRarity = null) {
   }
 }
 
+// Make renderPets globally accessible for trade calculator
+window.renderPets = renderPets;
+
 // FIXED: All class names now match styles.css exactly
 function createPetCard(pet) {
   const rarityClass = getRarityClass(pet.rarity);
