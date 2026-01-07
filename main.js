@@ -1,19 +1,23 @@
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /main.js
 
-// Debug warning: Main application logic with admin authentication and dynamic sidebar generation
+// Debug warning: Main application logic with admin authentication, dynamic sidebar generation, and client-side search/filter
 
 // =======================
 // Configuration
 // =======================
 const API_BASE = "https://ts-value-list-proxy.vercel.app";
-const CACHE_VERSION = "v3"; // Increment this to force cache clear
+const CACHE_VERSION = "v3";
 const CACHE_KEY = `rpv_pets_cache_${CACHE_VERSION}`;
 const ADMIN_KEY = "rpv_admin_session";
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 
 // Track current rarity filter for dynamic welcome message
 let currentRarityFilter = null;
+
+// Track search and sort state
+let currentSearchQuery = "";
+let currentSortMode = "default"; // default, newest, oldest, highest
 
 // Clear old cache versions on load
 function clearOldCaches() {
@@ -288,26 +292,74 @@ function updateWelcomeMessage(filterRarity) {
   `;
 }
 
+// Filter and sort pets based on current state (no API calls)
+function filterAndSortPets() {
+  let filteredPets = [...allPets];
+
+  // Apply rarity filter from sidebar
+  if (currentRarityFilter && currentRarityFilter !== 'all') {
+    filteredPets = filteredPets.filter(pet => pet.rarity === currentRarityFilter);
+  }
+
+  // Apply search query
+  if (currentSearchQuery.trim()) {
+    const query = currentSearchQuery.toLowerCase();
+    filteredPets = filteredPets.filter(pet => 
+      pet.name && pet.name.toLowerCase().includes(query)
+    );
+  }
+
+  // Apply sort mode
+  switch (currentSortMode) {
+    case 'newest':
+      // Sort by updated_at descending (newest first)
+      filteredPets.sort((a, b) => {
+        const dateA = new Date(a.updated_at || a.created_at || 0);
+        const dateB = new Date(b.updated_at || b.created_at || 0);
+        return dateB - dateA;
+      });
+      break;
+    
+    case 'oldest':
+      // Sort by updated_at ascending (oldest first)
+      filteredPets.sort((a, b) => {
+        const dateA = new Date(a.updated_at || a.created_at || 0);
+        const dateB = new Date(b.updated_at || b.created_at || 0);
+        return dateA - dateB;
+      });
+      break;
+    
+    case 'highest':
+      // Sort by value_normal descending (highest value first)
+      filteredPets.sort((a, b) => (b.value_normal || 0) - (a.value_normal || 0));
+      break;
+    
+    case 'default':
+    default:
+      // Default sort by value_normal descending
+      filteredPets.sort((a, b) => (b.value_normal || 0) - (a.value_normal || 0));
+      break;
+  }
+
+  return filteredPets;
+}
+
 function renderPets(filterRarity = null) {
   const container = document.getElementById('pets-container');
   
   // Update current filter and welcome message
-  currentRarityFilter = filterRarity;
-  updateWelcomeMessage(filterRarity);
-
-  // Filter by rarity if specified
-  let petsToRender = allPets;
-  if (filterRarity && filterRarity !== 'all') {
-    petsToRender = allPets.filter(pet => pet.rarity === filterRarity);
+  if (filterRarity !== null) {
+    currentRarityFilter = filterRarity;
   }
+  updateWelcomeMessage(currentRarityFilter);
+
+  // Get filtered and sorted pets
+  const petsToRender = filterAndSortPets();
 
   if (petsToRender.length === 0) {
     container.innerHTML = '<div class="pets-loading">No pets found.</div>';
     return;
   }
-
-  // Sort by normal value descending
-  petsToRender.sort((a, b) => (b.value_normal || 0) - (a.value_normal || 0));
 
   const html = petsToRender.map(pet => createPetCard(pet)).join('');
   container.innerHTML = html;
@@ -443,7 +495,7 @@ async function addPet(petData) {
     const newPet = await res.json();
     allPets.push(newPet);
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-    renderPets(currentRarityFilter);
+    renderPets();
     return true;
   } catch (err) {
     console.warn('[DEBUG-WARNING] Add pet error:', err);
@@ -486,9 +538,11 @@ async function updatePet(petId, petData) {
 
     const updatedPet = await res.json();
     const index = allPets.findIndex(p => p.id === petId);
-    if (index !== -1) allPets[index] = updatedPet;
+    if (index !== -1) {
+      allPets[index] = updatedPet;
+    }
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-    renderPets(currentRarityFilter);
+    renderPets();
     return true;
   } catch (err) {
     console.warn('[DEBUG-WARNING] Update pet error:', err);
@@ -497,14 +551,16 @@ async function updatePet(petId, petData) {
 }
 
 async function deletePet(petId) {
-  if (!confirm('Are you sure you want to delete this pet?')) return;
+  if (!confirm('Are you sure you want to delete this pet?')) {
+    return;
+  }
 
   if (!(await verifyAdminBeforeAction())) {
     alert('Your session has expired or credentials are invalid. Please login again.');
     return;
   }
 
-  console.log('[DEBUG] Sending delete request for pet:', petId, 'with credentials:', adminCredentials.username);
+  console.log('[DEBUG] Sending delete request for pet:', petId);
 
   try {
     const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
@@ -531,34 +587,39 @@ async function deletePet(petId) {
 
     allPets = allPets.filter(p => p.id !== petId);
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-    renderPets(currentRarityFilter);
+    renderPets();
   } catch (err) {
     console.warn('[DEBUG-WARNING] Delete pet error:', err);
     alert('Failed to delete pet. Please try again.');
   }
 }
 
-// Make functions global for onclick handlers
-window.editPet = function(petId) {
-  const pet = allPets.find(p => p.id === petId);
-  if (!pet) return;
-  openPetModal(pet);
-};
-
+// Make deletePet available globally for onclick handlers
 window.deletePet = deletePet;
+
+function editPet(petId) {
+  const pet = allPets.find(p => p.id === petId);
+  if (!pet) {
+    alert('Pet not found');
+    return;
+  }
+  openPetModal(pet);
+}
+
+// Make editPet available globally for onclick handlers
+window.editPet = editPet;
 
 // =======================
 // Modal management
 // =======================
-let currentEditingPetId = null;
-
 function openLoginModal() {
   const modal = document.getElementById('login-modal');
   const form = document.getElementById('login-form');
   const message = document.getElementById('login-message');
-
+  
   form.reset();
   message.textContent = '';
+  message.className = 'form-message';
   modal.classList.remove('hidden');
   modal.setAttribute('aria-hidden', 'false');
 }
@@ -569,32 +630,33 @@ function closeLoginModal() {
   modal.setAttribute('aria-hidden', 'true');
 }
 
+let currentEditingPetId = null;
+
 function openPetModal(pet = null) {
   const modal = document.getElementById('pet-modal');
   const form = document.getElementById('pet-form');
   const title = document.getElementById('modal-title');
   const message = document.getElementById('pet-form-message');
+  const preview = document.getElementById('image-preview');
 
   form.reset();
   message.textContent = '';
-  document.getElementById('image-preview').classList.add('hidden');
+  message.className = 'form-message';
+  preview.classList.add('hidden');
 
   if (pet) {
     // Edit mode
     title.textContent = 'Edit Pet';
     currentEditingPetId = pet.id;
-    document.getElementById('pet-id').value = pet.id;
-    document.getElementById('pet-name').value = pet.name;
-    document.getElementById('pet-rarity').value = pet.rarity;
+    document.getElementById('pet-name').value = pet.name || '';
+    document.getElementById('pet-rarity').value = pet.rarity || '';
     document.getElementById('pet-stats').value = pet.stats || 0;
     document.getElementById('pet-value-normal').value = pet.value_normal || 0;
     document.getElementById('pet-value-golden').value = pet.value_golden || 0;
     document.getElementById('pet-value-rainbow').value = pet.value_rainbow || 0;
-
+    
     if (pet.image_url) {
-      const preview = document.getElementById('image-preview');
-      const previewImg = document.getElementById('preview-img');
-      previewImg.src = pet.image_url;
+      document.getElementById('preview-img').src = pet.image_url;
       preview.classList.remove('hidden');
     }
   } else {
@@ -618,7 +680,7 @@ function closePetModal() {
 // Event listeners
 // =======================
 function initEventListeners() {
-  // Admin icon button opens login modal
+  // Admin icon button
   const adminIconBtn = document.getElementById('admin-icon-btn');
   if (adminIconBtn) {
     adminIconBtn.addEventListener('click', openLoginModal);
@@ -630,140 +692,186 @@ function initEventListeners() {
     logoutBtn.addEventListener('click', adminLogout);
   }
 
-  // Login modal controls
+  // Login modal close
   const loginModalClose = document.getElementById('login-modal-close');
-  if (loginModalClose) {
-    loginModalClose.addEventListener('click', closeLoginModal);
-  }
-
   const loginModalBackdrop = document.querySelector('#login-modal .modal-backdrop');
-  if (loginModalBackdrop) {
-    loginModalBackdrop.addEventListener('click', closeLoginModal);
-  }
+  if (loginModalClose) loginModalClose.addEventListener('click', closeLoginModal);
+  if (loginModalBackdrop) loginModalBackdrop.addEventListener('click', closeLoginModal);
 
-  // Login form
+  // Login form submit
   const loginForm = document.getElementById('login-form');
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+      const message = document.getElementById('login-message');
 
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value;
-    const message = document.getElementById('login-message');
+      message.textContent = 'Verifying credentials...';
+      message.className = 'form-message';
 
-    message.textContent = 'Verifying credentials...';
-    message.style.color = '#a8b3cf';
+      const success = await adminLogin(username, password);
 
-    const success = await adminLogin(username, password);
-
-    if (success) {
-      message.textContent = 'Login successful!';
-      message.style.color = '#00ff88';
-    } else {
-      message.textContent = 'Invalid credentials';
-      message.style.color = '#ff4343';
-    }
-  });
-
-  // Pet modal controls
-  document.getElementById('modal-close').addEventListener('click', closePetModal);
-  document.getElementById('cancel-btn').addEventListener('click', closePetModal);
-
-  const petModalBackdrop = document.querySelector('#pet-modal .modal-backdrop');
-  if (petModalBackdrop) {
-    petModalBackdrop.addEventListener('click', closePetModal);
+      if (success) {
+        message.textContent = 'Login successful!';
+        message.classList.add('success');
+      } else {
+        message.textContent = 'Invalid username or password.';
+        message.classList.add('error');
+      }
+    });
   }
+
+  // Pet modal close
+  const petModalClose = document.getElementById('modal-close');
+  const petModalBackdrop = document.querySelector('#pet-modal .modal-backdrop');
+  const cancelBtn = document.getElementById('cancel-btn');
+  if (petModalClose) petModalClose.addEventListener('click', closePetModal);
+  if (petModalBackdrop) petModalBackdrop.addEventListener('click', closePetModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closePetModal);
 
   // Pet form submit
   const petForm = document.getElementById('pet-form');
-  petForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  if (petForm) {
+    petForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const petData = {
+        name: document.getElementById('pet-name').value.trim(),
+        rarity: document.getElementById('pet-rarity').value,
+        stats: parseInt(document.getElementById('pet-stats').value) || 0,
+        value_normal: parseInt(document.getElementById('pet-value-normal').value) || 0,
+        value_golden: parseInt(document.getElementById('pet-value-golden').value) || 0,
+        value_rainbow: parseInt(document.getElementById('pet-value-rainbow').value) || 0,
+        image_url: document.getElementById('preview-img').src || null
+      };
 
-    const message = document.getElementById('pet-form-message');
-    message.textContent = '';
+      const message = document.getElementById('pet-form-message');
 
-    const petData = {
-      name: document.getElementById('pet-name').value.trim(),
-      rarity: document.getElementById('pet-rarity').value,
-      stats: parseInt(document.getElementById('pet-stats').value) || 0,
-      value_normal: parseInt(document.getElementById('pet-value-normal').value) || 0,
-      value_golden: parseInt(document.getElementById('pet-value-golden').value) || 0,
-      value_rainbow: parseInt(document.getElementById('pet-value-rainbow').value) || 0,
-      image_url: document.getElementById('preview-img').src || null
-    };
+      if (!petData.name || !petData.rarity) {
+        message.textContent = 'Name and rarity are required.';
+        message.className = 'form-message error';
+        return;
+      }
 
-    if (!petData.name || !petData.rarity) {
-      message.textContent = 'Name and rarity are required';
-      return;
-    }
+      let success;
+      if (currentEditingPetId) {
+        success = await updatePet(currentEditingPetId, petData);
+      } else {
+        success = await addPet(petData);
+      }
 
-    let success = false;
-    if (currentEditingPetId) {
-      console.log('[DEBUG] Submitting edit for pet ID:', currentEditingPetId);
-      success = await updatePet(currentEditingPetId, petData);
-    } else {
-      console.log('[DEBUG] Submitting add for new pet');
-      success = await addPet(petData);
-    }
-
-    if (success) {
-      message.textContent = 'Pet saved successfully!';
-      message.style.color = '#00ff88';
-      setTimeout(closePetModal, 1000);
-    } else {
-      message.textContent = 'Failed to save pet. Check console for details.';
-      message.style.color = '#ff4343';
-    }
-  });
+      if (success) {
+        message.textContent = 'Pet saved successfully!';
+        message.className = 'form-message success';
+        setTimeout(closePetModal, 1000);
+      } else {
+        message.textContent = 'Failed to save pet. Please try again.';
+        message.className = 'form-message error';
+      }
+    });
+  }
 
   // Image preview
   const imageInput = document.getElementById('pet-image');
-  imageInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  if (imageInput) {
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          document.getElementById('preview-img').src = event.target.result;
+          document.getElementById('image-preview').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const preview = document.getElementById('image-preview');
-      const previewImg = document.getElementById('preview-img');
-      previewImg.src = event.target.result;
-      preview.classList.remove('hidden');
-    };
-    reader.readAsDataURL(file);
+  // Search input - real-time filtering
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      currentSearchQuery = e.target.value;
+      renderPets(); // Re-render with search applied (no API call)
+    });
+  }
+
+  // Filter button - toggle dropdown
+  const filterBtn = document.getElementById('filter-btn');
+  const filterMenu = document.getElementById('filter-menu');
+  if (filterBtn && filterMenu) {
+    filterBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      filterMenu.classList.toggle('hidden');
+      filterBtn.classList.toggle('active');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!filterBtn.contains(e.target) && !filterMenu.contains(e.target)) {
+        filterMenu.classList.add('hidden');
+        filterBtn.classList.remove('active');
+      }
+    });
+  }
+
+  // Filter options - apply sort mode
+  const filterOptions = document.querySelectorAll('.filter-option');
+  filterOptions.forEach(option => {
+    option.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      // Update active state
+      filterOptions.forEach(opt => opt.classList.remove('active'));
+      option.classList.add('active');
+      
+      // Update sort mode
+      currentSortMode = option.dataset.sort;
+      
+      // Close dropdown
+      filterMenu.classList.add('hidden');
+      filterBtn.classList.remove('active');
+      
+      // Re-render with new sort (no API call)
+      renderPets();
+      
+      console.log('[DEBUG] Sort mode changed to:', currentSortMode);
+    });
   });
 
-  // Sidebar nav links
+  // Sidebar navigation (rarity filters and admin links)
   document.addEventListener('click', (e) => {
-    if (e.target.matches('.nav-link')) {
-      e.preventDefault();
+    const navLink = e.target.closest('.nav-link');
+    if (!navLink) return;
 
-      // Handle add pet
-      if (e.target.id === 'nav-add-pet') {
-        if (isAdminLoggedIn) {
-          openPetModal();
-        }
-        return;
-      }
+    e.preventDefault();
 
-      // Handle clear cache
-      if (e.target.id === 'nav-clear-cache') {
-        if (isAdminLoggedIn) {
-          clearCache(CACHE_KEY);
-          loadPets(true);
-          alert('Cache cleared and pets reloaded!');
-        }
-        return;
-      }
+    // Add Pet
+    if (navLink.id === 'nav-add-pet') {
+      openPetModal();
+      return;
+    }
 
-      // Handle rarity filter
-      const rarity = e.target.getAttribute('data-rarity');
-      if (!rarity) return;
+    // Clear Cache
+    if (navLink.id === 'nav-clear-cache') {
+      clearCache(CACHE_KEY);
+      loadPets(true);
+      alert('Cache cleared. Pets reloaded from server.');
+      return;
+    }
 
+    // Rarity filter
+    const rarity = navLink.dataset.rarity;
+    if (rarity !== undefined) {
       // Update active state
-      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-      e.target.classList.add('active');
+      document.querySelectorAll('.nav-link[data-rarity]').forEach(link => {
+        link.classList.remove('active');
+      });
+      navLink.classList.add('active');
 
-      // Filter pets and update welcome message
-      renderPets(rarity === 'all' ? null : rarity);
+      // Render pets with rarity filter
+      renderPets(rarity);
     }
   });
 }
