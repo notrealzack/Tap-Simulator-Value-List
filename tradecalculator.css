@@ -1,10 +1,11 @@
 /* File type: CSS Stylesheet (for GitHub Pages) */
 /* Path: /tradecalculator.css */
 
-/* Debug warning: Trade calculator styles - matches main site theme */
+/* Debug warning: Trade calculator styles - FULLY ISOLATED, zero conflicts with styles.css */
+/* All selectors prefixed with #trade-calculator-modal to prevent any CSS bleeding */
 
 /* ============================================
-   TRADE CALCULATOR MODAL
+   TRADE CALCULATOR MODAL - SCOPED
    ============================================ */
 
 #trade-calculator-modal {
@@ -23,7 +24,7 @@
   display: none;
 }
 
-/* Modal backdrop */
+/* Modal backdrop - scoped */
 #trade-calculator-modal .modal-backdrop {
   position: absolute;
   top: 0;
@@ -34,8 +35,8 @@
   backdrop-filter: blur(8px);
 }
 
-/* Trade calculator content container */
-.trade-calculator-content {
+/* Trade calculator content container - scoped */
+#trade-calculator-modal .trade-calculator-content {
   position: relative;
   background: linear-gradient(135deg, #1a1f3a 0%, #0a0e27 100%);
   border: 1px solid rgba(74, 158, 255, 0.3);
@@ -50,10 +51,10 @@
 }
 
 /* ============================================
-   TRADE HEADER
+   TRADE HEADER - SCOPED
    ============================================ */
 
-.trade-header {
+#trade-calculator-modal .trade-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -62,7 +63,7 @@
   border-bottom: 1px solid rgba(74, 158, 255, 0.2);
 }
 
-.trade-header h2 {
+#trade-calculator-modal .trade-header h2 {
   font-size: 1.75rem;
   font-weight: 600;
   background: linear-gradient(135deg, #4a9eff 0%, #7b68ee 100%);
@@ -72,7 +73,7 @@
   margin: 0;
 }
 
-#trade-close-btn {
+#trade-calculator-modal #trade-close-btn {
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.6);
@@ -88,31 +89,31 @@
   transition: all 0.2s ease;
 }
 
-#trade-close-btn:hover {
+#trade-calculator-modal #trade-close-btn:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.1);
 }
 
 /* ============================================
-   TRADE BOXES LAYOUT
+   TRADE BOXES LAYOUT - SCOPED
    ============================================ */
 
-.trade-boxes {
+#trade-calculator-modal .trade-boxes {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   margin-bottom: 20px;
 }
 
-/* Individual trade side (You/Them) */
-.trade-side {
+/* Individual trade side (You/Them) - scoped */
+#trade-calculator-modal .trade-side {
   background: rgba(10, 14, 39, 0.5);
   border: 1px solid rgba(74, 158, 255, 0.2);
   border-radius: 12px;
   padding: 16px;
 }
 
-.trade-side h3 {
+#trade-calculator-modal .trade-side h3 {
   font-size: 0.9rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -121,20 +122,20 @@
   text-align: center;
 }
 
-/* Color differentiation for sides */
-.trade-side[data-side="you"] h3 {
+/* Color differentiation for sides - scoped */
+#trade-calculator-modal .trade-side[data-side="you"] h3 {
   color: #4ade80;
 }
 
-.trade-side[data-side="them"] h3 {
+#trade-calculator-modal .trade-side[data-side="them"] h3 {
   color: #ef4444;
 }
 
 /* ============================================
-   PETS CONTAINER
+   PETS CONTAINER - SCOPED
    ============================================ */
 
-.trade-pets-container {
+#trade-calculator-modal .trade-pets-container {
   min-height: 200px;
   max-height: 350px;
   overflow-y: auto;
@@ -144,30 +145,30 @@
   margin-bottom: 12px;
 }
 
-/* Custom scrollbar */
-.trade-pets-container::-webkit-scrollbar {
+/* Custom scrollbar - scoped */
+#trade-calculator-modal .trade-pets-container::-webkit-scrollbar {
   width: 6px;
 }
 
-.trade-pets-container::-webkit-scrollbar-track {
+#trade-calculator-modal .trade-pets-container::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 3px;
 }
 
-.trade-pets-container::-webkit-scrollbar-thumb {
+#trade-calculator-modal .trade-pets-container::-webkit-scrollbar-thumb {
   background: rgba(74, 158, 255, 0.3);
   border-radius: 3px;
 }
 
-.trade-pets-container::-webkit-scrollbar-thumb:hover {
+#trade-calculator-modal .trade-pets-container::-webkit-scrollbar-thumb:hover {
   background: rgba(74, 158, 255, 0.5);
 }
 
 /* ============================================
-   ADD PET BUTTON (+)
+   ADD PET BUTTON (+) - SCOPED
    ============================================ */
 
-.add-pet-btn {
+#trade-calculator-modal .add-pet-btn {
   width: 100%;
   padding: 12px;
   background: rgba(74, 158, 255, 0.1);
@@ -183,21 +184,21 @@
   margin-bottom: 8px;
 }
 
-.add-pet-btn:hover {
+#trade-calculator-modal .add-pet-btn:hover {
   background: rgba(74, 158, 255, 0.2);
   border-color: #4a9eff;
   transform: translateY(-2px);
 }
 
-.add-pet-btn .add-icon {
+#trade-calculator-modal .add-pet-btn .add-icon {
   font-weight: 300;
 }
 
 /* ============================================
-   SELECTED PET ITEMS
+   SELECTED PET ITEMS - SCOPED
    ============================================ */
 
-.trade-pet-item {
+#trade-calculator-modal .trade-pet-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -209,14 +210,14 @@
   transition: all 0.2s ease;
 }
 
-.trade-pet-item:hover {
+#trade-calculator-modal .trade-pet-item:hover {
   background: rgba(26, 31, 58, 0.8);
   border-color: rgba(74, 158, 255, 0.3);
 }
 
-/* Pet icon in trade item */
-.trade-pet-icon,
-.trade-pet-icon-placeholder {
+/* Pet icon in trade item - scoped */
+#trade-calculator-modal .trade-pet-icon,
+#trade-calculator-modal .trade-pet-icon-placeholder {
   width: 32px;
   height: 32px;
   border-radius: 6px;
@@ -224,7 +225,7 @@
   flex-shrink: 0;
 }
 
-.trade-pet-icon-placeholder {
+#trade-calculator-modal .trade-pet-icon-placeholder {
   background: rgba(74, 158, 255, 0.1);
   display: flex;
   align-items: center;
@@ -234,8 +235,8 @@
   font-weight: 600;
 }
 
-/* Pet info in trade item */
-.trade-pet-info {
+/* Pet info in trade item - scoped */
+#trade-calculator-modal .trade-pet-info {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -243,7 +244,7 @@
   min-width: 0;
 }
 
-.trade-pet-name {
+#trade-calculator-modal .trade-pet-name {
   font-size: 0.85rem;
   font-weight: 500;
   color: #ffffff;
@@ -252,13 +253,13 @@
   text-overflow: ellipsis;
 }
 
-.trade-pet-value {
+#trade-calculator-modal .trade-pet-value {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.5);
 }
 
-/* Remove pet button (×) */
-.remove-pet-btn {
+/* Remove pet button (×) - scoped */
+#trade-calculator-modal .remove-pet-btn {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #ef4444;
@@ -276,20 +277,20 @@
   line-height: 1;
 }
 
-.remove-pet-btn:hover {
+#trade-calculator-modal .remove-pet-btn:hover {
   background: rgba(239, 68, 68, 0.2);
   border-color: #ef4444;
 }
 
 /* ============================================
-   TOKEN INPUT
+   TOKEN INPUT - SCOPED
    ============================================ */
 
-.token-input-container {
+#trade-calculator-modal .token-input-container {
   margin-bottom: 12px;
 }
 
-.token-input-container label {
+#trade-calculator-modal .token-input-container label {
   display: block;
   font-size: 0.85rem;
   font-weight: 500;
@@ -297,7 +298,7 @@
   margin-bottom: 6px;
 }
 
-.token-input-container input {
+#trade-calculator-modal .token-input-container input {
   width: 100%;
   padding: 10px 12px;
   background: rgba(0, 0, 0, 0.3);
@@ -308,21 +309,21 @@
   transition: all 0.2s ease;
 }
 
-.token-input-container input:focus {
+#trade-calculator-modal .token-input-container input:focus {
   outline: none;
   border-color: #4a9eff;
   background: rgba(0, 0, 0, 0.4);
 }
 
-.token-input-container input::placeholder {
+#trade-calculator-modal .token-input-container input::placeholder {
   color: rgba(255, 255, 255, 0.3);
 }
 
 /* ============================================
-   TOTAL VALUE DISPLAY
+   TOTAL VALUE DISPLAY - SCOPED
    ============================================ */
 
-.total-value {
+#trade-calculator-modal .total-value {
   padding: 12px;
   background: rgba(74, 158, 255, 0.05);
   border: 1px solid rgba(74, 158, 255, 0.2);
@@ -334,10 +335,10 @@
 }
 
 /* ============================================
-   PET SEARCH DROPDOWN
+   PET SEARCH DROPDOWN - SCOPED
    ============================================ */
 
-.pet-search-dropdown {
+#trade-calculator-modal .pet-search-dropdown {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -353,12 +354,12 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 }
 
-.pet-search-dropdown.hidden {
+#trade-calculator-modal .pet-search-dropdown.hidden {
   display: none;
 }
 
-/* Search input */
-#pet-search-input {
+/* Search input - scoped */
+#trade-calculator-modal #pet-search-input {
   width: 100%;
   padding: 12px 16px;
   background: rgba(0, 0, 0, 0.4);
@@ -370,43 +371,43 @@
   transition: all 0.2s ease;
 }
 
-#pet-search-input:focus {
+#trade-calculator-modal #pet-search-input:focus {
   outline: none;
   border-color: #4a9eff;
   background: rgba(0, 0, 0, 0.5);
 }
 
-#pet-search-input::placeholder {
+#trade-calculator-modal #pet-search-input::placeholder {
   color: rgba(255, 255, 255, 0.4);
 }
 
-/* Search results container */
-.search-results {
+/* Search results container - scoped */
+#trade-calculator-modal .search-results {
   max-height: 360px;
   overflow-y: auto;
 }
 
-/* Custom scrollbar for search results */
-.search-results::-webkit-scrollbar {
+/* Custom scrollbar for search results - scoped */
+#trade-calculator-modal .search-results::-webkit-scrollbar {
   width: 8px;
 }
 
-.search-results::-webkit-scrollbar-track {
+#trade-calculator-modal .search-results::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
 }
 
-.search-results::-webkit-scrollbar-thumb {
+#trade-calculator-modal .search-results::-webkit-scrollbar-thumb {
   background: rgba(74, 158, 255, 0.3);
   border-radius: 4px;
 }
 
-.search-results::-webkit-scrollbar-thumb:hover {
+#trade-calculator-modal .search-results::-webkit-scrollbar-thumb:hover {
   background: rgba(74, 158, 255, 0.5);
 }
 
-/* Search result item */
-.search-result-item {
+/* Search result item - scoped */
+#trade-calculator-modal .search-result-item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -419,15 +420,15 @@
   margin-bottom: 6px;
 }
 
-.search-result-item:hover {
+#trade-calculator-modal .search-result-item:hover {
   background: rgba(74, 158, 255, 0.1);
   border-color: rgba(74, 158, 255, 0.3);
   transform: translateX(4px);
 }
 
-/* Result pet icon */
-.result-pet-icon,
-.result-pet-icon-placeholder {
+/* Result pet icon - scoped */
+#trade-calculator-modal .result-pet-icon,
+#trade-calculator-modal .result-pet-icon-placeholder {
   width: 40px;
   height: 40px;
   border-radius: 8px;
@@ -435,7 +436,7 @@
   flex-shrink: 0;
 }
 
-.result-pet-icon-placeholder {
+#trade-calculator-modal .result-pet-icon-placeholder {
   background: rgba(74, 158, 255, 0.1);
   display: flex;
   align-items: center;
@@ -445,8 +446,8 @@
   font-weight: 600;
 }
 
-/* Result pet info */
-.result-pet-info {
+/* Result pet info - scoped */
+#trade-calculator-modal .result-pet-info {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -454,7 +455,7 @@
   min-width: 0;
 }
 
-.result-pet-name {
+#trade-calculator-modal .result-pet-name {
   font-size: 0.95rem;
   font-weight: 500;
   color: #ffffff;
@@ -463,14 +464,14 @@
   text-overflow: ellipsis;
 }
 
-.result-pet-value {
+#trade-calculator-modal .result-pet-value {
   font-size: 0.85rem;
   color: #4a9eff;
   font-weight: 500;
 }
 
-/* No results message */
-.no-results {
+/* No results message - scoped */
+#trade-calculator-modal .no-results {
   padding: 40px 20px;
   text-align: center;
   color: rgba(255, 255, 255, 0.5);
@@ -478,10 +479,10 @@
 }
 
 /* ============================================
-   TRADE RESULT INDICATOR
+   TRADE RESULT INDICATOR - SCOPED
    ============================================ */
 
-.trade-result {
+#trade-calculator-modal .trade-result {
   padding: 16px 24px;
   border-radius: 12px;
   text-align: center;
@@ -491,42 +492,42 @@
   transition: all 0.3s ease;
 }
 
-/* Result states */
-.trade-result.fair {
+/* Result states - scoped */
+#trade-calculator-modal .trade-result.fair {
   background: rgba(251, 191, 36, 0.1);
   border: 1px solid rgba(251, 191, 36, 0.3);
   color: #fbbf24;
 }
 
-.trade-result.win {
+#trade-calculator-modal .trade-result.win {
   background: rgba(74, 222, 128, 0.1);
   border: 1px solid rgba(74, 222, 128, 0.3);
   color: #4ade80;
 }
 
-.trade-result.lose {
+#trade-calculator-modal .trade-result.lose {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #ef4444;
 }
 
-.trade-result.neutral {
+#trade-calculator-modal .trade-result.neutral {
   background: rgba(148, 163, 184, 0.1);
   border: 1px solid rgba(148, 163, 184, 0.3);
   color: #94a3b8;
 }
 
 /* ============================================
-   TRADE ACTIONS
+   TRADE ACTIONS - SCOPED
    ============================================ */
 
-.trade-actions {
+#trade-calculator-modal .trade-actions {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
 }
 
-#trade-reset-btn {
+#trade-calculator-modal #trade-reset-btn {
   padding: 10px 24px;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
@@ -538,82 +539,82 @@
   transition: all 0.2s ease;
 }
 
-#trade-reset-btn:hover {
+#trade-calculator-modal #trade-reset-btn:hover {
   background: rgba(239, 68, 68, 0.2);
   border-color: #ef4444;
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - SCOPED
    ============================================ */
 
 @media (max-width: 768px) {
-  .trade-calculator-content {
+  #trade-calculator-modal .trade-calculator-content {
     width: 95%;
     padding: 16px;
     max-height: 95vh;
   }
-  
-  .trade-header h2 {
+
+  #trade-calculator-modal .trade-header h2 {
     font-size: 1.4rem;
   }
-  
+
   /* Stack trade boxes vertically on mobile */
-  .trade-boxes {
+  #trade-calculator-modal .trade-boxes {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
-  .trade-pets-container {
+
+  #trade-calculator-modal .trade-pets-container {
     min-height: 150px;
     max-height: 250px;
   }
-  
-  .pet-search-dropdown {
+
+  #trade-calculator-modal .pet-search-dropdown {
     width: 95%;
     max-height: 400px;
   }
-  
-  .search-results {
+
+  #trade-calculator-modal .search-results {
     max-height: 280px;
   }
-  
-  .trade-result {
+
+  #trade-calculator-modal .trade-result {
     font-size: 1rem;
     padding: 12px 16px;
   }
 }
 
 @media (max-width: 480px) {
-  .trade-calculator-content {
+  #trade-calculator-modal .trade-calculator-content {
     padding: 12px;
   }
-  
-  .trade-header {
+
+  #trade-calculator-modal .trade-header {
     margin-bottom: 16px;
   }
-  
-  .trade-header h2 {
+
+  #trade-calculator-modal .trade-header h2 {
     font-size: 1.2rem;
   }
-  
-  .trade-side {
+
+  #trade-calculator-modal .trade-side {
     padding: 12px;
   }
-  
-  .trade-pet-item {
+
+  #trade-calculator-modal .trade-pet-item {
     padding: 6px;
     gap: 8px;
   }
-  
-  .trade-pet-icon,
-  .trade-pet-icon-placeholder {
+
+  #trade-calculator-modal .trade-pet-icon,
+  #trade-calculator-modal .trade-pet-icon-placeholder {
     width: 28px;
     height: 28px;
   }
-  
-  .result-pet-icon,
-  .result-pet-icon-placeholder {
+
+  #trade-calculator-modal .result-pet-icon,
+  #trade-calculator-modal .result-pet-icon-placeholder {
     width: 36px;
     height: 36px;
   }
