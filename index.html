@@ -1,4 +1,4 @@
-<!-- File type: HTML (for GitHub Pages) -->
+<!-- File type: HTML for GitHub Pages -->
 <!-- Path: /index.html -->
 
 <!DOCTYPE html>
@@ -73,6 +73,7 @@
       <div class="header-actions">
         <!-- Admin icon button (opens login modal) -->
         <button id="admin-icon-btn" class="admin-icon-btn" aria-label="Admin Login" title="Admin Login">🔑</button>
+        
         <!-- Logout button (hidden by default) -->
         <button id="logout-btn" class="logout-btn hidden" aria-label="Logout" title="Logout">Logout</button>
       </div>
@@ -136,11 +137,13 @@
       <form id="pet-form">
         <input type="hidden" id="pet-id">
 
+        <!-- Pet Name -->
         <div class="form-group">
           <label for="pet-name">Pet Name</label>
           <input type="text" id="pet-name" name="name" required placeholder="Enter pet name">
         </div>
 
+        <!-- Rarity -->
         <div class="form-group">
           <label for="pet-rarity">Rarity</label>
           <select id="pet-rarity" name="rarity" required>
@@ -154,31 +157,44 @@
           </select>
         </div>
 
+        <!-- Debug warning: Stats Type selector for percentage or value display -->
         <div class="form-group">
-          <label for="pet-stats">Stats</label>
-          <input type="number" id="pet-stats" name="stats" min="0" placeholder="0">
+          <label for="pet-stats-type">Stats Type</label>
+          <select id="pet-stats-type" name="stats_type" required>
+            <option value="value">Value (Normal Numbers)</option>
+            <option value="percentage">Percentage (%)</option>
+          </select>
         </div>
 
+        <!-- Debug warning: Changed from number to text input to allow custom formats like "30B", "1.5M", "250%" -->
+        <div class="form-group">
+          <label for="pet-stats">Stats</label>
+          <input type="text" id="pet-stats" name="stats" placeholder="e.g., 30B, 1.5M, 250%">
+        </div>
+
+        <!-- Debug warning: Changed from number to text input for custom value formats -->
         <div class="form-group">
           <label for="pet-value-normal">Normal Value</label>
-          <input type="number" id="pet-value-normal" name="value_normal" min="0" placeholder="0">
+          <input type="text" id="pet-value-normal" name="value_normal" placeholder="e.g., 500M, 2B">
         </div>
 
         <div class="form-group">
           <label for="pet-value-golden">Golden Value</label>
-          <input type="number" id="pet-value-golden" name="value_golden" min="0" placeholder="0">
+          <input type="text" id="pet-value-golden" name="value_golden" placeholder="e.g., 1.5B, 10B">
         </div>
 
         <div class="form-group">
           <label for="pet-value-rainbow">Rainbow Value</label>
-          <input type="number" id="pet-value-rainbow" name="value_rainbow" min="0" placeholder="0">
+          <input type="text" id="pet-value-rainbow" name="value_rainbow" placeholder="e.g., 5B, 50B">
         </div>
 
+        <!-- Pet Image Upload -->
         <div class="form-group">
           <label for="pet-image">Pet Image</label>
           <input type="file" id="pet-image" name="image" accept="image/*">
         </div>
 
+        <!-- Image Preview -->
         <div id="image-preview" class="image-preview hidden">
           <img id="preview-img" src="" alt="Pet Preview">
         </div>
@@ -193,7 +209,7 @@
     </div>
   </div>
 
-  <!-- Pet Search Dropdown (for Trade Calculator) -->
+  <!-- Pet Search Dropdown for Trade Calculator -->
   <div id="trade-pet-search-dropdown" class="trade-pet-search-dropdown hidden">
     <input type="text" id="trade-pet-search-input" placeholder="Search pet name..." autocomplete="off">
     <div id="trade-search-results" class="trade-search-results">
@@ -208,6 +224,7 @@
   <script src="secreteffects.js"></script>
   <script src="textglimmer.js"></script>
   <script src="main.js"></script>
+  
   <!-- Trade Calculator Script -->
   <script src="tradecalculator.js"></script>
 
@@ -218,17 +235,17 @@
       if (typeof initSidebar === 'function') {
         initSidebar();
       }
-
+      
       // Initialize particle effects
       if (typeof initParticles === 'function') {
         initParticles();
       }
-
+      
       // Initialize secret effects
       if (typeof initSecretEffects === 'function') {
         initSecretEffects();
       }
-
+      
       // Initialize text glimmer
       if (typeof initTextGlimmer === 'function') {
         initTextGlimmer();
@@ -238,5 +255,5 @@
 </body>
 </html>
 
-<!-- File type: HTML (for GitHub Pages) -->
+<!-- File type: HTML for GitHub Pages -->
 <!-- Path: /index.html -->
