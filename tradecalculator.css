@@ -1,7 +1,7 @@
 /* File type: CSS Stylesheet (for GitHub Pages) */
 /* Path: /tradecalculator.css */
 
-/* Debug warning: Trade calculator styles - clean inline display with proper image scaling */
+/* Debug warning: Trade calculator styles - X button not clipped by rounded corners */
 
 /* ============================================
    TRADE CALCULATOR INLINE CONTAINER
@@ -162,7 +162,7 @@
   justify-content: flex-start;
   position: relative;
   transition: all 0.2s ease;
-  overflow: hidden;
+  overflow: visible; /* FIXED - Allow X button to show outside rounded corners */
 }
 
 .trade-pet-card:hover {
