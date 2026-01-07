@@ -417,11 +417,14 @@ function renderPets(filterRarity = null) {
 // Make renderPets globally accessible for trade calculator
 window.renderPets = renderPets;
 
-// Create pet card with additional specific color classes
+// Debug warning: Display stats with optional percentage symbol based on stats_type
 function createPetCard(pet) {
   const rarityClass = getRarityClass(pet.rarity);
   const imageUrl = pet.image_url;
   const lastUpdated = formatLastUpdated(pet.updated_at);
+  
+  // Add percentage symbol if stats_type is 'percentage'
+  const statsDisplay = pet.stats_type === 'percentage' ? `${pet.stats || '0'}%` : (pet.stats || '0');
 
   return `
     <div class="pet-card" data-pet-id="${pet.id}">
@@ -438,19 +441,19 @@ function createPetCard(pet) {
       <div class="pet-stats">
         <div class="pet-stat-row">
           <span class="pet-stat-label pet-stats-label">Stats</span>
-          <span class="pet-stat-value pet-stats-value">${formatNumber(pet.stats || 0)}</span>
+          <span class="pet-stat-value pet-stats-value">${statsDisplay}</span>
         </div>
         <div class="pet-stat-row">
           <span class="pet-stat-label pet-normal-label">Normal</span>
-          <span class="pet-stat-value pet-normal-value">${formatNumber(pet.value_normal || 0)}</span>
+          <span class="pet-stat-value pet-normal-value">${pet.value_normal || '0'}</span>
         </div>
         <div class="pet-stat-row">
           <span class="pet-stat-label pet-golden-label">Golden</span>
-          <span class="pet-stat-value pet-golden-value">${formatNumber(pet.value_golden || 0)}</span>
+          <span class="pet-stat-value pet-golden-value">${pet.value_golden || '0'}</span>
         </div>
         <div class="pet-stat-row">
           <span class="pet-stat-label pet-rainbow-label">Rainbow</span>
-          <span class="pet-stat-value pet-rainbow-value">${formatNumber(pet.value_rainbow || 0)}</span>
+          <span class="pet-stat-value pet-rainbow-value">${pet.value_rainbow || '0'}</span>
         </div>
       </div>
       <div class="pet-updated">Updated: ${lastUpdated}</div>
@@ -492,10 +495,11 @@ function formatLastUpdated(timestamp) {
   }
 }
 
-// Helper function to format numbers
+// Helper function to format numbers (removed - now displaying raw text values)
 function formatNumber(num) {
   if (num == null) return '0';
-  return Number(num).toLocaleString();
+  // Return as-is for text values like "30B", "1.5M"
+  return String(num);
 }
 
 // Helper function to escape HTML
@@ -673,6 +677,7 @@ function closeLoginModal() {
   }
 }
 
+// Debug warning: Added stats_type field handling for edit mode
 function openPetModal(pet = null) {
   const modal = document.getElementById('pet-modal');
   const form = document.getElementById('pet-form');
@@ -692,6 +697,7 @@ function openPetModal(pet = null) {
     // Populate form fields
     document.getElementById('pet-name').value = pet.name || '';
     document.getElementById('pet-rarity').value = pet.rarity || '';
+    document.getElementById('pet-stats-type').value = pet.stats_type || 'value';
     document.getElementById('pet-stats').value = pet.stats || '';
     document.getElementById('pet-value-normal').value = pet.value_normal || '';
     document.getElementById('pet-value-golden').value = pet.value_golden || '';
@@ -703,9 +709,10 @@ function openPetModal(pet = null) {
       imagePreview.classList.remove('hidden');
     }
   } else {
-    // Add mode
+    // Add mode - set default stats_type to 'value'
     currentEditingPetId = null;
     if (modalTitle) modalTitle.textContent = 'Add Pet';
+    document.getElementById('pet-stats-type').value = 'value';
   }
   
   if (modal) {
@@ -796,20 +803,22 @@ function initEventListeners() {
     }
   }
 
-  // Pet form submission
+  // Debug warning: Pet form submission now handles text values and stats_type field
   const petForm = document.getElementById('pet-form');
   if (petForm) {
     petForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const message = document.getElementById('pet-form-message');
       
+      // Get values as text, not as integers
       const petData = {
         name: document.getElementById('pet-name').value,
         rarity: document.getElementById('pet-rarity').value,
-        stats: parseInt(document.getElementById('pet-stats').value) || 0,
-        value_normal: parseInt(document.getElementById('pet-value-normal').value) || 0,
-        value_golden: parseInt(document.getElementById('pet-value-golden').value) || 0,
-        value_rainbow: parseInt(document.getElementById('pet-value-rainbow').value) || 0
+        stats_type: document.getElementById('pet-stats-type').value,
+        stats: document.getElementById('pet-stats').value || '0',
+        value_normal: document.getElementById('pet-value-normal').value || '0',
+        value_golden: document.getElementById('pet-value-golden').value || '0',
+        value_rainbow: document.getElementById('pet-value-rainbow').value || '0'
       };
 
       // Handle image if provided
