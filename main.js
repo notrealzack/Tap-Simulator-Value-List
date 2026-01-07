@@ -12,8 +12,8 @@ const CACHE_KEY = `rpv_pets_cache_${CACHE_VERSION}`;
 const ADMIN_KEY = "rpv_admin_session";
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 
-// Track current rarity filter for dynamic welcome message
-let currentRarityFilter = null;
+// Track current rarity filter for dynamic welcome message - Initialize to 'all' for first load
+let currentRarityFilter = 'all';
 
 // Track search and sort state
 let currentSearchQuery = "";
@@ -259,16 +259,20 @@ async function loadPets(forceRefresh = false) {
   // Try cache first unless force refresh
   if (!forceRefresh) {
     const cached = getCache(CACHE_KEY);
-    if (cached && Array.isArray(cached)) {
+    if (cached && Array.isArray(cached) && cached.length > 0) {
       allPets = cached;
-      window.allPets = allPets; // Update global reference
-      renderPets();
+      window.allPets = allPets;
+      console.log('[DEBUG] Loaded', allPets.length, 'pets from cache');
+      // Explicitly set filter to 'all' and render immediately
+      currentRarityFilter = 'all';
+      renderPets('all');
       return;
     }
   }
 
   // Fetch from backend with timestamp to prevent caching
   try {
+    console.log('[DEBUG] Fetching pets from API...');
     const res = await fetch(`${API_BASE}/api/pets?t=${Date.now()}`, {
       method: 'GET',
       headers: { 'Accept': 'application/json' }
@@ -277,11 +281,16 @@ async function loadPets(forceRefresh = false) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const data = await res.json();
+    console.log('[DEBUG] API returned data:', data);
+    
     allPets = Array.isArray(data) ? data : [];
-    window.allPets = allPets; // Update global reference
+    window.allPets = allPets;
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-    renderPets();
     console.log('[DEBUG] Loaded', allPets.length, 'pets from API');
+    
+    // Explicitly set filter to 'all' and render immediately
+    currentRarityFilter = 'all';
+    renderPets('all');
   } catch (err) {
     console.warn('[DEBUG-WARNING] Failed to load pets:', err);
     container.innerHTML = '<div class="pets-loading">Failed to load pets. Try refreshing.</div>';
@@ -370,14 +379,19 @@ function renderPets(filterRarity = null) {
     return;
   }
   
-  // Update current filter and welcome message
+  // Update current filter
   if (filterRarity !== null) {
     currentRarityFilter = filterRarity;
   }
+  
+  console.log('[DEBUG] Rendering pets with filter:', currentRarityFilter, 'Total pets:', allPets.length);
+  
   updateWelcomeMessage(currentRarityFilter);
 
   // Get filtered and sorted pets
   const petsToRender = filterAndSortPets();
+
+  console.log('[DEBUG] Pets to render after filter:', petsToRender.length);
 
   if (petsToRender.length === 0) {
     container.innerHTML = '<div class="pets-loading">No pets found.</div>';
@@ -386,6 +400,8 @@ function renderPets(filterRarity = null) {
 
   const html = petsToRender.map(pet => createPetCard(pet)).join('');
   container.innerHTML = html;
+
+  console.log('[DEBUG] Rendered', petsToRender.length, 'pet cards to DOM');
 
   // Re-apply visual effects
   if (window.TextGlimmer) window.TextGlimmer.refresh();
@@ -401,7 +417,7 @@ function renderPets(filterRarity = null) {
 // Make renderPets globally accessible for trade calculator
 window.renderPets = renderPets;
 
-// FIXED: All class names now match styles.css exactly
+// Create pet card with additional specific color classes
 function createPetCard(pet) {
   const rarityClass = getRarityClass(pet.rarity);
   const imageUrl = pet.image_url;
@@ -421,20 +437,20 @@ function createPetCard(pet) {
       </div>
       <div class="pet-stats">
         <div class="pet-stat-row">
-          <span class="pet-stat-label">Stats</span>
-          <span class="pet-stat-value">${formatNumber(pet.stats || 0)}</span>
+          <span class="pet-stat-label pet-stats-label">Stats</span>
+          <span class="pet-stat-value pet-stats-value">${formatNumber(pet.stats || 0)}</span>
         </div>
         <div class="pet-stat-row">
-          <span class="pet-stat-label">Normal</span>
-          <span class="pet-stat-value">${formatNumber(pet.value_normal || 0)}</span>
+          <span class="pet-stat-label pet-normal-label">Normal</span>
+          <span class="pet-stat-value pet-normal-value">${formatNumber(pet.value_normal || 0)}</span>
         </div>
         <div class="pet-stat-row">
-          <span class="pet-stat-label">Golden</span>
-          <span class="pet-stat-value">${formatNumber(pet.value_golden || 0)}</span>
+          <span class="pet-stat-label pet-golden-label">Golden</span>
+          <span class="pet-stat-value pet-golden-value">${formatNumber(pet.value_golden || 0)}</span>
         </div>
         <div class="pet-stat-row">
-          <span class="pet-stat-label">Rainbow</span>
-          <span class="pet-stat-value">${formatNumber(pet.value_rainbow || 0)}</span>
+          <span class="pet-stat-label pet-rainbow-label">Rainbow</span>
+          <span class="pet-stat-value pet-rainbow-value">${formatNumber(pet.value_rainbow || 0)}</span>
         </div>
       </div>
       <div class="pet-updated">Updated: ${lastUpdated}</div>
@@ -952,11 +968,15 @@ function initEventListeners() {
 // =======================
 // Initialization
 // =======================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('[DEBUG] Page loaded, initializing...');
   clearOldCaches();
   generateSidebar();
   checkAdminSession();
-  loadPets();
+  
+  // Load pets and wait for completion before continuing
+  await loadPets();
+  
   initEventListeners();
   
   // Initialize trade calculator
