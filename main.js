@@ -1,407 +1,483 @@
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /main.js
 
+// Debug warning: Main application logic with admin CRUD operations
+
 // =======================
-// Simple localStorage cache with expiry
+// Configuration
 // =======================
 
-// Debug warning: localStorage is used with a 30-minute TTL; expired entries are auto-cleared.
-const CACHE_KEYS = {
-  PETS: "rpv_pets_cache",
-  ONLINE: "rpv_online_cache",
-  ADMIN: "rpv_admin_session"
-};
-
+const API_BASE = "https://ts-value-list-proxy.vercel.app";
+const CACHE_KEY = "rpv_pets_cache";
+const ADMIN_KEY = "rpv_admin_session";
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 
-/**
- * Save a value into localStorage with an expiry timestamp.
- */
-function setCache(key, value, ttlMs) {
+// Hardcoded admin credentials (not visible in UI)
+const ADMIN_CREDENTIALS = {
+  username: "tsadmin",
+  password: "TapSimulator2026!"
+};
+
+// =======================
+// Cache utilities
+// =======================
+
+function setCache(key, value, ttl) {
   try {
-    const item = {
-      value,
-      expiry: ttlMs ? Date.now() + ttlMs : null
-    };
+    const item = { value, expiry: ttl ? Date.now() + ttl : null };
     localStorage.setItem(key, JSON.stringify(item));
   } catch (err) {
-    console.warn("[DEBUG-WARNING] Failed to store cache key:", key, err);
+    console.warn('[DEBUG-WARNING] Cache set failed:', err);
   }
 }
 
-/**
- * Read a value from localStorage and respect expiry.
- */
 function getCache(key) {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
-
     const item = JSON.parse(raw);
     if (item.expiry && Date.now() > item.expiry) {
       localStorage.removeItem(key);
-      console.warn("[DEBUG-WARNING] Cache expired and cleared for key:", key);
       return null;
     }
     return item.value;
   } catch (err) {
-    console.warn("[DEBUG-WARNING] Failed to read cache key:", key, err);
+    console.warn('[DEBUG-WARNING] Cache get failed:', err);
     return null;
   }
 }
 
-/**
- * Clear a cache key explicitly.
- */
 function clearCache(key) {
   try {
     localStorage.removeItem(key);
   } catch (err) {
-    console.warn("[DEBUG-WARNING] Failed to clear cache key:", key, err);
+    console.warn('[DEBUG-WARNING] Cache clear failed:', err);
   }
 }
 
 // =======================
-// DOM helpers
+// Admin session management
 // =======================
 
-function $(selector) {
-  return document.querySelector(selector);
+let isAdminLoggedIn = false;
+
+function checkAdminSession() {
+  const session = getCache(ADMIN_KEY);
+  if (session && session.username) {
+    isAdminLoggedIn = true;
+    showAdminUI();
+    return true;
+  }
+  return false;
 }
 
-// Safe way to attach event listeners.
-function on(element, event, handler) {
-  if (!element) return;
-  element.addEventListener(event, handler);
+function adminLogin(username, password) {
+  if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+    const session = { username, loginTime: Date.now() };
+    setCache(ADMIN_KEY, session, THIRTY_MINUTES_MS);
+    isAdminLoggedIn = true;
+    showAdminUI();
+    return true;
+  }
+  return false;
+}
+
+function adminLogout() {
+  clearCache(ADMIN_KEY);
+  isAdminLoggedIn = false;
+  hideAdminUI();
+  location.reload();
+}
+
+function showAdminUI() {
+  document.getElementById('login-panel').classList.add('hidden');
+  window.dispatchEvent(new Event('adminLoggedIn'));
+  
+  // Show admin action buttons on all pet cards
+  const adminActions = document.querySelectorAll('.pet-admin-actions');
+  adminActions.forEach(el => el.classList.add('visible'));
+}
+
+function hideAdminUI() {
+  document.getElementById('login-panel').classList.remove('hidden');
+  window.dispatchEvent(new Event('adminLoggedOut'));
+  
+  // Hide admin action buttons
+  const adminActions = document.querySelectorAll('.pet-admin-actions');
+  adminActions.forEach(el => el.classList.remove('visible'));
 }
 
 // =======================
-// Pet list logic
+// Pet data management
 // =======================
 
-// Debug warning: API_BASE now points to your live Vercel backend
-const API_BASE = "https://ts-value-list-proxy.vercel.app";
-const PETS_ENDPOINT = "/api/pets";
-const ONLINE_ENDPOINT = "/api/online";
+let allPets = [];
 
-/**
- * Fetch pets from backend or cache (cache-first, 30-minute TTL).
- */
 async function loadPets() {
-  const petListContainer = $("#pet-list");
-  if (!petListContainer) {
-    console.warn("[DEBUG-WARNING] #pet-list element missing in DOM.");
+  const container = document.getElementById('pets-container');
+  container.innerHTML = '<div class="pets-loading">Loading pets...</div>';
+
+  // Try cache first
+  const cached = getCache(CACHE_KEY);
+  if (cached && Array.isArray(cached)) {
+    allPets = cached;
+    renderPets();
     return;
   }
 
-  // First, try cache
-  const cachedPets = getCache(CACHE_KEYS.PETS);
-  if (cachedPets && Array.isArray(cachedPets)) {
-    renderPets(cachedPets);
-  } else {
-    petListContainer.innerHTML = `<p class="placeholder">Loading pets from server...</p>`;
-  }
-
-  // If cached, we stop here to avoid extra calls (30-min rule).
-  if (cachedPets) return;
-
-  // No valid cache, fetch from backend
+  // Fetch from backend
   try {
-    const res = await fetch(API_BASE + PETS_ENDPOINT, {
-      method: "GET",
-      headers: {
-        "Accept": "application/json"
-      },
-      // Debug warning: rely on HTTP cache headers from the server
-      cache: "default"
+    const res = await fetch(`${API_BASE}/api/pets`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
     });
 
     if (!res.ok) {
-      console.warn("[DEBUG-WARNING] Failed to fetch pets. Status:", res.status);
-      petListContainer.innerHTML = `<p class="placeholder">Failed to load pets. Try refreshing.</p>`;
-      return;
+      throw new Error(`HTTP ${res.status}`);
     }
 
     const data = await res.json();
-    if (!Array.isArray(data)) {
-      console.warn("[DEBUG-WARNING] Pets endpoint did not return an array.");
-      return;
-    }
-
-    // Cache for 30 minutes
-    setCache(CACHE_KEYS.PETS, data, THIRTY_MINUTES_MS);
-    renderPets(data);
+    allPets = Array.isArray(data) ? data : [];
+    setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
+    renderPets();
   } catch (err) {
-    console.warn("[DEBUG-WARNING] Error fetching pets:", err);
-    petListContainer.innerHTML = `<p class="placeholder">Network error. Check your connection.</p>`;
+    console.warn('[DEBUG-WARNING] Failed to load pets:', err);
+    container.innerHTML = '<div class="pets-loading">Failed to load pets. Try refreshing.</div>';
   }
 }
 
-/**
- * Render pet cards into #pet-list.
- * For now, expect data to be an array of objects with keys:
- * { id, name, rarity, stats, value, image_url }
- */
-function renderPets(pets) {
-  const petListContainer = $("#pet-list");
-  if (!petListContainer) return;
+function renderPets(filterRarity = null) {
+  const container = document.getElementById('pets-container');
+  
+  // Filter by rarity if specified
+  let petsToRender = allPets;
+  if (filterRarity) {
+    petsToRender = allPets.filter(pet => pet.rarity === filterRarity);
+  }
 
-  if (!Array.isArray(pets) || pets.length === 0) {
-    petListContainer.innerHTML = `<p class="placeholder">No pets found yet. Admins can add pets using the panel.</p>`;
+  if (petsToRender.length === 0) {
+    container.innerHTML = '<div class="pets-loading">No pets found.</div>';
     return;
   }
 
-  const html = pets
-    .map((pet) => {
-      const rarity = pet.rarity || "Common";
-      const rarityClass = getRarityClass(rarity);
-      const safeName = escapeHtml(pet.name || "Unknown Pet");
-      const safeStats = escapeHtml(pet.stats || "");
-      const safeValue = Number.isFinite(pet.value) ? pet.value : "?";
-      const imageUrl = pet.image_url || "";
+  // Sort by value descending
+  petsToRender.sort((a, b) => (b.value || 0) - (a.value || 0));
 
-      return `
-        <article class="card pet-card" data-pet-id="${pet.id || ""}">
-          <div class="pet-card-image">
-            ${
-              imageUrl
-                ? `<img src="${imageUrl}" alt="${safeName}" loading="lazy" />`
-                : `<div class="placeholder">No image</div>`
-            }
-          </div>
-          <div class="pet-card-header">
-            <div class="pet-name">${safeName}</div>
-            <div class="pet-rarity ${rarityClass}">${rarity}</div>
-          </div>
-          ${
-            safeStats
-              ? `<div class="pet-stats">${safeStats}</div>`
-              : ""
-          }
-          <div class="pet-value">Value: ${safeValue}</div>
-          <!-- Admin buttons will be injected when admin session is known -->
-          <div class="pet-admin-actions"></div>
-        </article>
-      `;
-    })
-    .join("");
+  const html = petsToRender.map(pet => createPetCard(pet)).join('');
+  container.innerHTML = html;
 
-  petListContainer.innerHTML = html;
+  // Re-apply visual effects
+  if (window.TextGlimmer) window.TextGlimmer.refresh();
+  if (window.SecretEffects) window.SecretEffects.refresh();
+
+  // Show admin buttons if logged in
+  if (isAdminLoggedIn) {
+    const adminActions = document.querySelectorAll('.pet-admin-actions');
+    adminActions.forEach(el => el.classList.add('visible'));
+  }
 }
 
-/**
- * Map rarity string to CSS class.
- */
+function createPetCard(pet) {
+  const rarityClass = getRarityClass(pet.rarity);
+  const imageUrl = pet.image_url || '';
+  const lastUpdated = formatLastUpdated(pet.updated_at);
+
+  return `
+    <article class="pet-card" data-pet-id="${pet.id}">
+      <div class="pet-image">
+        ${imageUrl ? `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" loading="lazy" />` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);">No Image</div>'}
+      </div>
+      <div class="pet-header">
+        <div class="pet-name">${escapeHtml(pet.name)}</div>
+        <div class="pet-rarity pet-rarity-${rarityClass}">${escapeHtml(pet.rarity)}</div>
+      </div>
+      <div class="pet-stats">
+        <div class="pet-stat-row">
+          <span class="pet-stat-label">Tap Stats:</span>
+          <span class="pet-stat-value">${formatNumber(pet.tap_stats)}</span>
+        </div>
+        <div class="pet-stat-row">
+          <span class="pet-stat-label">Gem Stats:</span>
+          <span class="pet-stat-value">${formatNumber(pet.gem_stats)}</span>
+        </div>
+      </div>
+      <div class="pet-value">Value: ${formatNumber(pet.value)}</div>
+      <div class="pet-updated">Updated: ${lastUpdated}</div>
+      <div class="pet-admin-actions">
+        <button class="btn-edit" onclick="editPet(${pet.id})">Edit</button>
+        <button class="btn-delete" onclick="deletePet(${pet.id})">Delete</button>
+      </div>
+    </article>
+  `;
+}
+
 function getRarityClass(rarity) {
-  const r = String(rarity).toLowerCase();
-  if (r === "rare" || r === "uncommon") return "pet-rarity-rare";
-  if (r === "legendary") return "pet-rarity-legendary";
-  if (r === "exclusive") return "pet-rarity-exclusive";
-  return "pet-rarity-common";
+  const map = {
+    'Mythical': 'mythical',
+    'Secret I': 'secret-i',
+    'Secret II': 'secret-ii',
+    'Secret III': 'secret-iii',
+    'Leaderboard': 'leaderboard',
+    'Exclusive': 'exclusive'
+  };
+  return map[rarity] || 'mythical';
 }
 
-/**
- * Basic HTML escaping to avoid accidental injection.
- */
-function escapeHtml(value) {
-  if (value == null) return "";
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+function formatLastUpdated(timestamp) {
+  if (!timestamp) return 'Unknown';
+  
+  const date = new Date(timestamp);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+  return `${day} ${month} - ${hours}:${minutes}`;
+}
+
+function formatNumber(num) {
+  if (num == null) return '0';
+  return Number(num).toLocaleString();
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // =======================
-// Online counter logic
+// CRUD operations
 // =======================
 
-async function loadOnlineCount() {
-  const onlineSpan = $("#online-value");
-  if (!onlineSpan) {
-    console.warn("[DEBUG-WARNING] #online-value element missing in DOM.");
-    return;
-  }
-
-  // Use cached value if valid
-  const cachedOnline = getCache(CACHE_KEYS.ONLINE);
-  if (typeof cachedOnline === "number") {
-    onlineSpan.textContent = cachedOnline;
-  }
-
-  // Respect rule: only fetch once per page load if there is no valid cache
-  if (cachedOnline != null) return;
-
+async function addPet(petData) {
   try {
-    const res = await fetch(API_BASE + ONLINE_ENDPOINT, {
-      method: "GET",
+    const res = await fetch(`${API_BASE}/api/pets`, {
+      method: 'POST',
       headers: {
-        "Accept": "application/json"
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getCache(ADMIN_KEY)?.username}`
       },
-      cache: "default"
+      body: JSON.stringify(petData)
     });
 
-    if (!res.ok) {
-      console.warn("[DEBUG-WARNING] Failed to fetch online count. Status:", res.status);
-      return;
-    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    const data = await res.json();
-    const count = typeof data.count === "number" ? data.count : null;
-    if (count == null) {
-      console.warn("[DEBUG-WARNING] Online endpoint did not return a numeric count.");
-      return;
-    }
-
-    onlineSpan.textContent = count;
-    // Cache for 30 minutes
-    setCache(CACHE_KEYS.ONLINE, count, THIRTY_MINUTES_MS);
+    const newPet = await res.json();
+    allPets.push(newPet);
+    setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
+    renderPets();
+    return true;
   } catch (err) {
-    console.warn("[DEBUG-WARNING] Error fetching online count:", err);
+    console.warn('[DEBUG-WARNING] Add pet failed:', err);
+    return false;
   }
 }
 
-// =======================
-// Admin login & session shell
-// =======================
+async function updatePet(petId, petData) {
+  try {
+    const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getCache(ADMIN_KEY)?.username}`
+      },
+      body: JSON.stringify(petData)
+    });
 
-/**
- * For now, this is a local fake login to allow UI testing without backend.
- * Later we will replace this with a real API call to Vercel + Supabase auth.
- */
-function initAdminLogin() {
-  const loginForm = $("#login-form");
-  const messageEl = $("#login-message");
-  const adminPanel = $("#admin-panel");
-  const adminRoleSpan = $("#admin-role");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-  // Load any fake admin session from cache
-  const savedAdmin = getCache(CACHE_KEYS.ADMIN);
-  if (savedAdmin && savedAdmin.username) {
-    if (adminPanel) adminPanel.classList.remove("hidden");
-    if (adminRoleSpan) adminRoleSpan.textContent = savedAdmin.role || "Admin";
-  }
-
-  if (!loginForm) {
-    console.warn("[DEBUG-WARNING] #login-form element missing in DOM.");
-    return;
-  }
-
-  on(loginForm, "submit", (event) => {
-    event.preventDefault();
-    if (!messageEl) return;
-
-    const usernameInput = $("#login-username");
-    const passwordInput = $("#login-password");
-
-    const username = usernameInput ? usernameInput.value.trim() : "";
-    const password = passwordInput ? passwordInput.value : "";
-
-    if (!username || !password) {
-      messageEl.textContent = "Please enter username and password.";
-      return;
+    const updatedPet = await res.json();
+    const index = allPets.findIndex(p => p.id === petId);
+    if (index !== -1) {
+      allPets[index] = updatedPet;
+      setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
+      renderPets();
     }
-
-    // Debug: this is purely local validation
-    if (username.toLowerCase() === "admin" && password === "admin") {
-      const adminSession = {
-        username,
-        role: "Full Admin"
-      };
-      setCache(CACHE_KEYS.ADMIN, adminSession, THIRTY_MINUTES_MS);
-
-      if (adminPanel) adminPanel.classList.remove("hidden");
-      if (adminRoleSpan) adminRoleSpan.textContent = adminSession.role;
-      messageEl.textContent = "Logged in as admin (local only).";
-    } else {
-      messageEl.textContent = "Invalid credentials (only local test right now).";
-    }
-  });
+    return true;
+  } catch (err) {
+    console.warn('[DEBUG-WARNING] Update pet failed:', err);
+    return false;
+  }
 }
 
-// =======================
-// Add Pet modal & local add behavior
-// =======================
+async function deletePet(petId) {
+  if (!confirm('Are you sure you want to delete this pet?')) return;
 
-function initAddPetModal() {
-  const openBtn = $("#open-add-pet");
-  const closeBtn = $("#close-add-pet");
-  const modal = $("#add-pet-modal");
-  const form = $("#add-pet-form");
-  const messageEl = $("#add-pet-message");
-
-  if (!modal || !form) {
-    console.warn("[DEBUG-WARNING] Add Pet modal or form missing in DOM.");
-    return;
-  }
-
-  // Open modal
-  on(openBtn, "click", () => {
-    modal.classList.remove("hidden");
-    modal.setAttribute("aria-hidden", "false");
-  });
-
-  // Close modal
-  const closeModal = () => {
-    modal.classList.add("hidden");
-    modal.setAttribute("aria-hidden", "true");
-    if (messageEl) messageEl.textContent = "";
-    form.reset();
-  };
-
-  on(closeBtn, "click", closeModal);
-
-  // Close by clicking backdrop
-  const backdrop = modal.querySelector(".modal-backdrop");
-  on(backdrop, "click", closeModal);
-
-  // Handle submit: for now, only update local cache and UI (no backend calls yet)
-  on(form, "submit", (event) => {
-    event.preventDefault();
-    if (messageEl) messageEl.textContent = "";
-
-    const nameInput = $("#pet-name");
-    const rarityInput = $("#pet-rarity");
-    const statsInput = $("#pet-stats");
-    const valueInput = $("#pet-value");
-    const imageInput = $("#pet-image");
-
-    const name = nameInput ? nameInput.value.trim() : "";
-    const rarity = rarityInput ? rarityInput.value : "";
-    const stats = statsInput ? statsInput.value.trim() : "";
-    const value = valueInput ? parseInt(valueInput.value, 10) : NaN;
-
-    if (!name || !rarity || Number.isNaN(value)) {
-      if (messageEl) {
-        messageEl.textContent = "Name, rarity and numeric value are required.";
+  try {
+    const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${getCache(ADMIN_KEY)?.username}`
       }
-      return;
-    }
+    });
 
-    // NOTE: image handling will be wired to Supabase later; for now we ignore file content
-    const newPet = {
-      id: "local-" + Date.now(),
-      name,
-      rarity,
-      stats,
-      value,
-      image_url: ""
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    allPets = allPets.filter(p => p.id !== petId);
+    setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
+    renderPets();
+  } catch (err) {
+    console.warn('[DEBUG-WARNING] Delete pet failed:', err);
+    alert('Failed to delete pet. Please try again.');
+  }
+}
+
+// Make functions global for onclick handlers
+window.editPet = function(petId) {
+  const pet = allPets.find(p => p.id === petId);
+  if (!pet) return;
+  openPetModal(pet);
+};
+
+window.deletePet = deletePet;
+
+// =======================
+// Modal management
+// =======================
+
+let currentEditingPetId = null;
+
+function openPetModal(pet = null) {
+  const modal = document.getElementById('pet-modal');
+  const form = document.getElementById('pet-form');
+  const title = document.getElementById('modal-title');
+  const message = document.getElementById('pet-form-message');
+
+  // Reset form
+  form.reset();
+  message.textContent = '';
+  document.getElementById('image-preview').classList.add('hidden');
+
+  if (pet) {
+    // Edit mode
+    title.textContent = 'Edit Pet';
+    currentEditingPetId = pet.id;
+    document.getElementById('pet-id').value = pet.id;
+    document.getElementById('pet-name').value = pet.name;
+    document.getElementById('pet-rarity').value = pet.rarity;
+    document.getElementById('pet-tap-stats').value = pet.tap_stats || 0;
+    document.getElementById('pet-gem-stats').value = pet.gem_stats || 0;
+    document.getElementById('pet-value').value = pet.value || 0;
+
+    // Show current image if exists
+    if (pet.image_url) {
+      const preview = document.getElementById('image-preview');
+      const previewImg = document.getElementById('preview-img');
+      previewImg.src = pet.image_url;
+      preview.classList.remove('hidden');
+    }
+  } else {
+    // Add mode
+    title.textContent = 'Add Pet';
+    currentEditingPetId = null;
+  }
+
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function closePetModal() {
+  const modal = document.getElementById('pet-modal');
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  currentEditingPetId = null;
+}
+
+// =======================
+// Event listeners
+// =======================
+
+function initEventListeners() {
+  // Login form
+  const loginForm = document.getElementById('login-form');
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    const message = document.getElementById('login-message');
+
+    if (adminLogin(username, password)) {
+      message.textContent = 'Login successful!';
+      message.style.color = '#00ff88';
+    } else {
+      message.textContent = 'Invalid credentials';
+      message.style.color = '#ff4343';
+    }
+  });
+
+  // Modal controls
+  document.getElementById('modal-close').addEventListener('click', closePetModal);
+  document.getElementById('cancel-btn').addEventListener('click', closePetModal);
+  document.querySelector('.modal-backdrop').addEventListener('click', closePetModal);
+
+  // Pet form submit
+  const petForm = document.getElementById('pet-form');
+  petForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = document.getElementById('pet-form-message');
+    message.textContent = '';
+
+    const petData = {
+      name: document.getElementById('pet-name').value.trim(),
+      rarity: document.getElementById('pet-rarity').value,
+      tap_stats: parseInt(document.getElementById('pet-tap-stats').value) || 0,
+      gem_stats: parseInt(document.getElementById('pet-gem-stats').value) || 0,
+      value: parseInt(document.getElementById('pet-value').value) || 0,
+      image_url: document.getElementById('preview-img').src || ''
     };
 
-    // Merge with existing cached pets and re-render
-    const cachedPets = getCache(CACHE_KEYS.PETS);
-    const updatedPets = Array.isArray(cachedPets)
-      ? [...cachedPets, newPet]
-      : [newPet];
-
-    setCache(CACHE_KEYS.PETS, updatedPets, THIRTY_MINUTES_MS);
-    renderPets(updatedPets);
-
-    if (messageEl) {
-      messageEl.textContent = "Pet added locally. Real backend will be wired later.";
+    if (!petData.name || !petData.rarity) {
+      message.textContent = 'Name and rarity are required';
+      return;
     }
 
-    // Close the modal after a short delay to let the user see the message
-    setTimeout(closeModal, 400);
+    let success = false;
+    if (currentEditingPetId) {
+      success = await updatePet(currentEditingPetId, petData);
+    } else {
+      success = await addPet(petData);
+    }
+
+    if (success) {
+      message.textContent = 'Pet saved successfully!';
+      message.style.color = '#00ff88';
+      setTimeout(closePetModal, 1000);
+    } else {
+      message.textContent = 'Failed to save pet. Try again.';
+      message.style.color = '#ff4343';
+    }
+  });
+
+  // Image preview
+  const imageInput = document.getElementById('pet-image');
+  imageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const preview = document.getElementById('image-preview');
+      const previewImg = document.getElementById('preview-img');
+      previewImg.src = event.target.result;
+      preview.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Custom events from sidebar
+  window.addEventListener('openAddPetModal', () => {
+    if (isAdminLoggedIn) openPetModal();
+  });
+
+  window.addEventListener('adminLogout', adminLogout);
+
+  window.addEventListener('rarityFilterChanged', (e) => {
+    renderPets(e.detail.rarity);
   });
 }
 
@@ -409,12 +485,10 @@ function initAddPetModal() {
 // Initialization
 // =======================
 
-// Debug warning: All init logic runs once on DOMContentLoaded; there are no 24/7 loops here.
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
+  checkAdminSession();
   loadPets();
-  loadOnlineCount();
-  initAdminLogin();
-  initAddPetModal();
+  initEventListeners();
 });
 
 // File type: Client-side JavaScript (for GitHub Pages)
