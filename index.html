@@ -106,7 +106,7 @@
         <h2>Tap Simulator Value List</h2>
         <p>Browse all pets and their current values</p>
       </div>
-      
+
       <!-- Pets container for pet grid display -->
       <div id="pets-container" class="pets-grid"></div>
     </main>
@@ -145,15 +145,16 @@
         <h2 id="modal-title">Add Pet</h2>
         <button id="modal-close" class="modal-close" aria-label="Close">&times;</button>
       </div>
+
       <form id="pet-form">
         <input type="hidden" id="pet-id">
-        
+
         <!-- Pet Name -->
         <div class="form-group">
           <label for="pet-name">Pet Name</label>
           <input type="text" id="pet-name" name="name" required placeholder="Enter pet name">
         </div>
-        
+
         <!-- Rarity -->
         <div class="form-group">
           <label for="pet-rarity">Rarity</label>
@@ -168,51 +169,58 @@
             <option value="Exclusive">Exclusive</option>
           </select>
         </div>
-        
+
         <!-- Debug warning: Stats Type selector for percentage or value display -->
         <div class="form-group">
           <label for="pet-stats-type">Stats Type</label>
-          <select id="pet-stats-type" name="stats_type" required>
+          <select id="pet-stats-type" name="statstype" required>
             <option value="value">Value (Normal Numbers)</option>
             <option value="percentage">Percentage (%)</option>
           </select>
         </div>
-        
+
         <!-- Debug warning: Text input allows custom formats like 30B, 1.5M, 250% -->
         <div class="form-group">
           <label for="pet-stats">Stats</label>
           <input type="text" id="pet-stats" name="stats" placeholder="e.g., 30B, 1.5M, 250%">
         </div>
-        
-        <!-- Debug warning: Text input for custom value formats -->
-        <div class="form-group">
+
+        <!-- Debug warning: Text input for custom value formats with reduced spacing -->
+        <div class="form-group form-group-compact">
           <label for="pet-value-normal">Normal Value</label>
-          <input type="text" id="pet-value-normal" name="value_normal" placeholder="e.g., 500M, 2B, 15K">
+          <input type="text" id="pet-value-normal" name="valuenormal" placeholder="e.g., 500M, 2B, 15K">
         </div>
-        
-        <div class="form-group">
+
+        <div class="form-group form-group-compact">
           <label for="pet-value-golden">Golden Value</label>
-          <input type="text" id="pet-value-golden" name="value_golden" placeholder="e.g., 1.5B, 10B, 50K">
+          <input type="text" id="pet-value-golden" name="valuegolden" placeholder="e.g., 1.5B, 10B, 50K">
         </div>
-        
-        <div class="form-group">
+
+        <div class="form-group form-group-compact">
           <label for="pet-value-rainbow">Rainbow Value</label>
-          <input type="text" id="pet-value-rainbow" name="value_rainbow" placeholder="e.g., 5B, 50B, 100K">
+          <input type="text" id="pet-value-rainbow" name="valuerainbow" placeholder="e.g., 5B, 50B, 100K">
         </div>
-        
+
+        <!-- Debug warning: New Void value field with dark purple theme -->
+        <div class="form-group form-group-compact">
+          <label for="pet-value-void">Void Value</label>
+          <input type="text" id="pet-value-void" name="valuevoid" placeholder="e.g., 10B, 100B, 500K">
+        </div>
+
         <!-- Debug warning: Changed from file upload to URL input for external hosting -->
         <div class="form-group">
           <label for="pet-image-url">Pet Image URL</label>
-          <input type="url" id="pet-image-url" name="image_url" placeholder="https://example.com/image.png">
+          <input type="url" id="pet-image-url" name="imageurl" placeholder="https://example.com/image.png">
           <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">Enter the direct URL to an image hosted elsewhere</small>
         </div>
-        
+
         <!-- Image Preview -->
         <div id="image-preview" class="image-preview hidden">
           <img id="preview-img" src="" alt="Pet Preview">
         </div>
-        
+
         <div id="pet-form-message" class="form-message"></div>
+
         <div class="modal-actions">
           <button type="button" id="cancel-btn" class="btn-secondary">Cancel</button>
           <button type="submit" class="btn-primary">Save Pet</button>
@@ -237,7 +245,7 @@
         <h2 id="filter-panel-title">Advanced Filters</h2>
         <button id="filter-panel-close" class="filter-panel-close" aria-label="Close">&times;</button>
       </div>
-      
+
       <!-- Body -->
       <div class="filter-panel-body">
         <!-- Stats Type Filter -->
@@ -249,7 +257,7 @@
             <button class="stats-type-btn" data-stats-type="percentage">Percentage Only</button>
           </div>
         </div>
-        
+
         <!-- Stats Filter -->
         <div class="filter-section">
           <span class="filter-section-title">Stats Range</span>
@@ -264,7 +272,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Normal Value Filter -->
         <div class="filter-section">
           <span class="filter-section-title">Normal Value Range</span>
@@ -279,7 +287,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Golden Value Filter -->
         <div class="filter-section">
           <span class="filter-section-title">Golden Value Range</span>
@@ -294,7 +302,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Rainbow Value Filter -->
         <div class="filter-section">
           <span class="filter-section-title">Rainbow Value Range</span>
@@ -309,8 +317,23 @@
             </div>
           </div>
         </div>
+
+        <!-- Debug warning: New Void Value Filter section -->
+        <div class="filter-section">
+          <span class="filter-section-title">Void Value Range</span>
+          <div class="filter-group">
+            <div class="filter-input-wrapper">
+              <label class="filter-input-label">Minimum Void</label>
+              <input type="text" class="filter-input" id="filter-void-min" placeholder="e.g., 5M, 50M">
+            </div>
+            <div class="filter-input-wrapper">
+              <label class="filter-input-label">Maximum Void</label>
+              <input type="text" class="filter-input" id="filter-void-max" placeholder="e.g., 20B, 5B">
+            </div>
+          </div>
+        </div>
       </div>
-      
+
       <!-- Footer -->
       <div class="filter-panel-footer">
         <button id="filter-reset-btn" class="filter-reset-btn">Reset Filters</button>
@@ -325,14 +348,16 @@
   <script src="content.js"></script>
   <script src="petcardeffects.js"></script>
   <!-- <script src="textglimmer.js"></script>-->
+
   <!-- IMPORTANT: Load virtualscroll.js BEFORE main.js -->
   <script src="virtualscroll.js"></script>
   <!-- IMPORTANT: Load filterpanel.js BEFORE main.js -->
   <script src="filterpanel.js"></script>
   <script src="main.js"></script>
+
   <!-- Trade Calculator Script -->
   <script src="tradecalculator.js"></script>
-  
+
   <!-- Initialize systems -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
