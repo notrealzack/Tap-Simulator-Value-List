@@ -4,384 +4,387 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Tap Simulator Pet Value List - Complete pet stats, values, and rarities">
-  <title>Tap Simulator Value List</title>
-  
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="./assets/favicon.png">
-  <link rel="shortcut icon" href="./assets/favicon.ico">
-  
-  <!-- Stylesheets -->
-  <link rel="stylesheet" href="styles.css">
-  <!-- Trade Calculator Styles -->
-  <link rel="stylesheet" href="tradecalculator.css">
-  <!-- Filter Panel Styles -->
-  <link rel="stylesheet" href="filterpanel.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tap Simulator Pet Value List - Complete pet stats, values, and rarities">
+    
+    <!-- Debug warning: Discord Embed Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Tap Simulator Value List">
+    <meta property="og:description" content="Maintained by Staff and Value list Admins ⭐">
+    <meta property="og:image" content="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/assets/embedimage.png">
+    <meta property="og:url" content="https://YOUR_USERNAME.github.io/YOUR_REPO/">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tap Simulator Value List">
+    <meta name="twitter:description" content="Maintained by Staff and Value list Admins ⭐">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/assets/embedimage.png">
+    
+    <title>Tap Simulator Value List</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="./assets/favicon.png">
+    <link rel="shortcut icon" href="./assets/favicon.ico">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Trade Calculator Styles -->
+    <link rel="stylesheet" href="tradecalculator.css">
+    <!-- Filter Panel Styles -->
+    <link rel="stylesheet" href="filterpanel.css">
 </head>
 <body>
-  <!-- Particle canvas background -->
-  <canvas id="particles-canvas"></canvas>
+    <!-- Particle canvas background -->
+    <canvas id="particles-canvas"></canvas>
 
-  <!-- Header with integrated search and filter -->
-  <header>
-    <div class="header-content">
-      <!-- Game Icon -->
-      <div class="game-icon-container">
-        <img src="./assets/gameicon.png" alt="Tap Simulator" class="game-icon">
-      </div>
+    <!-- Header with integrated search and filter -->
+    <header>
+        <div class="header-content">
+            <!-- Game Icon -->
+            <div class="game-icon-container">
+                <img src="./assets/gameicon.png" alt="Tap Simulator" class="game-icon">
+            </div>
 
-      <!-- Title with Subtitle -->
-      <div class="header-title-section">
-        <h1>Tap Simulator</h1>
-        <p class="header-subtitle">Official Value List</p>
-      </div>
+            <!-- Title with Subtitle -->
+            <div class="header-title-section">
+                <h1>Tap Simulator</h1>
+                <p class="header-subtitle">Official Value List</p>
+            </div>
 
-      <!-- Search and Filter Bar -->
-      <div class="search-filter-container">
-        <!-- Search Input -->
-        <div class="search-box">
-          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
-          <input type="text" id="search-input" placeholder="Search pets..." autocomplete="off">
+            <!-- Search and Filter Bar -->
+            <div class="search-filter-container">
+                <!-- Search Input -->
+                <div class="search-box">
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Search pets..." autocomplete="off">
+                </div>
+
+                <!-- Filter Dropdown -->
+                <div class="filter-dropdown">
+                    <button id="filter-btn" class="filter-btn">
+                        <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                        Filter
+                        <svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <!-- Dropdown Menu (hidden by default) -->
+                    <div id="filter-menu" class="filter-menu hidden">
+                        <a href="#" class="filter-option active" data-sort="default">All Pets</a>
+                        <a href="#" class="filter-option" data-sort="newest">Newest First</a>
+                        <a href="#" class="filter-option" data-sort="oldest">Oldest First</a>
+                        <a href="#" class="filter-option" data-sort="highest">Highest Value</a>
+                    </div>
+                </div>
+
+                <!-- Zoom Level Control -->
+                <div class="zoom-control">
+                    <span class="zoom-label">Zoom</span>
+                    <div class="zoom-buttons">
+                        <button class="zoom-btn active" data-density="7" title="Default view">1×</button>
+                        <button class="zoom-btn" data-density="9" title="Medium zoom">3×</button>
+                        <button class="zoom-btn" data-density="11" title="High zoom">5×</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Actions -->
+            <div class="header-actions">
+                <!-- Admin icon button (opens login modal) -->
+                <button id="admin-icon-btn" class="admin-icon-btn" aria-label="Admin Login" title="Admin Login"></button>
+                <!-- Logout button (hidden by default) -->
+                <button id="logout-btn" class="logout-btn hidden" aria-label="Logout" title="Logout">Logout</button>
+            </div>
         </div>
+    </header>
 
-        <!-- Filter Dropdown -->
-        <div class="filter-dropdown">
-          <button id="filter-btn" class="filter-btn">
-            <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-            </svg>
-            Filter
-            <svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <div class="sidebar-content">
+                <!-- Sidebar content dynamically generated by main.js -->
+            </div>
+        </aside>
 
-          <!-- Dropdown Menu (hidden by default) -->
-          <div id="filter-menu" class="filter-menu hidden">
-            <a href="#" class="filter-option active" data-sort="default">All Pets</a>
-            <a href="#" class="filter-option" data-sort="newest">Newest First</a>
-            <a href="#" class="filter-option" data-sort="oldest">Oldest First</a>
-            <a href="#" class="filter-option" data-sort="highest">Highest Value</a>
-          </div>
-        </div>
-
-        <!-- Zoom Level Control -->
-        <div class="zoom-control">
-          <span class="zoom-label">Zoom</span>
-          <div class="zoom-buttons">
-            <button class="zoom-btn active" data-density="7" title="Default view">+1</button>
-            <button class="zoom-btn" data-density="9" title="Medium zoom">+3</button>
-            <button class="zoom-btn" data-density="11" title="High zoom">+5</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Admin Actions -->
-      <div class="header-actions">
-        <!-- Admin icon button (opens login modal) -->
-        <button id="admin-icon-btn" class="admin-icon-btn" aria-label="Admin Login" title="Admin Login"></button>
-        <!-- Logout button (hidden by default) -->
-        <button id="logout-btn" class="logout-btn hidden" aria-label="Logout" title="Logout">Logout</button>
-      </div>
+        <!-- Content Area -->
+        <main id="content">
+            <div class="welcome">
+                <h2>Tap Simulator Value List</h2>
+                <p>Browse all pets and their current values</p>
+            </div>
+            <!-- Pets container for pet grid display -->
+            <div id="pets-container" class="pets-grid"></div>
+        </main>
     </div>
-  </header>
 
-  <!-- Main Container -->
-  <div class="container">
-    <!-- Sidebar -->
-    <aside id="sidebar">
-      <div class="sidebar-content">
-        <!-- Sidebar content dynamically generated by main.js -->
-      </div>
-    </aside>
-
-    <!-- Content Area -->
-    <main id="content">
-      <div class="welcome">
-        <h2>Tap Simulator Value List</h2>
-        <p>Browse all pets and their current values</p>
-      </div>
-
-      <!-- Pets container for pet grid display -->
-      <div id="pets-container" class="pets-grid"></div>
-    </main>
-  </div>
-
-  <!-- Login Modal -->
-  <div id="login-modal" class="modal hidden" role="dialog" aria-hidden="true" aria-labelledby="login-modal-title">
-    <div class="modal-backdrop"></div>
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="login-modal-title">Admin Login</h2>
-        <button id="login-modal-close" class="modal-close" aria-label="Close">&times;</button>
-      </div>
-      <form id="login-form">
-        <div class="form-group">
-          <label for="login-username">Username</label>
-          <input type="text" id="login-username" name="username" required autocomplete="username">
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal hidden" role="dialog" aria-hidden="true" aria-labelledby="login-modal-title">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="login-modal-title">Admin Login</h2>
+                <button id="login-modal-close" class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" name="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" name="password" required autocomplete="current-password">
+                </div>
+                <div id="login-message" class="form-message"></div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Login</button>
+                </div>
+            </form>
         </div>
-        <div class="form-group">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" name="password" required autocomplete="current-password">
-        </div>
-        <div id="login-message" class="form-message"></div>
-        <div class="modal-actions">
-          <button type="submit" class="btn-primary">Login</button>
-        </div>
-      </form>
     </div>
-  </div>
 
-  <!-- Pet Modal (Add/Edit) -->
-  <div id="pet-modal" class="modal hidden" role="dialog" aria-hidden="true" aria-labelledby="modal-title">
-    <div class="modal-backdrop"></div>
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="modal-title">Add Pet</h2>
-        <button id="modal-close" class="modal-close" aria-label="Close">&times;</button>
-      </div>
+    <!-- Pet Modal (Add/Edit) -->
+    <div id="pet-modal" class="modal hidden" role="dialog" aria-hidden="true" aria-labelledby="modal-title">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add Pet</h2>
+                <button id="modal-close" class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <form id="pet-form">
+                <input type="hidden" id="pet-id">
 
-      <form id="pet-form">
-        <input type="hidden" id="pet-id">
+                <!-- Pet Name -->
+                <div class="form-group">
+                    <label for="pet-name">Pet Name</label>
+                    <input type="text" id="pet-name" name="name" required placeholder="Enter pet name">
+                </div>
 
-        <!-- Pet Name -->
-        <div class="form-group">
-          <label for="pet-name">Pet Name</label>
-          <input type="text" id="pet-name" name="name" required placeholder="Enter pet name">
+                <!-- Rarity -->
+                <div class="form-group">
+                    <label for="pet-rarity">Rarity</label>
+                    <select id="pet-rarity" name="rarity" required>
+                        <option value="">Select Rarity</option>
+                        <option value="Legendary">Legendary</option>
+                        <option value="Mythical">Mythical</option>
+                        <option value="Secret I">Secret I</option>
+                        <option value="Secret II">Secret II</option>
+                        <option value="Secret III">Secret III</option>
+                        <option value="Leaderboard">Leaderboard</option>
+                        <option value="Exclusive">Exclusive</option>
+                    </select>
+                </div>
+
+                <!-- Debug warning: Stats Type selector for percentage or value display -->
+                <div class="form-group">
+                    <label for="pet-stats-type">Stats Type</label>
+                    <select id="pet-stats-type" name="statstype" required>
+                        <option value="value">Value (Normal Numbers)</option>
+                        <option value="percentage">Percentage (%)</option>
+                    </select>
+                </div>
+
+                <!-- Debug warning: Text input allows custom formats like 30B, 1.5M, 250% -->
+                <div class="form-group">
+                    <label for="pet-stats">Stats</label>
+                    <input type="text" id="pet-stats" name="stats" placeholder="e.g., 30B, 1.5M, 250%">
+                </div>
+
+                <!-- Debug warning: Text input for custom value formats with reduced spacing -->
+                <div class="form-group form-group-compact">
+                    <label for="pet-value-normal">Normal Value</label>
+                    <input type="text" id="pet-value-normal" name="value_normal" placeholder="e.g., 500M, 2B, 15K">
+                </div>
+
+                <div class="form-group form-group-compact">
+                    <label for="pet-value-golden">Golden Value</label>
+                    <input type="text" id="pet-value-golden" name="value_golden" placeholder="e.g., 1.5B, 10B, 50K">
+                </div>
+
+                <div class="form-group form-group-compact">
+                    <label for="pet-value-rainbow">Rainbow Value</label>
+                    <input type="text" id="pet-value-rainbow" name="value_rainbow" placeholder="e.g., 5B, 50B, 100K">
+                </div>
+
+                <!-- Debug warning: New Void value field with dark purple theme -->
+                <div class="form-group form-group-compact">
+                    <label for="pet-value-void">Void Value</label>
+                    <input type="text" id="pet-value-void" name="value_void" placeholder="e.g., 10B, 100B, 500K">
+                </div>
+
+                <!-- Debug warning: Changed from file upload to URL input for external hosting -->
+                <div class="form-group">
+                    <label for="pet-image-url">Pet Image URL</label>
+                    <input type="url" id="pet-image-url" name="image_url" placeholder="https://example.com/image.png">
+                    <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">Enter the direct URL to an image hosted elsewhere</small>
+                </div>
+
+                <!-- Image Preview -->
+                <div id="image-preview" class="image-preview hidden">
+                    <img id="preview-img" src="" alt="Pet Preview">
+                </div>
+
+                <div id="pet-form-message" class="form-message"></div>
+
+                <div class="modal-actions">
+                    <button type="button" id="cancel-btn" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Pet</button>
+                </div>
+            </form>
         </div>
-
-        <!-- Rarity -->
-        <div class="form-group">
-          <label for="pet-rarity">Rarity</label>
-          <select id="pet-rarity" name="rarity" required>
-            <option value="">Select Rarity</option>
-            <option value="Legendary">Legendary</option>
-            <option value="Mythical">Mythical</option>
-            <option value="Secret I">Secret I</option>
-            <option value="Secret II">Secret II</option>
-            <option value="Secret III">Secret III</option>
-            <option value="Leaderboard">Leaderboard</option>
-            <option value="Exclusive">Exclusive</option>
-          </select>
-        </div>
-
-        <!-- Debug warning: Stats Type selector for percentage or value display -->
-        <div class="form-group">
-          <label for="pet-stats-type">Stats Type</label>
-          <select id="pet-stats-type" name="statstype" required>
-            <option value="value">Value (Normal Numbers)</option>
-            <option value="percentage">Percentage (%)</option>
-          </select>
-        </div>
-
-        <!-- Debug warning: Text input allows custom formats like 30B, 1.5M, 250% -->
-        <div class="form-group">
-          <label for="pet-stats">Stats</label>
-          <input type="text" id="pet-stats" name="stats" placeholder="e.g., 30B, 1.5M, 250%">
-        </div>
-
-        <!-- Debug warning: Text input for custom value formats with reduced spacing -->
-        <div class="form-group form-group-compact">
-          <label for="pet-value-normal">Normal Value</label>
-          <input type="text" id="pet-value-normal" name="valuenormal" placeholder="e.g., 500M, 2B, 15K">
-        </div>
-
-        <div class="form-group form-group-compact">
-          <label for="pet-value-golden">Golden Value</label>
-          <input type="text" id="pet-value-golden" name="valuegolden" placeholder="e.g., 1.5B, 10B, 50K">
-        </div>
-
-        <div class="form-group form-group-compact">
-          <label for="pet-value-rainbow">Rainbow Value</label>
-          <input type="text" id="pet-value-rainbow" name="valuerainbow" placeholder="e.g., 5B, 50B, 100K">
-        </div>
-
-        <!-- Debug warning: New Void value field with dark purple theme -->
-        <div class="form-group form-group-compact">
-          <label for="pet-value-void">Void Value</label>
-          <input type="text" id="pet-value-void" name="valuevoid" placeholder="e.g., 10B, 100B, 500K">
-        </div>
-
-        <!-- Debug warning: Changed from file upload to URL input for external hosting -->
-        <div class="form-group">
-          <label for="pet-image-url">Pet Image URL</label>
-          <input type="url" id="pet-image-url" name="imageurl" placeholder="https://example.com/image.png">
-          <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">Enter the direct URL to an image hosted elsewhere</small>
-        </div>
-
-        <!-- Image Preview -->
-        <div id="image-preview" class="image-preview hidden">
-          <img id="preview-img" src="" alt="Pet Preview">
-        </div>
-
-        <div id="pet-form-message" class="form-message"></div>
-
-        <div class="modal-actions">
-          <button type="button" id="cancel-btn" class="btn-secondary">Cancel</button>
-          <button type="submit" class="btn-primary">Save Pet</button>
-        </div>
-      </form>
     </div>
-  </div>
 
-  <!-- Pet Search Dropdown for Trade Calculator -->
-  <div id="trade-pet-search-dropdown" class="trade-pet-search-dropdown hidden">
-    <input type="text" id="trade-pet-search-input" placeholder="Search pet name..." autocomplete="off">
-    <div id="trade-search-results" class="trade-search-results">
-      <!-- Search results rendered by JS -->
+    <!-- Pet Search Dropdown for Trade Calculator -->
+    <div id="trade-pet-search-dropdown" class="trade-pet-search-dropdown hidden">
+        <input type="text" id="trade-pet-search-input" placeholder="Search pet name..." autocomplete="off">
+        <div id="trade-search-results" class="trade-search-results">
+            <!-- Search results rendered by JS -->
+        </div>
     </div>
-  </div>
 
-  <!-- Advanced Filter Panel Modal -->
-  <div id="filter-panel-modal" class="modal hidden" role="dialog" aria-hidden="true" aria-labelledby="filter-panel-title">
-    <div class="filter-panel-content">
-      <!-- Header -->
-      <div class="filter-panel-header">
-        <h2 id="filter-panel-title">Advanced Filters</h2>
-        <button id="filter-panel-close" class="filter-panel-close" aria-label="Close">&times;</button>
-      </div>
+    <!-- Advanced Filter Panel Modal -->
+    <div id="filter-panel-modal" class="modal hidden" role="dialog" aria-hidden="true" aria-labelledby="filter-panel-title">
+        <div class="filter-panel-content">
+            <!-- Header -->
+            <div class="filter-panel-header">
+                <h2 id="filter-panel-title">Advanced Filters</h2>
+                <button id="filter-panel-close" class="filter-panel-close" aria-label="Close">&times;</button>
+            </div>
 
-      <!-- Body -->
-      <div class="filter-panel-body">
-        <!-- Stats Type Filter -->
-        <div class="filter-section">
-          <span class="filter-section-title">Stats Type</span>
-          <div class="stats-type-toggle">
-            <button class="stats-type-btn active" data-stats-type="all">All Types</button>
-            <button class="stats-type-btn" data-stats-type="value">Value Only</button>
-            <button class="stats-type-btn" data-stats-type="percentage">Percentage Only</button>
-          </div>
+            <!-- Body -->
+            <div class="filter-panel-body">
+                <!-- Stats Type Filter -->
+                <div class="filter-section">
+                    <span class="filter-section-title">Stats Type</span>
+                    <div class="stats-type-toggle">
+                        <button class="stats-type-btn active" data-stats-type="all">All Types</button>
+                        <button class="stats-type-btn" data-stats-type="value">Value Only</button>
+                        <button class="stats-type-btn" data-stats-type="percentage">Percentage Only</button>
+                    </div>
+                </div>
+
+                <!-- Stats Filter -->
+                <div class="filter-section">
+                    <span class="filter-section-title">Stats Range</span>
+                    <div class="filter-group">
+                        <div class="filter-input-wrapper">
+                            <label class="filter-input-label">Minimum Stats</label>
+                            <input type="text" class="filter-input" id="filter-stats-min" placeholder="e.g., 1B, 500M, 25%">
+                        </div>
+                        <div class="filter-input-wrapper">
+                            <label class="filter-input-label">Maximum Stats</label>
+                            <input type="text" class="filter-input" id="filter-stats-max" placeholder="e.g., 100B, 5B, 500%">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Normal Value Filter -->
+                <div class="filter-section">
+                    <span class="filter-section-title">Normal Value Range</span>
+                    <div class="filter-group">
+                        <div class="filter-input-wrapper">
+                            <label class="filter-input-label">Minimum Normal</label>
+                            <input type="text" class="filter-input" id="filter-normal-min" placeholder="e.g., 100K, 1M">
+                        </div>
+                        <div class="filter-input-wrapper">
+                            <label class="filter-input-label">Maximum Normal</label>
+                            <input type="text" class="filter-input" id="filter-normal-max" placeholder="e.g., 1B, 500M">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Golden Value Filter -->
+                <div class="filter-section">
+                    <span class="filter-section-title">Golden Value Range</span>
+                    <div class="filter-group">
+                        <div class="filter-input-wrapper">
+                            <label class="filter-input-label">Minimum Golden</label>
+                            <input type="text" class="filter-input" id="filter-golden-min" placeholder="e.g., 500K, 5M">
+                        </div>
+                        <div class="filter-input-wrapper">
+                            <label class="filter-input-label">Maximum Golden</label>
+                            <input type="text" class="filter-input" id="filter-golden-max" placeholder="e.g., 5B, 1B">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rainbow Value Filter -->
+                <div class="filter-section">
+                    <span class="filter-section-title">Rainbow Value Range</span>
+                    <div class="filter-group">
+                        <div class="filter-input-wrapper">
+                            <label class="filter-input-label">Minimum Rainbow</label>
+                            <input type="text" class="filter-input" id="filter-rainbow-min" placeholder="e.g., 1M, 10M">
+                        </div>
+                        <div class="filter-input-wrapper">
+                            <label class="filter-input-label">Maximum Rainbow</label>
+                            <input type="text" class="filter-input" id="filter-rainbow-max" placeholder="e.g., 10B, 2B">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Debug warning: New Void Value Filter section -->
+                <div class="filter-section">
+                    <span class="filter-section-title">Void Value Range</span>
+                    <div class="filter-group">
+                        <div class="filter-input-wrapper">
+                            <label class="filter-input-label">Minimum Void</label>
+                            <input type="text" class="filter-input" id="filter-void-min" placeholder="e.g., 5M, 50M">
+                        </div>
+                        <div class="filter-input-wrapper">
+                            <label class="filter-input-label">Maximum Void</label>
+                            <input type="text" class="filter-input" id="filter-void-max" placeholder="e.g., 20B, 5B">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="filter-panel-footer">
+                <button id="filter-reset-btn" class="filter-reset-btn">Reset Filters</button>
+                <button id="filter-apply-btn" class="filter-apply-btn">Apply Filters</button>
+            </div>
         </div>
-
-        <!-- Stats Filter -->
-        <div class="filter-section">
-          <span class="filter-section-title">Stats Range</span>
-          <div class="filter-group">
-            <div class="filter-input-wrapper">
-              <label class="filter-input-label">Minimum Stats</label>
-              <input type="text" class="filter-input" id="filter-stats-min" placeholder="e.g., 1B, 500M, 25%">
-            </div>
-            <div class="filter-input-wrapper">
-              <label class="filter-input-label">Maximum Stats</label>
-              <input type="text" class="filter-input" id="filter-stats-max" placeholder="e.g., 100B, 5B, 500%">
-            </div>
-          </div>
-        </div>
-
-        <!-- Normal Value Filter -->
-        <div class="filter-section">
-          <span class="filter-section-title">Normal Value Range</span>
-          <div class="filter-group">
-            <div class="filter-input-wrapper">
-              <label class="filter-input-label">Minimum Normal</label>
-              <input type="text" class="filter-input" id="filter-normal-min" placeholder="e.g., 100K, 1M">
-            </div>
-            <div class="filter-input-wrapper">
-              <label class="filter-input-label">Maximum Normal</label>
-              <input type="text" class="filter-input" id="filter-normal-max" placeholder="e.g., 1B, 500M">
-            </div>
-          </div>
-        </div>
-
-        <!-- Golden Value Filter -->
-        <div class="filter-section">
-          <span class="filter-section-title">Golden Value Range</span>
-          <div class="filter-group">
-            <div class="filter-input-wrapper">
-              <label class="filter-input-label">Minimum Golden</label>
-              <input type="text" class="filter-input" id="filter-golden-min" placeholder="e.g., 500K, 5M">
-            </div>
-            <div class="filter-input-wrapper">
-              <label class="filter-input-label">Maximum Golden</label>
-              <input type="text" class="filter-input" id="filter-golden-max" placeholder="e.g., 5B, 1B">
-            </div>
-          </div>
-        </div>
-
-        <!-- Rainbow Value Filter -->
-        <div class="filter-section">
-          <span class="filter-section-title">Rainbow Value Range</span>
-          <div class="filter-group">
-            <div class="filter-input-wrapper">
-              <label class="filter-input-label">Minimum Rainbow</label>
-              <input type="text" class="filter-input" id="filter-rainbow-min" placeholder="e.g., 1M, 10M">
-            </div>
-            <div class="filter-input-wrapper">
-              <label class="filter-input-label">Maximum Rainbow</label>
-              <input type="text" class="filter-input" id="filter-rainbow-max" placeholder="e.g., 10B, 2B">
-            </div>
-          </div>
-        </div>
-
-        <!-- Debug warning: New Void Value Filter section -->
-        <div class="filter-section">
-          <span class="filter-section-title">Void Value Range</span>
-          <div class="filter-group">
-            <div class="filter-input-wrapper">
-              <label class="filter-input-label">Minimum Void</label>
-              <input type="text" class="filter-input" id="filter-void-min" placeholder="e.g., 5M, 50M">
-            </div>
-            <div class="filter-input-wrapper">
-              <label class="filter-input-label">Maximum Void</label>
-              <input type="text" class="filter-input" id="filter-void-max" placeholder="e.g., 20B, 5B">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="filter-panel-footer">
-        <button id="filter-reset-btn" class="filter-reset-btn">Reset Filters</button>
-        <button id="filter-apply-btn" class="filter-apply-btn">Apply Filters</button>
-      </div>
     </div>
-  </div>
 
-  <!-- Scripts -->
-  <script src="particles.js"></script>
-  <script src="sidebar.js"></script>
-  <script src="content.js"></script>
-  <script src="petcardeffects.js"></script>
-  <!-- <script src="textglimmer.js"></script>-->
+    <!-- Scripts -->
+    <script src="particles.js"></script>
+    <script src="sidebar.js"></script>
+    <script src="content.js"></script>
+    <script src="petcardeffects.js"></script>
+    
+    <!-- IMPORTANT: Load virtualscroll.js BEFORE main.js -->
+    <script src="virtualscroll.js"></script>
+    
+    <!-- IMPORTANT: Load filterpanel.js BEFORE main.js -->
+    <script src="filterpanel.js"></script>
+    <script src="main.js"></script>
+    
+    <!-- Trade Calculator Script -->
+    <script src="tradecalculator.js"></script>
 
-  <!-- IMPORTANT: Load virtualscroll.js BEFORE main.js -->
-  <script src="virtualscroll.js"></script>
-  <!-- IMPORTANT: Load filterpanel.js BEFORE main.js -->
-  <script src="filterpanel.js"></script>
-  <script src="main.js"></script>
-
-  <!-- Trade Calculator Script -->
-  <script src="tradecalculator.js"></script>
-
-  <!-- Initialize systems -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialize sidebar
-      if (typeof initSidebar === 'function') {
-        initSidebar();
-      }
-      
-      // Initialize particle effects
-      if (typeof initParticles === 'function') {
-        initParticles();
-      }
-      
-      // Initialize secret effects
-      if (typeof initSecretEffects === 'function') {
-        initSecretEffects();
-      }
-      
-      // Initialize text glimmer
-      if (typeof initTextGlimmer === 'function') {
-        initTextGlimmer();
-      }
-    });
-  </script>
+    <!-- Initialize systems -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize sidebar
+            if (typeof initSidebar === 'function') initSidebar();
+            
+            // Initialize particle effects
+            if (typeof initParticles === 'function') initParticles();
+            
+            // Initialize secret effects
+            if (typeof initSecretEffects === 'function') initSecretEffects();
+            
+            // Initialize text glimmer
+            if (typeof initTextGlimmer === 'function') initTextGlimmer();
+        });
+    </script>
 </body>
 </html>
 
