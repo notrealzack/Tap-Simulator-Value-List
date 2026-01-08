@@ -433,11 +433,8 @@ function renderPetsToGrid(pets) {
   container.innerHTML = html;
 
   // Re-apply visual effects
-  if (window.TextGlimmer && window.TextGlimmer.refresh) {
-    window.TextGlimmer.refresh();
-  }
-  if (window.SecretEffects && window.SecretEffects.refresh) {
-    window.SecretEffects.refresh();
+  if (typeof applyAllCardEffects === 'function') {
+    applyAllCardEffects();
   }
 
   // Show admin buttons if logged in
@@ -445,6 +442,7 @@ function renderPetsToGrid(pets) {
     const adminActions = document.querySelectorAll('.pet-admin-actions');
     adminActions.forEach(el => el.classList.add('visible'));
   }
+
 }
 
 // Make renderPets globally accessible for trade calculator
