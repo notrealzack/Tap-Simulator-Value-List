@@ -521,6 +521,10 @@ function createPetCard(pet) {
           <span class="pet-stat-label pet-rainbow-label">Rainbow</span>
           <span class="pet-stat-value pet-rainbow-value">${pet.value_rainbow || '0'}</span>
         </div>
+        <div class="pet-stat-row">
+          <span class="pet-stat-label pet-void-label">Void</span>
+          <span class="pet-stat-value pet-void-value">${pet.value_void || '0'}</span>
+        </div>
       </div>
       <div class="pet-updated">Updated: ${lastUpdated}</div>
       <div class="pet-admin-actions">
@@ -804,6 +808,7 @@ function openPetModal(pet = null) {
     document.getElementById('pet-value-normal').value = pet.value_normal || '';
     document.getElementById('pet-value-golden').value = pet.value_golden || '';
     document.getElementById('pet-value-rainbow').value = pet.value_rainbow || '';
+    document.getElementById('pet-value-void').value = pet.value_void || '';
     document.getElementById('pet-image-url').value = pet.image_url || '';
     
     // Show image preview if exists
@@ -922,6 +927,7 @@ function initEventListeners() {
         value_normal: document.getElementById('pet-value-normal').value || '0',
         value_golden: document.getElementById('pet-value-golden').value || '0',
         value_rainbow: document.getElementById('pet-value-rainbow').value || '0',
+        value_void: document.getElementById('pet-value-void').value || '0',
         image_url: document.getElementById('pet-image-url').value || null
       };
 
