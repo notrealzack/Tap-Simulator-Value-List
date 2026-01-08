@@ -951,6 +951,123 @@ form {
 
 /* Debug warning: All colors set to white by default, change individual classes to customize */
 
-/* File type: CSS Stylesheet (for GitHub Pages)
- * Path: /styles.css
- */
+/* Add these styles to your existing CSS file */
+/* File type: CSS Stylesheet (for GitHub Pages) */
+/* Path: /styles.css or wherever your pet card styles are */
+
+/* =======================
+   RARITY BADGE UPDATES - Full customization for each rarity
+   ======================= */
+
+/* Debug warning: Base rarity badge style with shimmer effect */
+.pet-rarity {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.6em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  /* Default border - will be overridden per rarity */
+  border: 2px solid transparent;
+}
+
+/* Shimmer wave effect overlay */
+.pet-rarity::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmerWave 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Shimmer animation keyframes */
+@keyframes shimmerWave {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 100%;
+  }
+}
+
+/* =======================
+   MYTHICAL - Customize background, border, and text color here
+   ======================= */
+.pet-rarity-mythical {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  border-color: #ff4444;
+  color: #ffffff;
+}
+
+/* =======================
+   SECRET I - Customize background, border, and text color here
+   ======================= */
+.pet-rarity-secret-i {
+  background: linear-gradient(135deg, #ffae42, #ff9500);
+  border-color: #ff8800;
+  color: #ffffff;
+}
+
+/* =======================
+   SECRET II - Customize background, border, and text color here
+   ======================= */
+.pet-rarity-secret-ii {
+  background: linear-gradient(135deg, #00d4ff, #00b8e6);
+  border-color: #00a3cc;
+  color: #ffffff;
+}
+
+/* =======================
+   SECRET III - Customize background, border, and text color here
+   ======================= */
+.pet-rarity-secret-iii {
+  background: linear-gradient(135deg, #b388ff, #9c6cfa);
+  border-color: #9370db;
+  color: #ffffff;
+}
+
+/* =======================
+   LEADERBOARD - Customize background, border, and text color here
+   ======================= */
+.pet-rarity-leaderboard {
+  background: linear-gradient(135deg, #ffd700, #ffcc00);
+  border-color: #ffb700;
+  color: #ffffff;
+}
+
+/* =======================
+   EXCLUSIVE - Customize background, border, and text color here
+   ======================= */
+.pet-rarity-exclusive {
+  background: linear-gradient(135deg, #00ff88, #00e676);
+  border-color: #00cc66;
+  color: #ffffff;
+}
+
+/* Optional: Adjust shimmer speed for different rarities */
+.pet-rarity-secret-iii::before,
+.pet-rarity-leaderboard::before {
+  animation-duration: 2.5s;
+}
+
+/* Optional: Pause shimmer on hover for readability */
+.pet-rarity:hover::before {
+  animation-play-state: paused;
+}
+
+/* File type: CSS Stylesheet (for GitHub Pages) */
+/* Path: /styles.css */
