@@ -84,8 +84,7 @@
       <!-- Admin Actions -->
       <div class="header-actions">
         <!-- Admin icon button (opens login modal) -->
-        <button id="admin-icon-btn" class="admin-icon-btn" aria-label="Admin Login" title="Admin Login">🔑</button>
-        
+        <button id="admin-icon-btn" class="admin-icon-btn" aria-label="Admin Login" title="Admin Login"></button>
         <!-- Logout button (hidden by default) -->
         <button id="logout-btn" class="logout-btn hidden" aria-label="Logout" title="Logout">Logout</button>
       </div>
@@ -103,12 +102,11 @@
 
     <!-- Content Area -->
     <main id="content">
-      
       <div class="welcome">
         <h2>Tap Simulator Value List</h2>
         <p>Browse all pets and their current values</p>
       </div>
-
+      
       <!-- Pets container for pet grid display -->
       <div id="pets-container" class="pets-grid"></div>
     </main>
@@ -149,13 +147,13 @@
       </div>
       <form id="pet-form">
         <input type="hidden" id="pet-id">
-
+        
         <!-- Pet Name -->
         <div class="form-group">
           <label for="pet-name">Pet Name</label>
           <input type="text" id="pet-name" name="name" required placeholder="Enter pet name">
         </div>
-
+        
         <!-- Rarity -->
         <div class="form-group">
           <label for="pet-rarity">Rarity</label>
@@ -170,7 +168,7 @@
             <option value="Exclusive">Exclusive</option>
           </select>
         </div>
-
+        
         <!-- Debug warning: Stats Type selector for percentage or value display -->
         <div class="form-group">
           <label for="pet-stats-type">Stats Type</label>
@@ -179,43 +177,42 @@
             <option value="percentage">Percentage (%)</option>
           </select>
         </div>
-
-        <!-- Debug warning: Text input allows custom formats like "30B", "1.5M", "250%" -->
+        
+        <!-- Debug warning: Text input allows custom formats like 30B, 1.5M, 250% -->
         <div class="form-group">
           <label for="pet-stats">Stats</label>
           <input type="text" id="pet-stats" name="stats" placeholder="e.g., 30B, 1.5M, 250%">
         </div>
-
+        
         <!-- Debug warning: Text input for custom value formats -->
         <div class="form-group">
           <label for="pet-value-normal">Normal Value</label>
           <input type="text" id="pet-value-normal" name="value_normal" placeholder="e.g., 500M, 2B, 15K">
         </div>
-
+        
         <div class="form-group">
           <label for="pet-value-golden">Golden Value</label>
           <input type="text" id="pet-value-golden" name="value_golden" placeholder="e.g., 1.5B, 10B, 50K">
         </div>
-
+        
         <div class="form-group">
           <label for="pet-value-rainbow">Rainbow Value</label>
           <input type="text" id="pet-value-rainbow" name="value_rainbow" placeholder="e.g., 5B, 50B, 100K">
         </div>
-
+        
         <!-- Debug warning: Changed from file upload to URL input for external hosting -->
         <div class="form-group">
           <label for="pet-image-url">Pet Image URL</label>
           <input type="url" id="pet-image-url" name="image_url" placeholder="https://example.com/image.png">
           <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">Enter the direct URL to an image hosted elsewhere</small>
         </div>
-
+        
         <!-- Image Preview -->
         <div id="image-preview" class="image-preview hidden">
           <img id="preview-img" src="" alt="Pet Preview">
         </div>
-
+        
         <div id="pet-form-message" class="form-message"></div>
-
         <div class="modal-actions">
           <button type="button" id="cancel-btn" class="btn-secondary">Cancel</button>
           <button type="submit" class="btn-primary">Save Pet</button>
@@ -240,10 +237,9 @@
         <h2 id="filter-panel-title">Advanced Filters</h2>
         <button id="filter-panel-close" class="filter-panel-close" aria-label="Close">&times;</button>
       </div>
-
+      
       <!-- Body -->
       <div class="filter-panel-body">
-        
         <!-- Stats Type Filter -->
         <div class="filter-section">
           <span class="filter-section-title">Stats Type</span>
@@ -253,7 +249,7 @@
             <button class="stats-type-btn" data-stats-type="percentage">Percentage Only</button>
           </div>
         </div>
-
+        
         <!-- Stats Filter -->
         <div class="filter-section">
           <span class="filter-section-title">Stats Range</span>
@@ -268,7 +264,7 @@
             </div>
           </div>
         </div>
-
+        
         <!-- Normal Value Filter -->
         <div class="filter-section">
           <span class="filter-section-title">Normal Value Range</span>
@@ -283,7 +279,7 @@
             </div>
           </div>
         </div>
-
+        
         <!-- Golden Value Filter -->
         <div class="filter-section">
           <span class="filter-section-title">Golden Value Range</span>
@@ -298,7 +294,7 @@
             </div>
           </div>
         </div>
-
+        
         <!-- Rainbow Value Filter -->
         <div class="filter-section">
           <span class="filter-section-title">Rainbow Value Range</span>
@@ -313,9 +309,8 @@
             </div>
           </div>
         </div>
-
       </div>
-
+      
       <!-- Footer -->
       <div class="filter-panel-footer">
         <button id="filter-reset-btn" class="filter-reset-btn">Reset Filters</button>
@@ -330,13 +325,14 @@
   <script src="content.js"></script>
   <script src="secreteffects.js"></script>
   <script src="textglimmer.js"></script>
+  <!-- IMPORTANT: Load virtualscroll.js BEFORE main.js -->
+  <script src="virtualscroll.js"></script>
   <!-- IMPORTANT: Load filterpanel.js BEFORE main.js -->
   <script src="filterpanel.js"></script>
   <script src="main.js"></script>
-  
   <!-- Trade Calculator Script -->
   <script src="tradecalculator.js"></script>
-
+  
   <!-- Initialize systems -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
