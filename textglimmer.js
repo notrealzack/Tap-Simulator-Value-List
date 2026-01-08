@@ -1,161 +1,176 @@
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /textglimmer.js
 
-// Debug warning: Text glimmer effect for pet names and rarity badges, uses CSS animations (no 24/7 loops)
+// Debug warning: Text shimmer/glimmer effects for pet names and badges
+// Now respects performance mode - skips effects when density is high
 
-(function() {
-  // Rarity gradient configurations for badges
-  const rarityGradients = {
-    'Legendary':{
-      colors: ['#ffa200', '#ffbb45ff', '#ffa200'],
-      animationDuration: '3s'
-    },
-    'Mythical': {
-      colors: ['#ff6b9d', '#ff8fab', '#ff6b9d'],
-      animationDuration: '3s'
-    },
-    'Secret I': {
-      colors: ['#ffae42', '#ffc870', '#ffae42'],
-      animationDuration: '2.5s'
-    },
-    'Secret II': {
-      colors: ['#00d4ff', '#33ddff', '#00d4ff'],
-      animationDuration: '2.5s'
-    },
-    'Secret III': {
-      colors: ['#b388ff', '#c9a8ff', '#b388ff'],
-      animationDuration: '2.5s'
-    },
-    'Leaderboard': {
-      colors: ['#ffd700', '#ffe44d', '#ffd700'],
-      animationDuration: '2s'
-    },
-    'Exclusive': {
-      colors: ['#00ff88', '#33ffaa', '#00ff88'],
-      animationDuration: '2s'
-    }
-  };
+// ===========================
+// Performance Mode State
+// ===========================
+let performanceModeActive = false;
 
-  // Pet name glimmer configuration (subtle white-to-cyan shimmer)
-  const petNameGradient = {
-    colors: ['#ffffff', '#e0f2fe', '#bae6fd', '#e0f2fe', '#ffffff'],
-    animationDuration: '4s'
-  };
-
-  // Apply glimmer effect to rarity badges
-  function applyGlimmerEffect(element, rarity) {
-    if (!rarityGradients[rarity]) return;
-
-    const config = rarityGradients[rarity];
-    const gradient = `linear-gradient(90deg, ${config.colors.join(', ')})`;
-
-    // Set gradient background
-    element.style.backgroundImage = gradient;
-    element.style.backgroundSize = '200% 100%';
-    element.style.backgroundClip = 'text';
-    element.style.webkitBackgroundClip = 'text';
-    element.style.color = 'transparent';
-
-    // Add animation
-    element.style.animation = `glimmer ${config.animationDuration} ease-in-out infinite`;
+// ===========================
+// Set Performance Mode
+// ===========================
+function setPerformanceMode(enabled) {
+  performanceModeActive = enabled;
+  console.log('[TextGlimmer] Performance mode:', enabled ? 'ENABLED (effects disabled)' : 'DISABLED (effects enabled)');
+  
+  // If disabling effects, remove all existing glimmer spans
+  if (enabled) {
+    removeAllGlimmers();
   }
+}
 
-  // Apply subtle glimmer to pet names
-  function applyPetNameGlimmer(element) {
-    const gradient = `linear-gradient(90deg, ${petNameGradient.colors.join(', ')})`;
-
-    // Set gradient background
-    element.style.backgroundImage = gradient;
-    element.style.backgroundSize = '300% 100%';
-    element.style.backgroundClip = 'text';
-    element.style.webkitBackgroundClip = 'text';
-    element.style.color = 'transparent';
-
-    // Add animation
-    element.style.animation = `glimmer ${petNameGradient.animationDuration} ease-in-out infinite`;
-  }
-
-  // Initialize glimmer on all rarity badges
-  function initRarityGlimmer() {
-    const rarityElements = document.querySelectorAll('.pet-rarity');
+// ===========================
+// Remove All Glimmer Effects
+// ===========================
+function removeAllGlimmers() {
+  // Find all elements that have been glimmer-processed
+  const glimmerElements = document.querySelectorAll('[data-glimmer-processed="true"]');
+  
+  glimmerElements.forEach(el => {
+    // Get original text from data attribute or reconstruct from spans
+    const originalText = el.getAttribute('data-original-text') || el.textContent;
     
-    rarityElements.forEach(element => {
-      const rarityText = element.textContent.trim();
-      applyGlimmerEffect(element, rarityText);
-    });
-  }
+    // Restore plain text
+    el.textContent = originalText;
+    el.removeAttribute('data-glimmer-processed');
+  });
+  
+  console.log('[TextGlimmer] All glimmers removed');
+}
 
-  // Initialize glimmer on all pet names
-  function initPetNameGlimmer() {
-    const nameElements = document.querySelectorAll('.pet-name');
+// ===========================
+// Initialize Text Glimmer
+// ===========================
+function initTextGlimmer() {
+  // Skip if performance mode is active
+  if (performanceModeActive) {
+    console.log('[TextGlimmer] Skipped - performance mode active');
+    return;
+  }
+  
+  applyGlimmerEffects();
+}
+
+// ===========================
+// Apply Glimmer to Elements
+// ===========================
+function applyGlimmerEffects() {
+  // Skip if performance mode is active
+  if (performanceModeActive) {
+    return;
+  }
+  
+  // Find all elements with data-glimmer attribute
+  const glimmerElements = document.querySelectorAll('[data-glimmer]:not([data-glimmer-processed="true"])');
+  
+  glimmerElements.forEach(element => {
+    const text = element.textContent;
     
-    nameElements.forEach(element => {
-      applyPetNameGlimmer(element);
-    });
-  }
-
-  // Initialize all glimmers
-  function initGlimmer() {
-    initRarityGlimmer();
-    initPetNameGlimmer();
-  }
-
-  // Create CSS animation keyframes dynamically
-  function injectGlimmerStyles() {
-    if (document.getElementById('glimmer-styles')) return;
-
-    const style = document.createElement('style');
-    style.id = 'glimmer-styles';
-    style.textContent = `
-      @keyframes glimmer {
-        0% {
-          background-position: 0% 50%;
-        }
-        50% {
-          background-position: 100% 50%;
-        }
-        100% {
-          background-position: 0% 50%;
-        }
-      }
-
-      /* Ensure pet names maintain readability */
-      .pet-name {
-        font-weight: 600;
-        letter-spacing: 0.3px;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  // Observer for dynamically added pet cards
-  const observer = new MutationObserver(() => {
-    initGlimmer();
-  });
-
-  // Debug warning: MutationObserver watches for new pet cards, automatically applies effect
-  function startObserving() {
-    const petsContainer = document.getElementById('pets-container');
-    if (petsContainer) {
-      observer.observe(petsContainer, {
-        childList: true,
-        subtree: true
-      });
+    // Skip if already processed
+    if (element.hasAttribute('data-glimmer-processed')) {
+      return;
     }
-  }
-
-  // Initialize on page load
-  document.addEventListener('DOMContentLoaded', () => {
-    injectGlimmerStyles();
-    initGlimmer();
-    startObserving();
+    
+    // Store original text
+    element.setAttribute('data-original-text', text);
+    
+    // Split text into characters and wrap each in span
+    const chars = text.split('');
+    element.innerHTML = '';
+    
+    chars.forEach((char, index) => {
+      const span = document.createElement('span');
+      span.className = 'glimmer-char';
+      span.textContent = char;
+      
+      // Add random animation delay for wave effect
+      span.style.animationDelay = `${Math.random() * 1}s`;
+      
+      element.appendChild(span);
+    });
+    
+    // Mark as processed
+    element.setAttribute('data-glimmer-processed', 'true');
   });
+  
+  if (glimmerElements.length > 0) {
+    console.log('[TextGlimmer] Applied to', glimmerElements.length, 'elements');
+  }
+}
 
-  // Public API for manual re-initialization (used by main.js after rendering pets)
-  window.TextGlimmer = {
-    refresh: initGlimmer
-  };
-})();
+// ===========================
+// Refresh Glimmer (called after re-render)
+// ===========================
+function refreshTextGlimmer() {
+  // Skip if performance mode is active
+  if (performanceModeActive) {
+    console.log('[TextGlimmer] Refresh skipped - performance mode active');
+    return;
+  }
+  
+  // Apply glimmer to new elements
+  applyGlimmerEffects();
+}
+
+// ===========================
+// Add CSS Animations
+// ===========================
+function addGlimmerStyles() {
+  // Check if styles already exist
+  if (document.getElementById('text-glimmer-styles')) {
+    return;
+  }
+  
+  const style = document.createElement('style');
+  style.id = 'text-glimmer-styles';
+  style.textContent = `
+    /* Glimmer character animation */
+    .glimmer-char {
+      display: inline-block;
+      animation: glimmer 2s ease-in-out infinite;
+    }
+    
+    @keyframes glimmer {
+      0%, 100% {
+        opacity: 1;
+        color: inherit;
+      }
+      50% {
+        opacity: 0.7;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+      }
+    }
+    
+    /* Disable glimmer in performance mode */
+    .performance-mode .glimmer-char {
+      animation: none !important;
+      text-shadow: none !important;
+    }
+  `;
+  
+  document.head.appendChild(style);
+}
+
+// ===========================
+// Initialize on Load
+// ===========================
+document.addEventListener('DOMContentLoaded', () => {
+  addGlimmerStyles();
+  initTextGlimmer();
+});
+
+// ===========================
+// Export Functions
+// ===========================
+window.TextGlimmer = {
+  init: initTextGlimmer,
+  refresh: refreshTextGlimmer,
+  setPerformanceMode: setPerformanceMode
+};
 
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /textglimmer.js
