@@ -536,6 +536,7 @@ function createPetCard(pet) {
 // Helper function to get rarity class
 function getRarityClass(rarity) {
   const map = {
+    'Legendary': 'legendary',
     'Mythical': 'mythical',
     'Secret I': 'secret-i',
     'Secret II': 'secret-ii',
