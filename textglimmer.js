@@ -6,6 +6,10 @@
 (function() {
   // Rarity gradient configurations for badges
   const rarityGradients = {
+    'Legendary':{
+      colors: ['#ffa200', '#ffbb45ff', '#ffa200'],
+      animationDuration: '3s'
+    },
     'Mythical': {
       colors: ['#ff6b9d', '#ff8fab', '#ff6b9d'],
       animationDuration: '3s'
