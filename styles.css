@@ -693,7 +693,8 @@ header h1 {
 .pet-stat-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8rem;
+  font-size: 0.6rem;
+  padding: 0px 0; /* Debug warning: Compact padding for 4 value rows */
 }
 
 .pet-stat-label,
@@ -702,8 +703,21 @@ header h1 {
 .pet-golden-label,
 .pet-rainbow-label {
   color: #a1a1a1;
-  font-weight: 200;
+  font-weight: 300;
   font-size: 0.77rem;
+}
+
+/* Debug warning: Void value styling with dark purple color */
+.pet-void-label {
+  color: #a1a1a1b3; /* Dark purple for Void */
+  font-weight: 500;
+  font-size: 0.77rem;
+}
+
+.pet-void-value {
+  color: #a855f7; /* Lighter purple for Void value */
+  font-weight: 500;
+  font-size: 0.8rem;
 }
 
 .pet-stat-value,
@@ -726,7 +740,13 @@ header h1 {
 }
 
 .pet-rainbow-value {
-  color: #f42bd6;
+  color: #d62bf4;
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.pet-void-value {
+  color: #000000;
   font-weight: 500;
   font-size: 0.8rem;
 }
@@ -872,6 +892,12 @@ form {
 .form-group {
   margin-bottom: var(--space-md);
 }
+
+/* Debug warning: Compact spacing for value input fields (Normal, Golden, Rainbow, Void) */
+.form-group-compact {
+  margin-bottom: 8px; /* Reduced from default 16px */
+}
+
 
 .form-group label {
   display: block;
