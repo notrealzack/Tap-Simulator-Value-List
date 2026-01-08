@@ -1,9 +1,11 @@
 /* File type: CSS Stylesheet */
-/* Path: /tradecalculator.css - COMPLETE REPLACEMENT */
+/* Path: /tradecalculator.css */
 
-/* =======================
+/* Debug warning: Trade calculator styles with Void variant and quantity controls support */
+
+/* ================================
    TRADE CALCULATOR - INLINE DISPLAY
-   ======================= */
+   ================================ */
 
 .trade-calculator-inline {
   background: var(--bg-secondary, #1a1a2e);
@@ -52,9 +54,9 @@
   color: #ff3b30;
 }
 
-/* =======================
+/* ================================
    TRADE SIDES CONTAINER
-   ======================= */
+   ================================ */
 
 .trade-sides-container {
   display: grid;
@@ -91,9 +93,9 @@
   color: #ef4444;
 }
 
-/* =======================
+/* ================================
    PET CARDS GRID
-   ======================= */
+   ================================ */
 
 .trade-pets-grid {
   display: grid;
@@ -192,7 +194,7 @@
   opacity: 1;
 }
 
-/* Variant Badge */
+/* Debug warning: Variant Badge with Void support */
 .trade-variant-badge {
   position: absolute;
   top: 4px;
@@ -220,6 +222,12 @@
   background: linear-gradient(135deg, #ff6ec7 0%, #fbbf24 50%, #3b82f6 100%);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.trade-variant-badge.void {
+  background: rgba(138, 43, 226, 0.2);
+  color: #8a2be2;
+  border: 1px solid rgba(138, 43, 226, 0.4);
 }
 
 /* Pet Image */
@@ -265,9 +273,47 @@
   font-weight: 600;
 }
 
-/* =======================
+/* Debug warning: Quantity Controls */
+.trade-quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.trade-qty-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.trade-qty-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.trade-quantity {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  min-width: 24px;
+  text-align: center;
+}
+
+/* ================================
    TOKEN INPUT
-   ======================= */
+   ================================ */
 
 .trade-input-group {
   display: flex;
@@ -298,9 +344,9 @@
   background: rgba(59, 130, 246, 0.1);
 }
 
-/* =======================
+/* ================================
    TOTAL DISPLAY
-   ======================= */
+   ================================ */
 
 .trade-total {
   background: rgba(255, 255, 255, 0.05);
@@ -319,9 +365,9 @@
   font-weight: 700;
 }
 
-/* =======================
+/* ================================
    TRADE RESULT
-   ======================= */
+   ================================ */
 
 .trade-calc-result {
   background: rgba(255, 255, 255, 0.05);
@@ -358,9 +404,9 @@
   color: #ef4444;
 }
 
-/* =======================
+/* ================================
    ACTION BUTTONS
-   ======================= */
+   ================================ */
 
 .trade-calc-actions {
   display: flex;
@@ -385,9 +431,9 @@
   border-color: rgba(255, 255, 255, 0.25);
 }
 
-/* =======================
+/* ================================
    PET SEARCH DROPDOWN
-   ======================= */
+   ================================ */
 
 .trade-pet-search-dropdown {
   position: fixed;
@@ -484,7 +530,7 @@
   white-space: nowrap;
 }
 
-/* Variant Buttons */
+/* Debug warning: Variant Buttons with Void option */
 .trade-variant-buttons {
   display: flex;
   gap: 6px;
@@ -537,6 +583,15 @@
   border-color: #9333ea;
 }
 
+.trade-variant-btn.void {
+  border-color: rgba(138, 43, 226, 0.3);
+}
+
+.trade-variant-btn.void:hover {
+  background: rgba(138, 43, 226, 0.15);
+  border-color: #8a2be2;
+}
+
 .variant-label {
   font-size: 0.7rem;
   font-weight: 700;
@@ -555,6 +610,10 @@
   color: #9333ea;
 }
 
+.trade-variant-btn.void .variant-label {
+  color: #8a2be2;
+}
+
 .variant-value {
   font-size: 0.7rem;
   font-weight: 600;
@@ -569,9 +628,9 @@
   font-size: 0.9rem;
 }
 
-/* =======================
+/* ================================
    RESPONSIVE DESIGN
-   ======================= */
+   ================================ */
 
 @media (max-width: 768px) {
   .trade-sides-container {
@@ -603,4 +662,4 @@
 }
 
 /* File type: CSS Stylesheet */
-/* Path: /tradecalculator.css - COMPLETE REPLACEMENT */
+/* Path: /tradecalculator.css */
