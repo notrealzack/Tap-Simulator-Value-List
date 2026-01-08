@@ -1,54 +1,27 @@
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /petcardeffects.js
 
-// Debug warning: Floating ball effects matching particles.js background exactly
-// Small, subtle balls that move fluidly like banner particles
+// Debug warning: Floating ball effects with proper visibility management
+// Balls pause when page hidden and resume when visible
 
-// ===========================
 // Effect Configuration per Rarity
-// ===========================
 const rarityEffectConfig = {
-  'Mythical': {
-    ballCount: 2,
-    ballColor: 'var(--rarity-mythical)',
-    speedMultiplier: 1.0
-  },
-  'Secret I': {
-    ballCount: 4,
-    ballColor: 'var(--rarity-secret-i)',
-    speedMultiplier: 1.0
-  },
-  'Secret II': {
-    ballCount: 6,
-    ballColor: 'var(--rarity-secret-ii)',
-    speedMultiplier: 1.0
-  },
-  'Secret III': {
-    ballCount: 8,
-    ballColor: 'var(--rarity-secret-iii)',
-    speedMultiplier: 1.0
-  },
-  'Leaderboard': {
-    ballCount: 7,
-    ballColor: 'var(--rarity-leaderboard)',
-    speedMultiplier: 1.0
-  },
-  'Exclusive': {
-    ballCount: 5,
-    ballColor: 'var(--rarity-exclusive)',
-    speedMultiplier: 1.0
-  }
+  "Mythical": { ballCount: 2, ballColor: "var(--rarity-mythical)", speedMultiplier: 1.0 },
+  "Secret I": { ballCount: 4, ballColor: "var(--rarity-secret-i)", speedMultiplier: 1.0 },
+  "Secret II": { ballCount: 6, ballColor: "var(--rarity-secret-ii)", speedMultiplier: 1.0 },
+  "Secret III": { ballCount: 8, ballColor: "var(--rarity-secret-iii)", speedMultiplier: 1.0 },
+  "Leaderboard": { ballCount: 7, ballColor: "var(--rarity-leaderboard)", speedMultiplier: 1.0 },
+  "Exclusive": { ballCount: 5, ballColor: "var(--rarity-exclusive)", speedMultiplier: 1.0 }
 };
 
-// ===========================
 // Intersection Observer for viewport detection
-// ===========================
 let viewportObserver = null;
 const activeCardAnimations = new Map();
 
-// ===========================
-// Ball Physics System (matching particles.js exactly)
-// ===========================
+// NEW: Page visibility state
+let isPageVisible = true;
+
+// Ball Physics System
 class Ball {
   constructor(card, container, color, speedMultiplier) {
     this.card = card;
@@ -56,29 +29,27 @@ class Ball {
     this.color = color;
     this.speedMultiplier = speedMultiplier;
     
-    // Get container dimensions
     const rect = container.getBoundingClientRect();
     this.width = rect.width;
     this.height = rect.height;
     
-    // Fixed small size like particles.js (2-3px)
-    this.radius = 1 + Math.random() * 1; // 1-2px radius (2-4px diameter)
+    this.radius = 1 + Math.random() * 1; // 1-2px radius
     
     // Random position
     this.x = Math.random() * this.width;
     this.y = Math.random() * this.height;
     
-    // Random velocity (matching particles.js speed: 0.3)
+    // Random velocity
     const angle = Math.random() * Math.PI * 2;
-    const speed = (Math.random() * 0.3 + 0.2) * speedMultiplier; // 0.2-0.5 speed
+    const speed = (Math.random() * 0.3 + 0.2) * speedMultiplier;
     this.vx = Math.cos(angle) * speed;
     this.vy = Math.sin(angle) * speed;
     
-    // Opacity (matching particles.js: 0.3)
     this.opacity = 0;
-    this.targetOpacity = 0.25 + Math.random() * 0.15; // 0.25-0.4
+    this.targetOpacity = 0.25 + Math.random() * 0.15;
     this.spawning = true;
     this.despawning = false;
+    
     this.lifetime = 20000; // 20 seconds
     this.age = 0;
     
@@ -113,9 +84,9 @@ class Ball {
   update(deltaTime) {
     this.age += deltaTime;
     
-    // Handle spawning (fade in)
+    // Handle spawning fade in
     if (this.spawning) {
-      this.opacity += deltaTime * 0.0008; // Slower fade in
+      this.opacity += deltaTime * 0.0008;
       if (this.opacity >= this.targetOpacity) {
         this.opacity = this.targetOpacity;
         this.spawning = false;
@@ -127,25 +98,26 @@ class Ball {
       this.despawning = true;
     }
     
-    // Handle despawning (fade out)
+    // Handle despawning fade out
     if (this.despawning) {
-      this.opacity -= deltaTime * 0.0008; // Slower fade out
+      this.opacity -= deltaTime * 0.0008;
       if (this.opacity <= 0) {
         this.opacity = 0;
         return false; // Signal removal
       }
     }
     
-    // Update position (floating movement like particles.js)
+    // Update position
     this.x += this.vx;
     this.y += this.vy;
     
     // Bounce off edges
-    if (this.x < 0 || this.x > this.width) {
+    if (this.x <= 0 || this.x >= this.width) {
       this.vx *= -1;
       this.x = Math.max(0, Math.min(this.width, this.x));
     }
-    if (this.y < 0 || this.y > this.height) {
+    
+    if (this.y <= 0 || this.y >= this.height) {
       this.vy *= -1;
       this.y = Math.max(0, Math.min(this.height, this.y));
     }
@@ -161,9 +133,7 @@ class Ball {
   }
 }
 
-// ===========================
 // Animation Loop for Card
-// ===========================
 class CardAnimationLoop {
   constructor(card, config) {
     this.card = card;
@@ -172,6 +142,7 @@ class CardAnimationLoop {
     this.animationId = null;
     this.lastTime = performance.now();
     this.container = null;
+    this.isPaused = false; // NEW: Track pause state
     
     this.setup();
     this.start();
@@ -220,7 +191,7 @@ class CardAnimationLoop {
           );
           this.balls.push(ball);
         }
-      }, i * 400); // Stagger spawns
+      }, i * 400);
     }
   }
   
@@ -229,7 +200,13 @@ class CardAnimationLoop {
     this.animate();
   }
   
-  animate() {
+  animate = () => {
+    // NEW: Don't update if paused (page hidden)
+    if (this.isPaused) {
+      this.animationId = requestAnimationFrame(this.animate);
+      return;
+    }
+    
     const currentTime = performance.now();
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
@@ -249,7 +226,18 @@ class CardAnimationLoop {
     }
     
     // Continue animation
-    this.animationId = requestAnimationFrame(() => this.animate());
+    this.animationId = requestAnimationFrame(this.animate);
+  }
+  
+  // NEW: Pause method
+  pause() {
+    this.isPaused = true;
+  }
+  
+  // NEW: Resume method
+  resume() {
+    this.isPaused = false;
+    this.lastTime = performance.now(); // Reset time to avoid huge deltaTime jump
   }
   
   stop() {
@@ -269,9 +257,7 @@ class CardAnimationLoop {
   }
 }
 
-// ===========================
-// Start Card Animations (when in viewport)
-// ===========================
+// Start Card Animations when in viewport
 function startCardAnimations(card) {
   if (activeCardAnimations.has(card)) return; // Already running
   
@@ -289,9 +275,7 @@ function startCardAnimations(card) {
   console.log('[PetCardEffects] Started animations for card:', rarityText);
 }
 
-// ===========================
-// Stop Card Animations (when out of viewport)
-// ===========================
+// Stop Card Animations when out of viewport
 function stopCardAnimations(card) {
   const loop = activeCardAnimations.get(card);
   if (!loop) return;
@@ -302,9 +286,7 @@ function stopCardAnimations(card) {
   console.log('[PetCardEffects] Stopped animations for card');
 }
 
-// ===========================
 // Setup Viewport Observer
-// ===========================
 function setupViewportObserver() {
   if (viewportObserver) {
     viewportObserver.disconnect();
@@ -312,7 +294,7 @@ function setupViewportObserver() {
   
   viewportObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
+      if (entry.isIntersecting && isPageVisible) {
         startCardAnimations(entry.target);
       } else {
         stopCardAnimations(entry.target);
@@ -324,9 +306,22 @@ function setupViewportObserver() {
   });
 }
 
-// ===========================
+// NEW: Handle Page Visibility Changes
+function handleVisibilityChange() {
+  isPageVisible = !document.hidden;
+  
+  if (isPageVisible) {
+    console.log('[PetCardEffects] Page visible - resuming animations');
+    // Resume all active animations
+    activeCardAnimations.forEach(loop => loop.resume());
+  } else {
+    console.log('[PetCardEffects] Page hidden - pausing animations');
+    // Pause all active animations
+    activeCardAnimations.forEach(loop => loop.pause());
+  }
+}
+
 // Apply Effects to All Cards
-// ===========================
 function applyAllCardEffects() {
   if (!viewportObserver) {
     setupViewportObserver();
@@ -338,16 +333,13 @@ function applyAllCardEffects() {
     if (window.getComputedStyle(card).position === 'static') {
       card.style.position = 'relative';
     }
-    
     viewportObserver.observe(card);
   });
   
-  console.log(`[PetCardEffects] Observing ${petCards.length} cards for viewport entry`);
+  console.log('[PetCardEffects] Observing', petCards.length, 'cards for viewport entry');
 }
 
-// ===========================
 // Remove All Effects
-// ===========================
 function removeAllCardEffects() {
   if (viewportObserver) {
     viewportObserver.disconnect();
@@ -360,9 +352,7 @@ function removeAllCardEffects() {
   console.log('[PetCardEffects] Removed all card effects');
 }
 
-// ===========================
 // Update Density - Restart effects for new card sizes
-// ===========================
 function updateDensity(density) {
   console.log('[PetCardEffects] Density updated, restarting effects...');
   
@@ -372,21 +362,15 @@ function updateDensity(density) {
   }, 200);
 }
 
-// ===========================
 // Update Configuration
-// ===========================
 function updateRarityConfig(rarity, newConfig) {
   if (!rarityEffectConfig[rarity]) {
     console.warn(`[PetCardEffects] Rarity "${rarity}" not found in config`);
     return false;
   }
   
-  rarityEffectConfig[rarity] = {
-    ...rarityEffectConfig[rarity],
-    ...newConfig
-  };
-  
-  console.log(`[PetCardEffects] Updated config for ${rarity}:`, rarityEffectConfig[rarity]);
+  rarityEffectConfig[rarity] = { ...rarityEffectConfig[rarity], ...newConfig };
+  console.log('[PetCardEffects] Updated config for', rarity, ':', rarityEffectConfig[rarity]);
   
   removeAllCardEffects();
   applyAllCardEffects();
@@ -394,26 +378,24 @@ function updateRarityConfig(rarity, newConfig) {
   return true;
 }
 
-// ===========================
 // Initialize on DOM Ready
-// ===========================
 document.addEventListener('DOMContentLoaded', () => {
   setupViewportObserver();
   applyAllCardEffects();
   
-  console.log('[PetCardEffects] Initialized - matching particles.js style');
+  // NEW: Listen for page visibility changes
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+  console.log('[PetCardEffects] Initialized - matching particles.js style with visibility management');
 });
 
-// ===========================
 // Cleanup on page unload
-// ===========================
 window.addEventListener('beforeunload', () => {
   removeAllCardEffects();
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 });
 
-// ===========================
 // Make Functions Globally Accessible
-// ===========================
 window.applyAllCardEffects = applyAllCardEffects;
 window.removeAllCardEffects = removeAllCardEffects;
 window.updateRarityConfig = updateRarityConfig;
