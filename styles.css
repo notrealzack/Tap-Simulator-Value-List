@@ -1,13 +1,13 @@
-/* File type: CSS Stylesheet (for GitHub Pages) */
+/* File type: CSS Stylesheet */
 /* Path: /styles.css */
 
-/* Debug warning: Added sidebar trade calculator button positioning at bottom */
+/* Debug warning: Fixed search/filter/zoom alignment and trade button positioning */
 
 /* ========================================
    CSS VARIABLES (Design Tokens)
    ======================================== */
 :root {
-  /* Colors - Blue Dark Theme (from Tap Simulator Wiki) */
+  /* Colors - Blue Dark Theme */
   --bg-primary: #0d1117;
   --bg-secondary: #1a2332;
   --bg-tertiary: #212d3d;
@@ -138,14 +138,14 @@ header h1 {
   letter-spacing: 0.5px;
 }
 
-/* Search and Filter Container - Centered */
+/* Search and Filter Container - Centered with Zoom */
 .search-filter-container {
   display: flex;
+  align-items: center;
   gap: var(--space-sm);
   flex: 1;
-  max-width: 500px;
+  max-width: 600px;
   margin: 0 auto;
-  align-items: center;
 }
 
 /* Search Box */
@@ -267,6 +267,54 @@ header h1 {
   font-weight: 500;
 }
 
+/* Zoom Control - Aligned with search/filter */
+.zoom-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.zoom-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.zoom-buttons {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  padding: 3px;
+  border: 1px solid var(--border-color);
+}
+
+.zoom-btn {
+  min-width: 36px;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.zoom-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.zoom-btn.active {
+  background: var(--accent-primary);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+}
+
 /* Header Actions - Aligned */
 .header-actions {
   display: flex;
@@ -292,6 +340,11 @@ header h1 {
   justify-content: center;
 }
 
+.admin-icon-btn::before {
+  content: "🔑";
+  font-size: 1.2rem;
+}
+
 .admin-icon-btn:hover,
 .logout-btn:hover {
   background-color: var(--accent-primary);
@@ -312,7 +365,7 @@ header h1 {
 }
 
 /* ========================================
-   SIDEBAR (Updated with bottom trade button)
+   SIDEBAR - Trade button at bottom
    ======================================== */
 #sidebar {
   width: var(--sidebar-width);
@@ -380,7 +433,7 @@ header h1 {
   font-weight: 500;
 }
 
-/* Trade Calculator Button - Subtle highlight */
+/* Trade Calculator Button - Subtle highlight at bottom */
 .nav-link-trade {
   background-color: rgba(59, 130, 246, 0.08);
   border: 1px solid rgba(59, 130, 246, 0.2);
@@ -433,12 +486,30 @@ header h1 {
 }
 
 /* ========================================
-   PETS GRID - 7 cards per row minimum
+   PETS GRID
    ======================================== */
 .pets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: var(--space-md);
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+/* Density 7 - Default (7 pets per row) */
+.pets-grid.density-7 {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* Density 9 - Medium (9 pets per row) */
+.pets-grid.density-9 {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+/* Density 11 - Compact (11 pets per row) */
+.pets-grid.density-11 {
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
 }
 
 .pets-loading {
@@ -466,7 +537,35 @@ header h1 {
 .pet-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
-  border-color: var(--accent-primary);
+}
+
+/* Rarity-specific borders (1px solid lines) */
+.pet-card:has(.pet-rarity-legendary) {
+  border: 1px solid var(--rarity-legendary);
+}
+
+.pet-card:has(.pet-rarity-mythical) {
+  border: 1px solid var(--rarity-mythical);
+}
+
+.pet-card:has(.pet-rarity-secret-i) {
+  border: 1px solid var(--rarity-secret-i);
+}
+
+.pet-card:has(.pet-rarity-secret-ii) {
+  border: 1px solid var(--rarity-secret-ii);
+}
+
+.pet-card:has(.pet-rarity-secret-iii) {
+  border: 1px solid var(--rarity-secret-iii);
+}
+
+.pet-card:has(.pet-rarity-leaderboard) {
+  border: 1px solid var(--rarity-leaderboard);
+}
+
+.pet-card:has(.pet-rarity-exclusive) {
+  border: 1px solid var(--rarity-exclusive);
 }
 
 /* Pet Image */
@@ -486,7 +585,7 @@ header h1 {
   object-fit: cover;
 }
 
-/* Pet Info - Name on top, Rarity below */
+/* Pet Info */
 .pet-info {
   padding: var(--space-sm) var(--space-md);
   display: flex;
@@ -501,58 +600,86 @@ header h1 {
   line-height: 1.3;
 }
 
-/* Pet Rarity Badge */
+/* Pet Rarity Badge with shimmer */
 .pet-rarity {
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 0.65rem;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.6em;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: 1px solid;
+  position: relative;
+  overflow: hidden;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 2px solid transparent;
   width: fit-content;
 }
 
+/* Shimmer wave effect */
+.pet-rarity::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+  animation: shimmerWave 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes shimmerWave {
+  0% { left: -100%; }
+  50%, 100% { left: 100%; }
+}
+
 .pet-rarity-legendary {
-  background-color: rgba(255, 110, 199, 0.15);
-  color: var(--rarity-legendary);
-  border-color: var(--rarity-legendary);
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  border-color: #ffa200;
+  color: #ffffff;
 }
 
 .pet-rarity-mythical {
-  background-color: rgba(255, 110, 199, 0.15);
-  color: var(--rarity-mythical);
-  border-color: var(--rarity-mythical);
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  border-color: #ff4444;
+  color: #ffffff;
 }
 
 .pet-rarity-secret-i {
-  background-color: rgba(255, 149, 0, 0.15);
-  color: var(--rarity-secret-i);
-  border-color: var(--rarity-secret-i);
+  background: linear-gradient(135deg, #ffae42, #ff9500);
+  border-color: #ff8800;
+  color: #ffffff;
 }
 
 .pet-rarity-secret-ii {
-  background-color: rgba(255, 69, 0, 0.15);
-  color: var(--rarity-secret-ii);
-  border-color: var(--rarity-secret-ii);
+  background: linear-gradient(135deg, #00d4ff, #00b8e6);
+  border-color: #00a3cc;
+  color: #ffffff;
 }
 
 .pet-rarity-secret-iii {
-  background-color: rgba(255, 0, 0, 0.15);
-  color: var(--rarity-secret-iii);
-  border-color: var(--rarity-secret-iii);
+  background: linear-gradient(135deg, #b388ff, #9c6cfa);
+  border-color: #9370db;
+  color: #ffffff;
 }
 
 .pet-rarity-leaderboard {
-  background-color: rgba(255, 215, 0, 0.15);
-  color: var(--rarity-leaderboard);
-  border-color: var(--rarity-leaderboard);
+  background: linear-gradient(135deg, #ffd700, #ffcc00);
+  border-color: #ffb700;
+  color: #ffffff;
 }
 
 .pet-rarity-exclusive {
-  background-color: rgba(0, 255, 136, 0.15);
-  color: var(--rarity-exclusive);
-  border-color: var(--rarity-exclusive);
+  background: linear-gradient(135deg, #00ff88, #00e676);
+  border-color: #00cc66;
+  color: #ffffff;
+}
+
+/* Pause shimmer on hover */
+.pet-rarity:hover::before {
+  animation-play-state: paused;
 }
 
 /* Pet Stats */
@@ -569,16 +696,39 @@ header h1 {
   font-size: 0.8rem;
 }
 
-.pet-stat-label {
-  color: var(--text-secondary);
-  font-size: 0.75rem;
+.pet-stat-label,
+.pet-stats-label,
+.pet-normal-label,
+.pet-golden-label,
+.pet-rainbow-label {
+  color: #a1a1a1;
+  font-weight: 200;
+  font-size: 0.77rem;
 }
 
-.pet-stat-value {
-  color: var(--text-primary);
+.pet-stat-value,
+.pet-stats-value {
+  color: #ffffff;
   font-weight: 500;
   font-size: 0.8rem;
-  color: rgb(156, 215, 6);
+}
+
+.pet-normal-value {
+  color: #a1a1a1b3;
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.pet-golden-value {
+  color: #ffde21;
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.pet-rainbow-value {
+  color: #f42bd6;
+  font-weight: 500;
+  font-size: 0.8rem;
 }
 
 /* Pet Updated Timestamp */
@@ -629,6 +779,28 @@ header h1 {
 .btn-delete:hover {
   background-color: #dc2626;
 }
+
+/* Density-specific font sizes */
+.pets-grid.density-7 .pet-name { font-size: 1rem; }
+.pets-grid.density-7 .pet-rarity { font-size: 0.6rem; padding: 3px 8px; }
+.pets-grid.density-7 .pet-stat-label { font-size: 0.875rem; }
+.pets-grid.density-7 .pet-stat-value { font-size: 0.875rem; }
+.pets-grid.density-7 .pet-updated { font-size: 0.75rem; }
+.pets-grid.density-7 .pet-admin-actions button { font-size: 0.875rem; padding: 6px 12px; }
+
+.pets-grid.density-9 .pet-name { font-size: 0.8rem; }
+.pets-grid.density-9 .pet-rarity { font-size: 0.5rem; padding: 2.5px 7px; }
+.pets-grid.density-9 .pet-stat-label { font-size: 0.75rem; }
+.pets-grid.density-9 .pet-stat-value { font-size: 0.75rem; }
+.pets-grid.density-9 .pet-updated { font-size: 0.65rem; }
+.pets-grid.density-9 .pet-admin-actions button { font-size: 0.75rem; padding: 5px 10px; }
+
+.pets-grid.density-11 .pet-name { font-size: 0.65rem; }
+.pets-grid.density-11 .pet-rarity { font-size: 0.45rem; padding: 2px 6px; }
+.pets-grid.density-11 .pet-stat-label { font-size: 0.63rem; }
+.pets-grid.density-11 .pet-stat-value { font-size: 0.63rem; }
+.pets-grid.density-11 .pet-updated { font-size: 0.55rem; }
+.pets-grid.density-11 .pet-admin-actions button { font-size: 0.65rem; padding: 4px 8px; }
 
 /* ========================================
    MODALS
@@ -804,6 +976,25 @@ form {
 }
 
 /* ========================================
+   PERFORMANCE MODE
+   ======================================== */
+.performance-mode * {
+  animation: none !important;
+  transition: none !important;
+}
+
+.performance-mode .pet-card:hover {
+  transform: none !important;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+.hidden {
+  display: none !important;
+}
+
+/* ========================================
    RESPONSIVE DESIGN
    ======================================== */
 @media (max-width: 1600px) {
@@ -812,9 +1003,23 @@ form {
   }
 }
 
+@media (max-width: 1400px) {
+  .pets-grid.density-11 {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
+
 @media (max-width: 1200px) {
   .pets-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  
+  .pets-grid.density-9 {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .pets-grid.density-11 {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
 }
 
@@ -855,6 +1060,11 @@ form {
   .header-actions {
     margin-left: 0;
   }
+  
+  /* Hide zoom control on mobile */
+  .zoom-control {
+    display: none;
+  }
 
   .container {
     flex-direction: column;
@@ -872,9 +1082,13 @@ form {
     padding: var(--space-lg);
   }
 
-  .pets-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: var(--space-md);
+  /* Mobile: All densities use 2 columns */
+  .pets-grid,
+  .pets-grid.density-7,
+  .pets-grid.density-9,
+  .pets-grid.density-11 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .modal-content {
@@ -882,614 +1096,5 @@ form {
   }
 }
 
-/* File type: CSS Stylesheet (for GitHub Pages) */
+/* File type: CSS Stylesheet */
 /* Path: /styles.css */
-
-
-/* File type: CSS Stylesheet (for GitHub Pages)
- * Path: /styles.css
- * Section: Pet Card Stats Styling
- */
-
-/* ============================================
- * PET CARD STATS - COLOR SEPARATED
- * ============================================ */
-
-/* Stats Row - Label and Value */
-.pet-stats-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Stats Label */
-.pet-stats-label {
-  color: #a1a1a1; /* White - Stats label */
-  font-weight: 200;
-  font-size: 0.77rem;
-}
-
-/* Stats Value */
-.pet-stats-value {
-  color: #ffffff; /* White - Stats value */
-  font-weight: 500;
-  font-size: 0.8rem;
-}
-
-/* Normal Row - Label and Value */
-.pet-normal-label {
-  color: #a1a1a1; /* White - Normal label */
-  font-weight: 200;
-  font-size: 0.77rem;
-}
-
-.pet-normal-value {
-  color: #a1a1a1b3; /* White - Normal value */
-  font-weight: 500;
-  font-size: 0.8rem;
-}
-
-/* Golden Row - Label and Value */
-.pet-golden-label {
-  color: #a1a1a1; /* White - Golden label */
-  font-weight: 200;
-  font-size: 0.77rem;
-}
-
-.pet-golden-value {
-  color: #ffde21; /* White - Golden value */
-  font-weight: 500;
-  font-size: 0.8rem;
-}
-
-/* Rainbow Row - Label and Value */
-.pet-rainbow-label {
-  color: #a1a1a1; /* White - Rainbow label */
-  font-weight: 200;
-  font-size: 0.77rem;
-}
-
-.pet-rainbow-value {
-  color: #f42bd6; /* White - Rainbow value */
-  font-weight: 500;
-  font-size: 0.8rem;
-}
-
-/* Debug warning: All colors set to white by default, change individual classes to customize */
-
-/* Add these styles to your existing CSS file */
-/* File type: CSS Stylesheet (for GitHub Pages) */
-/* Path: /styles.css or wherever your pet card styles are */
-
-/* =======================
-   RARITY BADGE UPDATES - Full customization for each rarity
-   ======================= */
-
-/* Debug warning: Base rarity badge style with shimmer effect */
-.pet-rarity {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.6em;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  position: relative;
-  overflow: hidden;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  /* Default border - will be overridden per rarity */
-  border: 2px solid transparent;
-}
-
-/* Shimmer wave effect overlay */
-.pet-rarity::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 100%
-  );
-  animation: shimmerWave 3s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Shimmer animation keyframes */
-@keyframes shimmerWave {
-  0% {
-    left: -100%;
-  }
-  50%, 100% {
-    left: 100%;
-  }
-}
-
-
-/* =======================
-   LEGENDARY - Customize background, border, and text color here
-   ======================= */
-.pet-rarity-legendary {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  border-color: #ffa200;
-  color: #ffffff;
-}
-
-/* =======================
-   MYTHICAL - Customize background, border, and text color here
-   ======================= */
-.pet-rarity-mythical {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  border-color: #ff4444;
-  color: #ffffff;
-}
-
-/* =======================
-   SECRET I - Customize background, border, and text color here
-   ======================= */
-.pet-rarity-secret-i {
-  background: linear-gradient(135deg, #ffae42, #ff9500);
-  border-color: #ff8800;
-  color: #ffffff;
-}
-
-/* =======================
-   SECRET II - Customize background, border, and text color here
-   ======================= */
-.pet-rarity-secret-ii {
-  background: linear-gradient(135deg, #00d4ff, #00b8e6);
-  border-color: #00a3cc;
-  color: #ffffff;
-}
-
-/* =======================
-   SECRET III - Customize background, border, and text color here
-   ======================= */
-.pet-rarity-secret-iii {
-  background: linear-gradient(135deg, #b388ff, #9c6cfa);
-  border-color: #9370db;
-  color: #ffffff;
-}
-
-/* =======================
-   LEADERBOARD - Customize background, border, and text color here
-   ======================= */
-.pet-rarity-leaderboard {
-  background: linear-gradient(135deg, #ffd700, #ffcc00);
-  border-color: #ffb700;
-  color: #ffffff;
-}
-
-/* =======================
-   EXCLUSIVE - Customize background, border, and text color here
-   ======================= */
-.pet-rarity-exclusive {
-  background: linear-gradient(135deg, #00ff88, #00e676);
-  border-color: #00cc66;
-  color: #ffffff;
-}
-
-/* Optional: Adjust shimmer speed for different rarities */
-.pet-rarity-secret-iii::before,
-.pet-rarity-leaderboard::before {
-  animation-duration: 2.5s;
-}
-
-/* Optional: Pause shimmer on hover for readability */
-.pet-rarity:hover::before {
-  animation-play-state: paused;
-}
-
-/* File type: CSS Stylesheet (for GitHub Pages) */
-/* Path: /styles.css */
-
-/* File type: CSS Stylesheet */
-/* Path: /styles.css - ADD THESE SECTIONS */
-
-/* =======================
-   VIEW DENSITY GRID STYLES
-   ======================= */
-
-/* Default density (7 pets per row) */
-.pets-grid.density-7 {
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
-}
-
-/* Medium density (9 pets per row) */
-.pets-grid.density-9 {
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-}
-
-/* High density (11 pets per row) */
-.pets-grid.density-11 {
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 10px;
-}
-
-/* Adjust pet card font sizes for different densities */
-.pets-grid.density-9 .pet-name {
-  font-size: 0.95rem;
-}
-
-.pets-grid.density-9 .pet-stat-label,
-.pets-grid.density-9 .pet-stat-value {
-  font-size: 0.85rem;
-}
-
-.pets-grid.density-11 .pet-name {
-  font-size: 0.85rem;
-}
-
-.pets-grid.density-11 .pet-stat-label,
-.pets-grid.density-11 .pet-stat-value {
-  font-size: 0.75rem;
-}
-
-.pets-grid.density-11 .pet-rarity {
-  font-size: 0.7rem;
-  padding: 3px 8px;
-}
-
-.pets-grid.density-11 .pet-updated {
-  font-size: 0.7rem;
-}
-
-/* =======================
-   VIEW DENSITY SLIDER (ZOOM CONTROL)
-   ======================= */
-
-.view-density-control {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  background: var(--bg-secondary, #1a1a2e);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  position: sticky;
-  top: 60px;
-  z-index: 100;
-}
-
-.view-density-label {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.view-density-slider {
-  display: flex;
-  gap: 0;
-  background: var(--bg-primary, #0f0f1e);
-  border-radius: 8px;
-  padding: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.density-btn {
-  flex: 1;
-  min-width: 60px;
-  padding: 8px 16px;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 500;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.density-btn:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.density-btn.active {
-  background: var(--accent-primary, #3b82f6);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-}
-
-.density-btn-icon {
-  display: block;
-  font-size: 1.1rem;
-  margin-bottom: 2px;
-}
-
-.density-btn-label {
-  display: block;
-  font-size: 0.75rem;
-  opacity: 0.8;
-}
-
-/* Responsive adjustments for view density */
-@media (max-width: 1400px) {
-  .pets-grid.density-11 {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  }
-}
-
-@media (max-width: 1200px) {
-  .pets-grid.density-9 {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  }
-  
-  .pets-grid.density-11 {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
-  /* Mobile: All densities use 2 columns */
-  .pets-grid.density-7,
-  .pets-grid.density-9,
-  .pets-grid.density-11 {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  
-  .view-density-control {
-    padding: 10px 16px;
-    top: 50px; /* Adjust for smaller mobile header */
-  }
-  
-  .view-density-label {
-    font-size: 0.8rem;
-  }
-  
-  .density-btn {
-    min-width: 50px;
-    padding: 6px 12px;
-  }
-  
-  .density-btn-icon {
-    font-size: 1rem;
-  }
-  
-  .density-btn-label {
-    font-size: 0.7rem;
-  }
-}
-
-/* File type: CSS Stylesheet */
-/* Path: /styles.css - ADD THESE SECTIONS */
-/* File type: CSS Stylesheet */
-/* Path: /styles.css - ADD THESE SECTIONS */
-
-/* =======================
-   ZOOM CONTROL (COMPACT HEADER VERSION)
-   ======================= */
-
-.zoom-control {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.zoom-label {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.zoom-buttons {
-  display: flex;
-  gap: 4px;
-  background: var(--bg-primary, #0f0f1e);
-  border-radius: 6px;
-  padding: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.zoom-btn {
-  min-width: 36px;
-  padding: 6px 10px;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.zoom-btn:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.zoom-btn.active {
-  background: var(--accent-primary, #3b82f6);
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
-}
-
-/* =======================
-   VIEW DENSITY GRID STYLES
-   ======================= */
-
-/* File type: CSS Stylesheet */
-/* Path: /styles.css - REPLACE YOUR DENSITY SECTIONS WITH THIS */
-
-/* =======================
-   DENSITY 7 - DEFAULT VIEW (7 pets per row)
-   ======================= */
-
-.pets-grid.density-7 {
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-/* Density 7 - Pet Card Elements */
-.pets-grid.density-7 .pet-card {
-  /* Add custom card size adjustments here if needed */
-}
-
-.pets-grid.density-7 .pet-image {
-  /* Add custom image size here if needed */
-}
-
-.pets-grid.density-7 .pet-name {
-  font-size: 1rem; /* Default size */
-}
-
-.pets-grid.density-7 .pet-rarity {
-  font-size: 0.6rem;
-  padding: 3px 8px;
-}
-
-.pets-grid.density-7 .pet-stat-label {
-  font-size: 0.875rem;
-}
-
-.pets-grid.density-7 .pet-stat-value {
-  font-size: 0.875rem;
-}
-
-.pets-grid.density-7 .pet-updated {
-  font-size: 0.75rem;
-}
-
-.pets-grid.density-7 .pet-admin-actions button {
-  font-size: 0.875rem;
-  padding: 6px 12px;
-}
-
-/* =======================
-   DENSITY 9 - MEDIUM VIEW (9 pets per row)
-   ======================= */
-
-.pets-grid.density-9 {
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
-}
-
-/* Density 9 - Pet Card Elements */
-.pets-grid.density-9 .pet-card {
-  /* Add custom card size adjustments here if needed */
-}
-
-.pets-grid.density-9 .pet-image {
-  /* Add custom image size here if needed */
-}
-
-.pets-grid.density-9 .pet-name {
-  font-size: 0.8rem;
-}
-
-.pets-grid.density-9 .pet-rarity {
-  font-size: 0.5rem;
-  padding: 2.5px 7px;
-}
-
-.pets-grid.density-9 .pet-stat-label {
-  font-size: 0.75rem;
-}
-
-.pets-grid.density-9 .pet-stat-value {
-  font-size: 0.75rem;
-}
-
-.pets-grid.density-9 .pet-updated {
-  font-size: 0.65rem;
-}
-
-.pets-grid.density-9 .pet-admin-actions button {
-  font-size: 0.75rem;
-  padding: 5px 10px;
-}
-
-/* =======================
-   DENSITY 11 - COMPACT VIEW (11 pets per row)
-   ======================= */
-
-.pets-grid.density-11 {
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 10px;
-}
-
-/* Density 11 - Pet Card Elements */
-.pets-grid.density-11 .pet-card {
-  /* Add custom card size adjustments here if needed */
-}
-
-.pets-grid.density-11 .pet-image {
-  /* Add custom image size here if needed */
-}
-
-.pets-grid.density-11 .pet-name {
-  font-size: 0.65rem;
-}
-
-.pets-grid.density-11 .pet-rarity {
-  font-size: 0.45rem;
-  padding: 2px 6px;
-}
-
-.pets-grid.density-11 .pet-stat-label {
-  font-size: 0.63rem;
-}
-
-.pets-grid.density-11 .pet-stat-value {
-  font-size: 0.63rem;
-}
-
-.pets-grid.density-11 .pet-updated {
-  font-size: 0.55rem;
-}
-
-.pets-grid.density-11 .pet-admin-actions button {
-  font-size: 0.65rem;
-  padding: 4px 8px;
-}
-
-/* File type: CSS Stylesheet */
-/* Path: /styles.css - REPLACE YOUR DENSITY SECTIONS WITH THIS */
-
-
-/* Responsive adjustments for view density */
-@media (max-width: 1400px) {
-  .pets-grid.density-11 {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  }
-}
-
-@media (max-width: 1200px) {
-  .pets-grid.density-9 {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  }
-  
-  .pets-grid.density-11 {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
-  /* Mobile: All densities use 2 columns */
-  .pets-grid.density-7,
-  .pets-grid.density-9,
-  .pets-grid.density-11 {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  
-  /* Hide zoom control on mobile */
-  .zoom-control {
-    display: none;
-  }
-}
-
-/* File type: CSS Stylesheet */
-/* Path: /styles.css - ADD THESE SECTIONS */
