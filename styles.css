@@ -1071,3 +1071,408 @@ form {
 
 /* File type: CSS Stylesheet (for GitHub Pages) */
 /* Path: /styles.css */
+
+/* File type: CSS Stylesheet */
+/* Path: /styles.css - ADD THESE SECTIONS */
+
+/* =======================
+   VIEW DENSITY GRID STYLES
+   ======================= */
+
+/* Default density (7 pets per row) */
+.pets-grid.density-7 {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+/* Medium density (9 pets per row) */
+.pets-grid.density-9 {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+/* High density (11 pets per row) */
+.pets-grid.density-11 {
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+/* Adjust pet card font sizes for different densities */
+.pets-grid.density-9 .pet-name {
+  font-size: 0.95rem;
+}
+
+.pets-grid.density-9 .pet-stat-label,
+.pets-grid.density-9 .pet-stat-value {
+  font-size: 0.85rem;
+}
+
+.pets-grid.density-11 .pet-name {
+  font-size: 0.85rem;
+}
+
+.pets-grid.density-11 .pet-stat-label,
+.pets-grid.density-11 .pet-stat-value {
+  font-size: 0.75rem;
+}
+
+.pets-grid.density-11 .pet-rarity {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+}
+
+.pets-grid.density-11 .pet-updated {
+  font-size: 0.7rem;
+}
+
+/* =======================
+   VIEW DENSITY SLIDER (ZOOM CONTROL)
+   ======================= */
+
+.view-density-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--bg-secondary, #1a1a2e);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 60px;
+  z-index: 100;
+}
+
+.view-density-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.view-density-slider {
+  display: flex;
+  gap: 0;
+  background: var(--bg-primary, #0f0f1e);
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.density-btn {
+  flex: 1;
+  min-width: 60px;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.density-btn:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.density-btn.active {
+  background: var(--accent-primary, #3b82f6);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.density-btn-icon {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+}
+
+.density-btn-label {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* Responsive adjustments for view density */
+@media (max-width: 1400px) {
+  .pets-grid.density-11 {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
+
+@media (max-width: 1200px) {
+  .pets-grid.density-9 {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .pets-grid.density-11 {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  /* Mobile: All densities use 2 columns */
+  .pets-grid.density-7,
+  .pets-grid.density-9,
+  .pets-grid.density-11 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .view-density-control {
+    padding: 10px 16px;
+    top: 50px; /* Adjust for smaller mobile header */
+  }
+  
+  .view-density-label {
+    font-size: 0.8rem;
+  }
+  
+  .density-btn {
+    min-width: 50px;
+    padding: 6px 12px;
+  }
+  
+  .density-btn-icon {
+    font-size: 1rem;
+  }
+  
+  .density-btn-label {
+    font-size: 0.7rem;
+  }
+}
+
+/* File type: CSS Stylesheet */
+/* Path: /styles.css - ADD THESE SECTIONS */
+/* File type: CSS Stylesheet */
+/* Path: /styles.css - ADD THESE SECTIONS */
+
+/* =======================
+   ZOOM CONTROL (COMPACT HEADER VERSION)
+   ======================= */
+
+.zoom-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.zoom-buttons {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-primary, #0f0f1e);
+  border-radius: 6px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.zoom-btn {
+  min-width: 36px;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.zoom-btn:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.zoom-btn.active {
+  background: var(--accent-primary, #3b82f6);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+}
+
+/* =======================
+   VIEW DENSITY GRID STYLES
+   ======================= */
+
+/* File type: CSS Stylesheet */
+/* Path: /styles.css - REPLACE YOUR DENSITY SECTIONS WITH THIS */
+
+/* =======================
+   DENSITY 7 - DEFAULT VIEW (7 pets per row)
+   ======================= */
+
+.pets-grid.density-7 {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* Density 7 - Pet Card Elements */
+.pets-grid.density-7 .pet-card {
+  /* Add custom card size adjustments here if needed */
+}
+
+.pets-grid.density-7 .pet-image {
+  /* Add custom image size here if needed */
+}
+
+.pets-grid.density-7 .pet-name {
+  font-size: 1rem; /* Default size */
+}
+
+.pets-grid.density-7 .pet-rarity {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+}
+
+.pets-grid.density-7 .pet-stat-label {
+  font-size: 0.875rem;
+}
+
+.pets-grid.density-7 .pet-stat-value {
+  font-size: 0.875rem;
+}
+
+.pets-grid.density-7 .pet-updated {
+  font-size: 0.75rem;
+}
+
+.pets-grid.density-7 .pet-admin-actions button {
+  font-size: 0.875rem;
+  padding: 6px 12px;
+}
+
+/* =======================
+   DENSITY 9 - MEDIUM VIEW (9 pets per row)
+   ======================= */
+
+.pets-grid.density-9 {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+/* Density 9 - Pet Card Elements */
+.pets-grid.density-9 .pet-card {
+  /* Add custom card size adjustments here if needed */
+}
+
+.pets-grid.density-9 .pet-image {
+  /* Add custom image size here if needed */
+}
+
+.pets-grid.density-9 .pet-name {
+  font-size: 0.8rem;
+}
+
+.pets-grid.density-9 .pet-rarity {
+  font-size: 0.65rem;
+  padding: 3px 8px;
+}
+
+.pets-grid.density-9 .pet-stat-label {
+  font-size: 0.75rem;
+}
+
+.pets-grid.density-9 .pet-stat-value {
+  font-size: 0.75rem;
+}
+
+.pets-grid.density-9 .pet-updated {
+  font-size: 0.65rem;
+}
+
+.pets-grid.density-9 .pet-admin-actions button {
+  font-size: 0.75rem;
+  padding: 5px 10px;
+}
+
+/* =======================
+   DENSITY 11 - COMPACT VIEW (11 pets per row)
+   ======================= */
+
+.pets-grid.density-11 {
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+/* Density 11 - Pet Card Elements */
+.pets-grid.density-11 .pet-card {
+  /* Add custom card size adjustments here if needed */
+}
+
+.pets-grid.density-11 .pet-image {
+  /* Add custom image size here if needed */
+}
+
+.pets-grid.density-11 .pet-name {
+  font-size: 0.67rem;
+}
+
+.pets-grid.density-11 .pet-rarity {
+  font-size: 0.5rem;
+  padding: 2px 6px;
+}
+
+.pets-grid.density-11 .pet-stat-label {
+  font-size: 0.63rem;
+}
+
+.pets-grid.density-11 .pet-stat-value {
+  font-size: 0.63rem;
+}
+
+.pets-grid.density-11 .pet-updated {
+  font-size: 0.55rem;
+}
+
+.pets-grid.density-11 .pet-admin-actions button {
+  font-size: 0.65rem;
+  padding: 4px 8px;
+}
+
+/* File type: CSS Stylesheet */
+/* Path: /styles.css - REPLACE YOUR DENSITY SECTIONS WITH THIS */
+
+
+/* Responsive adjustments for view density */
+@media (max-width: 1400px) {
+  .pets-grid.density-11 {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
+
+@media (max-width: 1200px) {
+  .pets-grid.density-9 {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .pets-grid.density-11 {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  /* Mobile: All densities use 2 columns */
+  .pets-grid.density-7,
+  .pets-grid.density-9,
+  .pets-grid.density-11 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  /* Hide zoom control on mobile */
+  .zoom-control {
+    display: none;
+  }
+}
+
+/* File type: CSS Stylesheet */
+/* Path: /styles.css - ADD THESE SECTIONS */
