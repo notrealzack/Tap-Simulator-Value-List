@@ -20,6 +20,7 @@
   --border-hover: #3d4958;
 
   /* Rarity Colors */
+  --rarity-legendary: #ffa200;
   --rarity-mythical: #ff6ec7;
   --rarity-secret-i: #ff9500;
   --rarity-secret-ii: #ff4500;
@@ -512,6 +513,12 @@ header h1 {
   width: fit-content;
 }
 
+.pet-rarity-legendary {
+  background-color: rgba(255, 110, 199, 0.15);
+  color: var(--rarity-legendary);
+  border-color: var(--rarity-legendary);
+}
+
 .pet-rarity-mythical {
   background-color: rgba(255, 110, 199, 0.15);
   color: var(--rarity-mythical);
@@ -1002,6 +1009,16 @@ form {
   50%, 100% {
     left: 100%;
   }
+}
+
+
+/* =======================
+   LEGENDARY - Customize background, border, and text color here
+   ======================= */
+.pet-rarity-legendary {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  border-color: #ffa200;
+  color: #ffffff;
 }
 
 /* =======================
