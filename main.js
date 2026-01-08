@@ -19,6 +19,9 @@ let currentRarityFilter = 'all';
 let currentSearchQuery = "";
 let currentSortMode = "default"; // default, newest, oldest, highest
 
+// NEW: Track view density state (grid columns)
+let currentViewDensity = 7; // 7, 9, or 11 pets per row
+
 // Clear old cache versions on load
 function clearOldCaches() {
   const keys = Object.keys(localStorage);
@@ -318,6 +321,20 @@ function updateWelcomeMessage(filterRarity) {
   `;
 }
 
+// Helper function to get numeric value from pet property
+function getPetNumericValue(pet, property) {
+  const value = pet[property];
+  if (value == null) return 0;
+  if (typeof value === 'number') return value;
+  
+  // Parse string value (supports "1B", "500M", etc.)
+  if (typeof parseValueString === 'function') {
+    return parseValueString(value) || 0;
+  }
+  
+  return parseFloat(value) || 0;
+}
+
 // Filter and sort pets based on current state (no API calls)
 function filterAndSortPets() {
   let filteredPets = [...allPets];
@@ -335,62 +352,54 @@ function filterAndSortPets() {
     );
   }
 
-// =======================
-// UPDATE THIS SECTION IN filterAndSortPets() - REPLACE THE 'highest' AND 'default' CASES
-// =======================
-
-// Apply sort mode
-switch (currentSortMode) {
-  case 'newest':
-    // Sort by updated_at descending (newest first)
-    filteredPets.sort((a, b) => {
-      const dateA = new Date(a.updated_at || a.created_at || 0);
-      const dateB = new Date(b.updated_at || b.created_at || 0);
-      return dateB - dateA;
-    });
-    break;
-  
-  case 'oldest':
-    // Sort by updated_at ascending (oldest first)
-    filteredPets.sort((a, b) => {
-      const dateA = new Date(a.updated_at || a.created_at || 0);
-      const dateB = new Date(b.updated_at || b.created_at || 0);
-      return dateA - dateB;
-    });
-    break;
-  
-  case 'highest':
-    // Debug warning: Sort by value_normal descending using value translator
-    filteredPets.sort((a, b) => {
-      const valueA = parseValueToNumber(a.value_normal);
-      const valueB = parseValueToNumber(b.value_normal);
-      return valueB - valueA;
-    });
-    break;
-  
-  case 'default':
-  default:
-    // Debug warning: Default sort by value_normal descending using value translator
-    filteredPets.sort((a, b) => {
-      const valueA = parseValueToNumber(a.value_normal);
-      const valueB = parseValueToNumber(b.value_normal);
-      return valueB - valueA;
-    });
-    break;
-}
-
-  return filteredPets;
-}
-
-function renderPets(filterRarity = null) {
-  const container = document.getElementById('pets-container');
-  
-  // Check if container exists before trying to set innerHTML
-  if (!container) {
-    console.warn('[DEBUG-WARNING] pets-container not found in renderPets');
-    return;
+  // NEW: Apply advanced filters from filter panel
+  if (typeof applyAdvancedFilters === 'function') {
+    filteredPets = applyAdvancedFilters(filteredPets);
   }
-  
+
+  // Apply sort mode
+  switch (currentSortMode) {
+    case 'newest':
+      filteredPets.sort((a, b) => {
+        const dateA = new Date(a.updated_at || a.created_at || 0);
+        const dateB = new Date(b.updated_at || b.created_at || 0);
+        return dateB - dateA;
+      });
+      break;
+    
+    case 'oldest':
+      filteredPets.sort((a, b) => {
+        const dateA = new Date(a.updated_at || a.created_at || 0);
+        const dateB = new Date(b.updated_at || b.created_at || 0);
+        return dateA - dateB;
+      });
+      break;
+    
+    case 'highest':
+      // Debug warning: Sort by value_normal descending using value translator
+      filteredPets.sort((a, b) => {
+        const valueA = getPetNumericValue(a, 'value_normal');
+        const valueB = getPetNumericValue(b, 'value_normal');
+        return valueB - valueA;
+      });
+      break;
+    
+    case 'default':
+    default:
+      // Debug warning: Default sort by value_normal descending using value translator
+      filteredPets.sort((a, b) => {
+        const valueA = getPetNumericValue(a, 'value_normal');
+        const valueB = getPetNumericValue(b, 'value_normal');
+        return valueB - valueA;
+      });
+      break;
+  }
+
+  renderPetsToGrid(filteredPets);
+}
+
+// Main render function - updates state and calls filter/sort
+function renderPets(filterRarity = null) {
   // Update current filter
   if (filterRarity !== null) {
     currentRarityFilter = filterRarity;
@@ -399,25 +408,37 @@ function renderPets(filterRarity = null) {
   console.log('[DEBUG] Rendering pets with filter:', currentRarityFilter, 'Total pets:', allPets.length);
   
   updateWelcomeMessage(currentRarityFilter);
+  filterAndSortPets();
+}
 
-  // Get filtered and sorted pets
-  const petsToRender = filterAndSortPets();
-
-  console.log('[DEBUG] Pets to render after filter:', petsToRender.length);
-
-  if (petsToRender.length === 0) {
-    container.innerHTML = '<div class="pets-loading">No pets found.</div>';
+// NEW: Separate render function for grid display
+function renderPetsToGrid(pets) {
+  const container = document.getElementById('pets-container');
+  if (!container) {
+    console.warn('[DEBUG-WARNING] pets-container not found in renderPetsToGrid');
     return;
   }
 
-  const html = petsToRender.map(pet => createPetCard(pet)).join('');
+  // Apply current view density to grid
+  applyViewDensity();
+
+  if (!pets || pets.length === 0) {
+    container.innerHTML = '<div class="pets-loading">No pets found matching your criteria.</div>';
+    return;
+  }
+
+  console.log('[DEBUG] Rendering', pets.length, 'pets to grid');
+
+  const html = pets.map(pet => createPetCard(pet)).join('');
   container.innerHTML = html;
 
-  console.log('[DEBUG] Rendered', petsToRender.length, 'pet cards to DOM');
-
   // Re-apply visual effects
-  if (window.TextGlimmer) window.TextGlimmer.refresh();
-  if (window.SecretEffects) window.SecretEffects.refresh();
+  if (window.TextGlimmer && window.TextGlimmer.refresh) {
+    window.TextGlimmer.refresh();
+  }
+  if (window.SecretEffects && window.SecretEffects.refresh) {
+    window.SecretEffects.refresh();
+  }
 
   // Show admin buttons if logged in
   if (isAdminLoggedIn) {
@@ -428,6 +449,41 @@ function renderPets(filterRarity = null) {
 
 // Make renderPets globally accessible for trade calculator
 window.renderPets = renderPets;
+
+// =======================
+// View Density Controls
+// =======================
+
+// Apply view density to pets grid
+function applyViewDensity() {
+  const container = document.getElementById('pets-container');
+  if (!container) return;
+
+  // Remove existing density classes
+  container.classList.remove('density-7', 'density-9', 'density-11');
+  
+  // Add current density class
+  container.classList.add(`density-${currentViewDensity}`);
+  
+  console.log('[DEBUG] Applied view density:', currentViewDensity);
+}
+
+// Change view density (7, 9, or 11 pets per row)
+function setViewDensity(density) {
+  if (![7, 9, 11].includes(density)) {
+    console.warn('[DEBUG] Invalid density value:', density);
+    return;
+  }
+  
+  currentViewDensity = density;
+  applyViewDensity();
+  
+  console.log('[DEBUG] View density changed to:', density);
+}
+
+// =======================
+// Pet Card Creation
+// =======================
 
 // Debug warning: Display stats with optional percentage symbol based on stats_type
 function createPetCard(pet) {
@@ -522,6 +578,7 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// Parse value string to number for sorting
 function parseValueToNumber(value) {
   if (typeof value === 'number') return value;
   if (!value) return 0;
@@ -555,7 +612,6 @@ function parseValueToNumber(value) {
 
 // Make globally accessible for trade calculator
 window.parseValueToNumber = parseValueToNumber;
-
 
 // =======================
 // CRUD Operations
@@ -724,10 +780,6 @@ function closeLoginModal() {
   }
 }
 
-// =======================
-// UPDATE THIS SECTION IN openPetModal() - REPLACE THE IMAGE HANDLING PART
-// =======================
-
 // Debug warning: Handle image URL input instead of file upload
 function openPetModal(pet = null) {
   const modal = document.getElementById('pet-modal');
@@ -772,7 +824,6 @@ function openPetModal(pet = null) {
     modal.setAttribute('aria-hidden', 'false');
   }
 }
-
 
 function closePetModal() {
   const modal = document.getElementById('pet-modal');
@@ -856,78 +907,77 @@ function initEventListeners() {
     }
   }
 
-const petForm = document.getElementById('pet-form');
-if (petForm) {
-  petForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const message = document.getElementById('pet-form-message');
-    
-    // Get values as text, not as integers
-    const petData = {
-      name: document.getElementById('pet-name').value,
-      rarity: document.getElementById('pet-rarity').value,
-      stats_type: document.getElementById('pet-stats-type').value,
-      stats: document.getElementById('pet-stats').value || '0',
-      value_normal: document.getElementById('pet-value-normal').value || '0',
-      value_golden: document.getElementById('pet-value-golden').value || '0',
-      value_rainbow: document.getElementById('pet-value-rainbow').value || '0',
-      image_url: document.getElementById('pet-image-url').value || null
-    };
+  // Pet form submission
+  const petForm = document.getElementById('pet-form');
+  if (petForm) {
+    petForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = document.getElementById('pet-form-message');
+      
+      // Get values as text, not as integers
+      const petData = {
+        name: document.getElementById('pet-name').value,
+        rarity: document.getElementById('pet-rarity').value,
+        stats_type: document.getElementById('pet-stats-type').value,
+        stats: document.getElementById('pet-stats').value || '0',
+        value_normal: document.getElementById('pet-value-normal').value || '0',
+        value_golden: document.getElementById('pet-value-golden').value || '0',
+        value_rainbow: document.getElementById('pet-value-rainbow').value || '0',
+        image_url: document.getElementById('pet-image-url').value || null
+      };
 
-    // Submit pet data directly (no file upload handling needed)
-    await submitPet(petData, message);
-  });
+      // Submit pet data directly (no file upload handling needed)
+      await submitPet(petData, message);
+    });
 
-  async function submitPet(petData, message) {
-    let success;
-    if (currentEditingPetId) {
-      success = await updatePet(currentEditingPetId, petData);
-    } else {
-      success = await addPet(petData);
-    }
+    async function submitPet(petData, message) {
+      let success;
+      if (currentEditingPetId) {
+        success = await updatePet(currentEditingPetId, petData);
+      } else {
+        success = await addPet(petData);
+      }
 
-    if (success) {
-      message.textContent = 'Pet saved successfully!';
-      message.className = 'form-message success';
-      setTimeout(closePetModal, 1000);
-    } else {
-      message.textContent = 'Failed to save pet. Please try again.';
-      message.className = 'form-message error';
+      if (success) {
+        message.textContent = 'Pet saved successfully!';
+        message.className = 'form-message success';
+        setTimeout(closePetModal, 1000);
+      } else {
+        message.textContent = 'Failed to save pet. Please try again.';
+        message.className = 'form-message error';
+      }
     }
   }
-}
-
 
   // Image preview
-// Debug warning: Image preview now works with URL input instead of file upload
-const imageUrlInput = document.getElementById('pet-image-url');
-if (imageUrlInput) {
-  imageUrlInput.addEventListener('input', (e) => {
-    const url = e.target.value.trim();
-    if (url) {
-      // Validate URL format
-      try {
-        new URL(url);
-        document.getElementById('preview-img').src = url;
-        document.getElementById('image-preview').classList.remove('hidden');
-      } catch (err) {
-        // Invalid URL, hide preview
+  // Debug warning: Image preview now works with URL input instead of file upload
+  const imageUrlInput = document.getElementById('pet-image-url');
+  if (imageUrlInput) {
+    imageUrlInput.addEventListener('input', (e) => {
+      const url = e.target.value.trim();
+      if (url) {
+        // Validate URL format
+        try {
+          new URL(url);
+          document.getElementById('preview-img').src = url;
+          document.getElementById('image-preview').classList.remove('hidden');
+        } catch (err) {
+          // Invalid URL, hide preview
+          document.getElementById('image-preview').classList.add('hidden');
+        }
+      } else {
         document.getElementById('image-preview').classList.add('hidden');
       }
-    } else {
-      document.getElementById('image-preview').classList.add('hidden');
-    }
-  });
-  
-  // Handle image load error
-  const previewImg = document.getElementById('preview-img');
-  if (previewImg) {
-    previewImg.addEventListener('error', () => {
-      document.getElementById('image-preview').classList.add('hidden');
     });
+    
+    // Handle image load error
+    const previewImg = document.getElementById('preview-img');
+    if (previewImg) {
+      previewImg.addEventListener('error', () => {
+        document.getElementById('image-preview').classList.add('hidden');
+      });
+    }
   }
-}
-
 
   // Search input - real-time filtering
   const searchInput = document.getElementById('search-input');
@@ -938,27 +988,48 @@ if (imageUrlInput) {
     });
   }
 
-  // Filter button - toggle dropdown
-  const filterBtn = document.getElementById('filter-btn');
-  const filterMenu = document.getElementById('filter-menu');
-  
-  if (filterBtn && filterMenu) {
-    filterBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      filterMenu.classList.toggle('hidden');
-      filterBtn.classList.toggle('active');
+    // Zoom Control Buttons - change view density
+  const zoomButtons = document.querySelectorAll('.zoom-btn');
+  zoomButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      const density = parseInt(btn.dataset.density);
+      
+      // Update active state on buttons
+      zoomButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Apply density change
+      setViewDensity(density);
+      
+      console.log('[DEBUG] Zoom level changed to:', density);
     });
+  });
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!filterBtn.contains(e.target) && !filterMenu.contains(e.target)) {
+  // NEW: Filter Panel Button Click (opens advanced filter modal)
+  const filterBtn = document.getElementById('filter-btn');
+  if (filterBtn) {
+    filterBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Close filter menu dropdown if open
+      const filterMenu = document.getElementById('filter-menu');
+      if (filterMenu) {
         filterMenu.classList.add('hidden');
-        filterBtn.classList.remove('active');
+      }
+      
+      // Open advanced filter panel
+      if (typeof openFilterPanel === 'function') {
+        openFilterPanel();
+      } else {
+        console.warn('[DEBUG-WARNING] Filter panel not initialized');
       }
     });
   }
 
-  // Filter options - apply sort mode
+  // Filter options - apply sort mode (keep existing dropdown functionality)
   const filterOptions = document.querySelectorAll('.filter-option');
   filterOptions.forEach(option => {
     option.addEventListener('click', (e) => {
@@ -972,8 +1043,10 @@ if (imageUrlInput) {
       currentSortMode = option.dataset.sort;
       
       // Close dropdown
-      filterMenu.classList.add('hidden');
-      filterBtn.classList.remove('active');
+      const filterMenu = document.getElementById('filter-menu');
+      if (filterMenu) {
+        filterMenu.classList.add('hidden');
+      }
       
       // Re-render with new sort (no API call)
       renderPets();
@@ -1047,6 +1120,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   initEventListeners();
   
+  // Initialize view density
+  applyViewDensity();
+  
   // Initialize trade calculator
   if (typeof window.initTradeCalculator === 'function') {
     window.initTradeCalculator();
@@ -1055,6 +1131,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.warn('[DEBUG-WARNING] Trade calculator script not loaded');
   }
 });
+
+// Make functions globally accessible
+window.setViewDensity = setViewDensity;
+window.filterAndSortPets = filterAndSortPets;
 
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /main.js
