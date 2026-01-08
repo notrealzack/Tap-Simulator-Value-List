@@ -6,6 +6,7 @@
 // =======================
 // Filter State
 // =======================
+// Debug warning: Filter state includes new void value range
 let activeFilters = {
   statsType: 'all', // 'all', 'value', 'percentage'
   statsMin: null,
@@ -15,8 +16,11 @@ let activeFilters = {
   goldenMin: null,
   goldenMax: null,
   rainbowMin: null,
-  rainbowMax: null
+  rainbowMax: null,
+  voidMin: null,
+  voidMax: null
 };
+
 
 // =======================
 // Parse Value String to Number
@@ -122,7 +126,16 @@ function petPassesFilters(pet) {
     const petRainbow = getPetNumericValue(pet, 'value_rainbow');
     if (petRainbow > activeFilters.rainbowMax) return false;
   }
-  
+    // Debug warning: Void Value Range Filter
+  if (activeFilters.voidMin !== null) {
+    const petVoid = getPetNumericValue(pet, 'value_void');
+    if (petVoid < activeFilters.voidMin) return false;
+  }
+  if (activeFilters.voidMax !== null) {
+    const petVoid = getPetNumericValue(pet, 'value_void');
+    if (petVoid > activeFilters.voidMax) return false;
+  }
+
   return true;
 }
 
@@ -141,6 +154,7 @@ function applyAdvancedFilters(pets) {
 // =======================
 // Check if Any Filters Are Active
 // =======================
+// Debug warning: Check if any filters are active including void
 function isFiltersEmpty() {
   return activeFilters.statsType === 'all' &&
          activeFilters.statsMin === null &&
@@ -150,8 +164,11 @@ function isFiltersEmpty() {
          activeFilters.goldenMin === null &&
          activeFilters.goldenMax === null &&
          activeFilters.rainbowMin === null &&
-         activeFilters.rainbowMax === null;
+         activeFilters.rainbowMax === null &&
+         activeFilters.voidMin === null &&
+         activeFilters.voidMax === null;
 }
+
 
 // =======================
 // Open Filter Panel Modal
@@ -201,6 +218,8 @@ function populateFilterInputs() {
   document.getElementById('filter-golden-max').value = activeFilters.goldenMax !== null ? activeFilters.goldenMax : '';
   document.getElementById('filter-rainbow-min').value = activeFilters.rainbowMin !== null ? activeFilters.rainbowMin : '';
   document.getElementById('filter-rainbow-max').value = activeFilters.rainbowMax !== null ? activeFilters.rainbowMax : '';
+  document.getElementById('filter-void-min').value = activeFilters.voidMin !== null ? activeFilters.voidMin : '';
+  document.getElementById('filter-void-max').value = activeFilters.voidMax !== null ? activeFilters.voidMax : '';
 }
 
 // =======================
@@ -220,6 +239,8 @@ function readFilterInputs() {
   activeFilters.goldenMax = parseValueString(document.getElementById('filter-golden-max').value);
   activeFilters.rainbowMin = parseValueString(document.getElementById('filter-rainbow-min').value);
   activeFilters.rainbowMax = parseValueString(document.getElementById('filter-rainbow-max').value);
+  activeFilters.voidMin = parseValueString(document.getElementById('filter-void-min').value);
+  activeFilters.voidMax = parseValueString(document.getElementById('filter-void-max').value);
 }
 
 // =======================
@@ -235,7 +256,9 @@ function resetFilters() {
     goldenMin: null,
     goldenMax: null,
     rainbowMin: null,
-    rainbowMax: null
+    rainbowMax: null,
+    voidMin: null,
+    voidMax: null
   };
   
   // Clear all inputs
@@ -247,7 +270,9 @@ function resetFilters() {
   document.getElementById('filter-golden-max').value = '';
   document.getElementById('filter-rainbow-min').value = '';
   document.getElementById('filter-rainbow-max').value = '';
-  
+  document.getElementById('filter-void-min').value = '';
+  document.getElementById('filter-void-max').value = '';
+
   // Reset stats type buttons
   document.querySelectorAll('.stats-type-btn').forEach(btn => {
     if (btn.getAttribute('data-stats-type') === 'all') {
