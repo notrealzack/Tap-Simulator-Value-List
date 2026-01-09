@@ -4,10 +4,12 @@
 // Debug warning: Trade calculator logic - displays inline in content area
 // Debug warning: Supports Void variant, allows multiple pets with quantity tracking
 
+// ===========================
 // Configuration
+// ===========================
 const TRADE_CACHE_KEY = 'rpv_trade_state_v4'; // Updated version for void support
 
-// Track which side is being searched (you/them)
+// Track which side is being searched ('you'/'them')
 let currentSearchSide = null;
 
 // Track if trade calculator is open
@@ -15,8 +17,14 @@ let isTradeCalculatorOpen = false;
 
 // Trade state object - stores pets with quantities AND variants (including void)
 let tradeState = {
-  you: { pets: [], tokens: 0 },
-  them: { pets: [], tokens: 0 }
+  you: {
+    pets: [],
+    tokens: 0
+  },
+  them: {
+    pets: [],
+    tokens: 0
+  }
 };
 
 // ===========================
@@ -43,6 +51,40 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// Debug warning: Extract Imgur ID from various input formats (same as main.js)
+function extractImgurId(input) {
+  if (!input) return null;
+  
+  // Remove whitespace
+  input = input.trim();
+  
+  // If it's just the ID (e.g., "7Tmh0q5")
+  if (/^[a-zA-Z0-9]{7}$/.test(input)) {
+    return input;
+  }
+  
+  // If it's a full URL (e.g., "https://imgur.com/7Tmh0q5" or "https://i.imgur.com/7Tmh0q5.png")
+  const urlMatch = input.match(/imgur\.com\/([a-zA-Z0-9]{7})/);
+  if (urlMatch) {
+    return urlMatch[1];
+  }
+  
+  // If it's an embed code, extract the data-id
+  const embedMatch = input.match(/data-id="([a-zA-Z0-9]{7})"/);
+  if (embedMatch) {
+    return embedMatch[1];
+  }
+  
+  return null;
+}
+
+// Debug warning: Convert Imgur ID to direct image URL (same as main.js)
+function imgurIdToUrl(imgurId) {
+  if (!imgurId) return null;
+  // Try .jpg first (most common), fallback handled in img onerror
+  return `https://i.imgur.com/${imgurId}.jpg`;
 }
 
 // ===========================
@@ -100,15 +142,22 @@ function addPetToSide(pet, variant, side) {
     case 'void':
       value = pet.value_void || 0;
       break;
-    default: // normal
+    default: // 'normal'
       value = pet.value_normal || 0;
   }
 
-  // Check if pet with same variant already exists
-  const existingPet = tradeState[side].pets.find(
-    p => p.id === pet.id && p.variant === variant
-  );
+  // Debug warning: Convert image_url to full Imgur URL
+  let imageUrl = null;
+  if (pet.image_url) {
+    const imgurId = extractImgurId(pet.image_url);
+    if (imgurId) {
+      imageUrl = imgurIdToUrl(imgurId);
+    }
+  }
 
+  // Check if pet with same variant already exists
+  const existingPet = tradeState[side].pets.find(p => p.id === pet.id && p.variant === variant);
+  
   if (existingPet) {
     // Increment quantity
     existingPet.quantity = (existingPet.quantity || 1) + 1;
@@ -118,9 +167,9 @@ function addPetToSide(pet, variant, side) {
       id: pet.id,
       uniqueId: Date.now() + Math.random(), // Unique identifier for removal
       name: pet.name,
-      variant: variant, // normal, golden, rainbow, void
+      variant: variant, // 'normal', 'golden', 'rainbow', 'void'
       value: value,
-      imageUrl: pet.image_url,
+      imageUrl: imageUrl, // Now converted to full URL
       rarity: pet.rarity,
       quantity: 1 // Start with 1
     });
@@ -154,7 +203,6 @@ function changePetQuantity(uniqueId, side, delta) {
   if (!pet) return;
 
   pet.quantity = Math.max(1, (pet.quantity || 1) + delta);
-
   saveTradeToCache();
   renderTradePanel();
 }
@@ -244,6 +292,7 @@ function renderTradePanel() {
 }
 
 // Debug warning: Display keeps text format (15K, 1.5M) in pet cards, shows quantity
+// Debug warning: Now uses Imgur URL conversion for images
 function renderSidePets(side) {
   const container = document.getElementById(`${side}-pets`);
   if (!container) return;
@@ -280,12 +329,13 @@ function renderSidePets(side) {
 
     const quantity = pet.quantity || 1;
 
+    // Debug warning: Image now uses converted Imgur URL with fallback handling
     html += `
       <div class="trade-pet-card" data-unique-id="${pet.uniqueId}">
         <button class="trade-remove-btn" data-unique-id="${pet.uniqueId}" data-side="${side}">×</button>
         <span class="trade-variant-badge ${variantClass}">${variantLabel}</span>
         ${pet.imageUrl 
-          ? `<img src="${pet.imageUrl}" alt="${escapeHtml(pet.name)}" class="trade-pet-img">`
+          ? `<img src="${pet.imageUrl}" alt="${escapeHtml(pet.name)}" class="trade-pet-img" onerror="this.onerror=null; this.src=this.src.replace('.jpg', '.png'); if(this.src.includes('.png')) this.style.display='none';">`
           : `<div class="trade-pet-placeholder">?</div>`
         }
         <div class="trade-pet-name">${escapeHtml(pet.name)}</div>
@@ -378,6 +428,7 @@ function searchPets(query) {
 }
 
 // Debug warning: Shows variant buttons (Normal/Golden/Rainbow/Void) for each pet
+// Debug warning: Now uses Imgur URL conversion for preview images
 function renderSearchResults(pets) {
   const resultsContainer = document.getElementById('trade-search-results');
   if (!resultsContainer) return;
@@ -391,10 +442,19 @@ function renderSearchResults(pets) {
   const limitedPets = pets.slice(0, 50);
 
   const html = limitedPets.map(pet => {
+    // Debug warning: Convert image_url to full Imgur URL for search results
+    let imageUrl = null;
+    if (pet.image_url) {
+      const imgurId = extractImgurId(pet.image_url);
+      if (imgurId) {
+        imageUrl = imgurIdToUrl(imgurId);
+      }
+    }
+
     return `
       <div class="trade-search-result-item" data-pet-id="${pet.id}">
-        ${pet.image_url 
-          ? `<img src="${pet.image_url}" alt="${escapeHtml(pet.name)}" class="trade-result-pet-icon">`
+        ${imageUrl 
+          ? `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" class="trade-result-pet-icon" onerror="this.onerror=null; this.src=this.src.replace('.jpg', '.png'); if(this.src.includes('.png')) this.parentElement.innerHTML='<div class=\\'trade-result-pet-icon-placeholder\\'>?</div>';">`
           : `<div class="trade-result-pet-icon-placeholder">?</div>`
         }
         <div class="trade-result-pet-info">
@@ -430,10 +490,9 @@ function renderSearchResults(pets) {
 // ===========================
 
 function openTradeCalculator() {
-  console.log('[Trade Calculator] Opening...');
-
+  console.log('Trade Calculator Opening...');
   if (isTradeCalculatorOpen) {
-    console.log('[Trade Calculator] Already open');
+    console.log('Trade Calculator Already open');
     return;
   }
 
@@ -442,7 +501,6 @@ function openTradeCalculator() {
   // Hide pets grid and welcome (don't remove them!)
   const petsContainer = document.getElementById('pets-container');
   const welcomeDiv = document.querySelector('.welcome');
-
   if (petsContainer) petsContainer.style.display = 'none';
   if (welcomeDiv) welcomeDiv.style.display = 'none';
 
@@ -451,10 +509,9 @@ function openTradeCalculator() {
 }
 
 function closeTradeCalculator() {
-  console.log('[Trade Calculator] Closing...');
-
+  console.log('Trade Calculator Closing...');
   if (!isTradeCalculatorOpen) {
-    console.log('[Trade Calculator] Already closed');
+    console.log('Trade Calculator Already closed');
     return;
   }
 
@@ -464,15 +521,12 @@ function closeTradeCalculator() {
   const contentArea = document.getElementById('content');
   if (contentArea) {
     const tradeCalc = contentArea.querySelector('.trade-calculator-inline');
-    if (tradeCalc) {
-      tradeCalc.remove();
-    }
+    if (tradeCalc) tradeCalc.remove();
   }
 
   // Show pets grid and welcome
   const petsContainer = document.getElementById('pets-container');
   const welcomeDiv = document.querySelector('.welcome');
-
   if (petsContainer) petsContainer.style.display = 'grid';
   if (welcomeDiv) welcomeDiv.style.display = 'block';
 
@@ -492,7 +546,6 @@ function renderTradeCalculatorInline() {
   // Create trade calculator element
   const tradeCalcDiv = document.createElement('div');
   tradeCalcDiv.className = 'trade-calculator-inline';
-
   tradeCalcDiv.innerHTML = `
     <!-- Header -->
     <div class="trade-calc-header">
@@ -534,6 +587,14 @@ function renderTradeCalculatorInline() {
     <div class="trade-calc-actions">
       <button id="trade-calc-reset-btn" class="trade-calc-btn">Reset</button>
     </div>
+
+    <!-- Pet Search Dropdown (hidden by default) -->
+    <div id="trade-pet-search-dropdown" class="trade-pet-search-dropdown hidden">
+      <div class="trade-search-header">
+        <input type="text" id="trade-pet-search-input" placeholder="Search pets..." autocomplete="off">
+      </div>
+      <div id="trade-search-results" class="trade-search-results"></div>
+    </div>
   `;
 
   // Insert at the beginning of content area
@@ -563,7 +624,7 @@ function attachTradeEventListeners() {
         tradeState = { you: { pets: [], tokens: 0 }, them: { pets: [], tokens: 0 } };
         clearTradeCache();
         renderTradePanel();
-
+        
         // Reset token inputs
         const youTokens = document.getElementById('you-tokens');
         const themTokens = document.getElementById('them-tokens');
@@ -576,17 +637,11 @@ function attachTradeEventListeners() {
   // Token inputs
   const youTokensInput = document.getElementById('you-tokens');
   const themTokensInput = document.getElementById('them-tokens');
-
   if (youTokensInput) {
-    youTokensInput.addEventListener('input', (e) => {
-      updateTokenValue(e.target.value, 'you');
-    });
+    youTokensInput.addEventListener('input', (e) => updateTokenValue(e.target.value, 'you'));
   }
-
   if (themTokensInput) {
-    themTokensInput.addEventListener('input', (e) => {
-      updateTokenValue(e.target.value, 'them');
-    });
+    themTokensInput.addEventListener('input', (e) => updateTokenValue(e.target.value, 'them'));
   }
 
   // Search input
@@ -655,18 +710,18 @@ function attachTradeEventListeners() {
 
 function initTradeCalculator() {
   loadTradeFromCache();
+  
+  // Make globally accessible
+  window.openTradeCalculator = openTradeCalculator;
+  window.closeTradeCalculator = closeTradeCalculator;
+  window.initTradeCalculator = initTradeCalculator;
+  
+  // Expose flag globally
+  Object.defineProperty(window, 'isTradeCalculatorOpen', {
+    get: function() { return isTradeCalculatorOpen; },
+    set: function(value) { isTradeCalculatorOpen = value; }
+  });
 }
-
-// Make globally accessible
-window.openTradeCalculator = openTradeCalculator;
-window.closeTradeCalculator = closeTradeCalculator;
-window.initTradeCalculator = initTradeCalculator;
-
-// Expose flag globally
-Object.defineProperty(window, 'isTradeCalculatorOpen', {
-  get: function() { return isTradeCalculatorOpen; },
-  set: function(value) { isTradeCalculatorOpen = value; }
-});
 
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /tradecalculator.js
