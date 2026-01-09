@@ -1134,32 +1134,35 @@ form {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #7b5cff;
-  color: #fff;
+  background: black;        
+  color: white;               
   font-size: 12px;
-  font-weight: 700;
+  font-weight: bold;
   line-height: 18px;
   text-align: center;
   cursor: pointer;
-  z-index: 5;
+  z-index: 10;
 }
+
 
 /* this is the box of that icon */
 .pet-tooltip-text {
   position: absolute;
   top: 22px;
   right: 0;
-  background: #0e0e14;
+  background: rgba(0, 0, 0, 0.9); 
   color: #fff;
-  padding: 6px 8px;
+  padding: 6px 10px;
   border-radius: 6px;
   font-size: 12px;
-  white-space: nowrap;
+  white-space: normal;          
+  max-width: 220px;           
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.15s ease;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
+
 
 .pet-tooltip:hover .pet-tooltip-text {
   opacity: 1;
