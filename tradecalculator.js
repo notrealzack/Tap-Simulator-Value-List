@@ -53,7 +53,7 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-// Debug warning: Use global buildImageUrl function from main.js for jsDelivr CDN
+// Debug warning: Use global buildImageUrl functions from main.js for jsDelivr CDN with multi-format support
 function getImageUrl(imageId) {
   // Use the global buildImageUrl function from main.js
   if (typeof window.buildImageUrl === 'function') {
@@ -62,6 +62,16 @@ function getImageUrl(imageId) {
   // Fallback if function not available (shouldn't happen)
   console.warn('[DEBUG-WARNING] buildImageUrl function not available');
   return null;
+}
+
+function getImageUrlsWithFallback(imageId) {
+  // Use the global buildImageUrlsWithFallback function from main.js
+  if (typeof window.buildImageUrlsWithFallback === 'function') {
+    return window.buildImageUrlsWithFallback(imageId);
+  }
+  // Fallback if function not available
+  console.warn('[DEBUG-WARNING] buildImageUrlsWithFallback function not available');
+  return [getImageUrl(imageId)].filter(Boolean);
 }
 
 // =======================
@@ -126,10 +136,12 @@ function addPetToSide(pet, variant, side) {
       value = pet.value_normal || 0;
   }
   
-  // Debug warning: Use global buildImageUrl function for jsDelivr CDN
+  // Debug warning: Use global buildImageUrl function for jsDelivr CDN with multi-format support
   let imageUrl = null;
+  let imageFallbacks = [];
   if (pet.image_url) {
     imageUrl = getImageUrl(pet.image_url);
+    imageFallbacks = getImageUrlsWithFallback(pet.image_url);
   }
   
   // Check if pet with same variant already exists
@@ -146,7 +158,8 @@ function addPetToSide(pet, variant, side) {
       name: pet.name,
       variant: variant, // 'normal', 'golden', 'rainbow', 'void'
       value: value,
-      imageUrl: imageUrl, // Now converted to jsDelivr URL
+      imageUrl: imageUrl, // Primary jsDelivr URL
+      imageFallbacks: imageFallbacks, // Array of fallback URLs
       rarity: pet.rarity,
       quantity: 1 // Start with 1
     });
@@ -264,7 +277,7 @@ function renderTradePanel() {
 }
 
 // Debug warning: Display keeps text format (15K, 1.5M) in pet cards, shows quantity
-// Debug warning: Now uses jsDelivr CDN URLs for images
+// Debug warning: Now uses jsDelivr CDN URLs with multi-format fallback support
 function renderSidePets(side) {
   const container = document.getElementById(`${side}-pets`);
   if (!container) return;
@@ -299,16 +312,31 @@ function renderSidePets(side) {
     
     const quantity = pet.quantity || 1;
     
-    // Debug warning: Image now uses jsDelivr CDN URL with fallback handling
+    // Debug warning: Image with multi-format fallback support
+    let imageHtml;
+    if (pet.imageUrl && pet.imageFallbacks && pet.imageFallbacks.length > 0) {
+      // Build fallback chain for onerror
+      const fallbacks = pet.imageFallbacks.slice(1);
+      const fallbackChain = fallbacks.map((url, index) => {
+        const isLast = index === fallbacks.length - 1;
+        return `this.onerror=${isLast ? 'null' : 'function(){this.src=\\\''+fallbacks[index+1]+'\\\'}'};this.src='${url}'`;
+      }).join(';');
+      
+      imageHtml = `<img src="${pet.imageFallbacks[0]}" alt="${escapeHtml(pet.name)}" class="trade-pet-img" onerror="${fallbackChain || 'this.onerror=null'};this.style.display='none';this.nextElementSibling.style.display='flex';">
+                   <div class="trade-pet-placeholder" style="display:none;">?</div>`;
+    } else if (pet.imageUrl) {
+      // Fallback if imageFallbacks not available
+      imageHtml = `<img src="${pet.imageUrl}" alt="${escapeHtml(pet.name)}" class="trade-pet-img" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
+                   <div class="trade-pet-placeholder" style="display:none;">?</div>`;
+    } else {
+      imageHtml = `<div class="trade-pet-placeholder">?</div>`;
+    }
+    
     html += `
       <div class="trade-pet-card" data-unique-id="${pet.uniqueId}">
         <button class="trade-remove-btn" data-unique-id="${pet.uniqueId}" data-side="${side}">&times;</button>
         <span class="trade-variant-badge ${variantClass}">${variantLabel}</span>
-        ${pet.imageUrl 
-          ? `<img src="${pet.imageUrl}" alt="${escapeHtml(pet.name)}" class="trade-pet-img" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-             <div class="trade-pet-placeholder" style="display:none;">?</div>`
-          : `<div class="trade-pet-placeholder">?</div>`
-        }
+        ${imageHtml}
         <div class="trade-pet-name">${escapeHtml(pet.name)}</div>
         <div class="trade-pet-value">${pet.value || 0}</div>
         <div class="trade-quantity-controls">
@@ -395,7 +423,7 @@ function searchPets(query) {
 }
 
 // Debug warning: Shows variant buttons (Normal/Golden/Rainbow/Void) for each pet
-// Debug warning: Now uses jsDelivr CDN URLs for preview images
+// Debug warning: Now uses jsDelivr CDN URLs with multi-format fallback support
 function renderSearchResults(pets) {
   const resultsContainer = document.getElementById('trade-search-results');
   if (!resultsContainer) return;
@@ -409,19 +437,31 @@ function renderSearchResults(pets) {
   const limitedPets = pets.slice(0, 50);
   
   const html = limitedPets.map(pet => {
-    // Debug warning: Use global buildImageUrl function for jsDelivr CDN
-    let imageUrl = null;
+    // Debug warning: Use global buildImageUrlsWithFallback for multi-format support
+    let imageHtml;
     if (pet.image_url) {
-      imageUrl = getImageUrl(pet.image_url);
+      const imageUrls = getImageUrlsWithFallback(pet.image_url);
+      
+      if (imageUrls.length > 0) {
+        // Build fallback chain for onerror
+        const fallbacks = imageUrls.slice(1);
+        const fallbackChain = fallbacks.map((url, index) => {
+          const isLast = index === fallbacks.length - 1;
+          return `this.onerror=${isLast ? 'null' : 'function(){this.src=\\\''+fallbacks[index+1]+'\\\'}'};this.src='${url}'`;
+        }).join(';');
+        
+        imageHtml = `<img src="${imageUrls[0]}" alt="${escapeHtml(pet.name)}" class="trade-result-pet-icon" onerror="${fallbackChain || 'this.onerror=null'};this.style.display='none';this.nextElementSibling.style.display='flex';">
+                     <div class="trade-result-pet-icon-placeholder" style="display:none;">?</div>`;
+      } else {
+        imageHtml = `<div class="trade-result-pet-icon-placeholder">?</div>`;
+      }
+    } else {
+      imageHtml = `<div class="trade-result-pet-icon-placeholder">?</div>`;
     }
     
     return `
       <div class="trade-search-result-item" data-pet-id="${pet.id}">
-        ${imageUrl 
-          ? `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" class="trade-result-pet-icon" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-             <div class="trade-result-pet-icon-placeholder" style="display:none;">?</div>`
-          : `<div class="trade-result-pet-icon-placeholder">?</div>`
-        }
+        ${imageHtml}
         <div class="trade-result-pet-info">
           <span class="trade-result-pet-name">${escapeHtml(pet.name)}</span>
         </div>
