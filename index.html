@@ -223,20 +223,27 @@
                     <input type="text" id="pet-value-rainbow" name="value_rainbow" placeholder="e.g., 5B, 50B, 100K">
                 </div>
                 
-                <!-- Debug warning: New Void value field -->
-                <div class="form-group form-group-compact">
-                    <label for="pet-value-void">Void Value</label>
-                    <input type="text" id="pet-value-void" name="value_void" placeholder="e.g., 10B, 100B, 500K">
-                </div>
-                
-                <!-- Debug warning: Image ID input for jsDelivr CDN (replaces Imgur) -->
-                <div class="form-group">
-                    <label for="pet-image-id">Pet Image ID</label>
-                    <input type="text" id="pet-image-id" name="image_id" placeholder="e.g., 002, 015, 123">
-                    <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">
-                        Enter the image ID matching the filename (e.g., "002" for 002.png)
-                    </small>
-                </div>
+              
+<div class="form-group form-group-compact">
+    <label for="pet-value-void">Void Value</label>
+    <input type="text" id="pet-value-void" name="value_void" placeholder="e.g., 10B, 100B, 500K">
+</div>
+
+
+<div class="form-group">
+    <label for="pet-description">Description</label>
+    <textarea id="pet-description" name="description" placeholder="Enter pet description" rows="3"></textarea>
+</div>
+
+
+<div class="form-group">
+    <label for="pet-image-id">Pet Image ID</label>
+    <input type="text" id="pet-image-id" name="image_id" placeholder="e.g., 002, 015, 123">
+    <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">
+        Enter the image ID matching the filename (e.g., "002" for 002.png)
+    </small>
+</div>
+
                 
                 <!-- Image Preview -->
                 <div id="image-preview" class="image-preview hidden">
