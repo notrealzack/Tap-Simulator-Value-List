@@ -442,7 +442,6 @@ function renderPetsToGrid(pets) {
     const adminActions = document.querySelectorAll('.pet-admin-actions');
     adminActions.forEach(el => el.classList.add('visible'));
   }
-
 }
 
 // Make renderPets globally accessible for trade calculator
@@ -480,13 +479,63 @@ function setViewDensity(density) {
 }
 
 // =======================
+// Imgur Image Handling
+// =======================
+
+// Debug warning: Extract Imgur ID from various input formats
+function extractImgurId(input) {
+  if (!input) return null;
+  
+  // Remove whitespace
+  input = input.trim();
+  
+  // If it's just the ID (e.g., "7Tmh0q5")
+  if (/^[a-zA-Z0-9]{7}$/.test(input)) {
+    return input;
+  }
+  
+  // If it's a full URL (e.g., "https://imgur.com/7Tmh0q5" or "https://i.imgur.com/7Tmh0q5.png")
+  const urlMatch = input.match(/imgur\.com\/([a-zA-Z0-9]{7})/);
+  if (urlMatch) {
+    return urlMatch[1];
+  }
+  
+  // If it's an embed code, extract the data-id
+  const embedMatch = input.match(/data-id="([a-zA-Z0-9]{7})"/);
+  if (embedMatch) {
+    return embedMatch[1];
+  }
+  
+  return null;
+}
+
+// Debug warning: Convert Imgur ID to direct image URL (tries multiple extensions)
+function imgurIdToUrl(imgurId) {
+  if (!imgurId) return null;
+  // Try .jpg first (most common), fallback handled in img onerror
+  return `https://i.imgur.com/${imgurId}.jpg`;
+}
+
+// =======================
 // Pet Card Creation
 // =======================
 
 // Debug warning: Display stats with optional percentage symbol based on stats_type
 function createPetCard(pet) {
   const rarityClass = getRarityClass(pet.rarity);
-  const imageUrl = pet.image_url;
+  
+  // Debug warning: Check if image_url exists and extract ID
+  let imageUrl = null;
+  if (pet.image_url) {
+    const imgurId = extractImgurId(pet.image_url);
+    if (imgurId) {
+      imageUrl = imgurIdToUrl(imgurId);
+      console.log('[DEBUG] Pet', pet.name, '- Imgur ID:', imgurId, '- URL:', imageUrl);
+    } else {
+      console.warn('[DEBUG-WARNING] Pet', pet.name, '- Could not extract Imgur ID from:', pet.image_url);
+    }
+  }
+  
   const lastUpdated = formatLastUpdated(pet.updated_at);
   
   // Add percentage symbol if stats_type is 'percentage'
@@ -496,7 +545,7 @@ function createPetCard(pet) {
     <div class="pet-card" data-pet-id="${pet.id}">
       <div class="pet-image">
         ${imageUrl ? 
-          `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}">` :
+          `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" loading="lazy" onerror="this.onerror=null; this.src='https://i.imgur.com/${extractImgurId(pet.image_url)}.png'; this.onerror=function(){ this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);\\'>No Image</div>'; };">` :
           `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">No Image</div>`
         }
       </div>
@@ -783,7 +832,7 @@ function closeLoginModal() {
   }
 }
 
-// Debug warning: Handle image URL input instead of file upload
+// Debug warning: Updated to handle Imgur ID input instead of file upload
 function openPetModal(pet = null) {
   const modal = document.getElementById('pet-modal');
   const form = document.getElementById('pet-form');
@@ -809,12 +858,18 @@ function openPetModal(pet = null) {
     document.getElementById('pet-value-golden').value = pet.value_golden || '';
     document.getElementById('pet-value-rainbow').value = pet.value_rainbow || '';
     document.getElementById('pet-value-void').value = pet.value_void || '';
-    document.getElementById('pet-image-url').value = pet.image_url || '';
+    
+    // Extract and populate Imgur ID (store whatever is in database as-is)
+    document.getElementById('pet-imgur-id').value = pet.image_url || '';
     
     // Show image preview if exists
     if (pet.image_url && imagePreview) {
-      document.getElementById('preview-img').src = pet.image_url;
-      imagePreview.classList.remove('hidden');
+      const imgurId = extractImgurId(pet.image_url);
+      if (imgurId) {
+        const imageUrl = imgurIdToUrl(imgurId);
+        document.getElementById('preview-img').src = imageUrl;
+        imagePreview.classList.remove('hidden');
+      }
     }
   } else {
     // Add mode - set default stats_type to 'value'
@@ -918,6 +973,10 @@ function initEventListeners() {
       e.preventDefault();
       const message = document.getElementById('pet-form-message');
       
+      // Get Imgur input and store as-is (just the ID or whatever admin entered)
+      const imgurInput = document.getElementById('pet-imgur-id').value.trim();
+      const imgurId = extractImgurId(imgurInput);
+      
       // Get values as text, not as integers
       const petData = {
         name: document.getElementById('pet-name').value,
@@ -928,10 +987,12 @@ function initEventListeners() {
         value_golden: document.getElementById('pet-value-golden').value || '0',
         value_rainbow: document.getElementById('pet-value-rainbow').value || '0',
         value_void: document.getElementById('pet-value-void').value || '0',
-        image_url: document.getElementById('pet-image-url').value || null
+        image_url: imgurId || null // Store just the extracted ID
       };
 
-      // Submit pet data directly (no file upload handling needed)
+      console.log('[DEBUG] Submitting pet data:', petData);
+
+      // Submit pet data
       await submitPet(petData, message);
     });
 
@@ -954,32 +1015,37 @@ function initEventListeners() {
     }
   }
 
-  // Image preview
-  // Debug warning: Image preview now works with URL input instead of file upload
-  const imageUrlInput = document.getElementById('pet-image-url');
-  if (imageUrlInput) {
-    imageUrlInput.addEventListener('input', (e) => {
-      const url = e.target.value.trim();
-      if (url) {
-        // Validate URL format
-        try {
-          new URL(url);
-          document.getElementById('preview-img').src = url;
-          document.getElementById('image-preview').classList.remove('hidden');
-        } catch (err) {
-          // Invalid URL, hide preview
-          document.getElementById('image-preview').classList.add('hidden');
-        }
-      } else {
-        document.getElementById('image-preview').classList.add('hidden');
+  // Debug warning: Imgur ID input live preview
+  const imgurIdInput = document.getElementById('pet-imgur-id');
+  if (imgurIdInput) {
+    imgurIdInput.addEventListener('input', (e) => {
+      const imgurId = extractImgurId(e.target.value);
+      const imagePreview = document.getElementById('image-preview');
+      const previewImg = document.getElementById('preview-img');
+      
+      if (imgurId && imagePreview && previewImg) {
+        const imageUrl = imgurIdToUrl(imgurId);
+        previewImg.src = imageUrl;
+        imagePreview.classList.remove('hidden');
+        console.log('[DEBUG] Preview Imgur ID:', imgurId, '- URL:', imageUrl);
+      } else if (imagePreview) {
+        imagePreview.classList.add('hidden');
       }
     });
     
-    // Handle image load error
+    // Handle image load error - try .png if .jpg fails
     const previewImg = document.getElementById('preview-img');
     if (previewImg) {
-      previewImg.addEventListener('error', () => {
-        document.getElementById('image-preview').classList.add('hidden');
+      previewImg.addEventListener('error', function() {
+        if (this.src.endsWith('.jpg')) {
+          console.log('[DEBUG] .jpg failed, trying .png');
+          this.src = this.src.replace('.jpg', '.png');
+        } else {
+          const imagePreview = document.getElementById('image-preview');
+          if (imagePreview) {
+            imagePreview.classList.add('hidden');
+          }
+        }
       });
     }
   }
@@ -993,7 +1059,7 @@ function initEventListeners() {
     });
   }
 
-    // Zoom Control Buttons - change view density
+  // Zoom Control Buttons - change view density
   const zoomButtons = document.querySelectorAll('.zoom-btn');
   zoomButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -1140,6 +1206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Make functions globally accessible
 window.setViewDensity = setViewDensity;
 window.filterAndSortPets = filterAndSortPets;
+window.extractImgurId = extractImgurId;
 
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /main.js
