@@ -12,17 +12,22 @@ const CACHE_KEY = `rpv_pets_cache_${CACHE_VERSION}`;
 const ADMIN_KEY = "rpv_admin_session";
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 
-// Track current rarity filter for dynamic welcome message - Initialize to 'all' for first load
-let currentRarityFilter = 'all';
+// Debug warning: jsDelivr CDN configuration for pet images
+const JSDELIVR_BASE = "https://cdn.jsdelivr.net/gh/RealGoldAstro/Tap-Simulator-Value-List@main/assets/petImages";
+
+// Track current rarity filter for dynamic welcome message - Initialize to "all" for first load
+let currentRarityFilter = "all";
 
 // Track search and sort state
 let currentSearchQuery = "";
-let currentSortMode = "default"; // default, newest, oldest, highest
+let currentSortMode = "default"; // "default", "newest", "oldest", "highest"
 
 // NEW: Track view density state (grid columns)
 let currentViewDensity = 7; // 7, 9, or 11 pets per row
 
+// =======================
 // Clear old cache versions on load
+// =======================
 function clearOldCaches() {
   const keys = Object.keys(localStorage);
   keys.forEach(key => {
@@ -38,7 +43,10 @@ function clearOldCaches() {
 // =======================
 function setCache(key, value, ttl) {
   try {
-    const item = { value, expiry: ttl ? Date.now() + ttl : null };
+    const item = {
+      value,
+      expiry: ttl ? Date.now() + ttl : null
+    };
     localStorage.setItem(key, JSON.stringify(item));
   } catch (err) {
     console.warn('[DEBUG-WARNING] Cache set failed:', err);
@@ -49,11 +57,14 @@ function getCache(key) {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
+    
     const item = JSON.parse(raw);
+    
     if (item.expiry && Date.now() > item.expiry) {
       localStorage.removeItem(key);
       return null;
     }
+    
     return item.value;
   } catch (err) {
     console.warn('[DEBUG-WARNING] Cache get failed:', err);
@@ -88,23 +99,18 @@ function generateSidebar() {
   const html = `
     <nav class="nav-section">
       <a href="#" class="nav-link active" data-rarity="all">All Pets</a>
-      ${rarities.map(r => `
-        <a href="#" class="nav-link" data-rarity="${r.value}">${r.name}</a>
-      `).join('')}
+      ${rarities.map(r => `<a href="#" class="nav-link" data-rarity="${r.value}">${r.name}</a>`).join('')}
     </nav>
-    
     <nav id="admin-nav-section" class="nav-section admin-only" style="display:none;">
-      <a href="#" class="nav-link" id="nav-add-pet">+ Add Pet</a>
+      <a href="#" class="nav-link" id="nav-add-pet">Add Pet</a>
       <a href="#" class="nav-link" id="nav-clear-cache">Clear Cache</a>
     </nav>
-    
     <div class="nav-spacer"></div>
-    
     <nav class="nav-section nav-bottom">
       <a href="#" class="nav-link nav-link-trade" id="nav-trade-calculator">Trade Calculator</a>
     </nav>
   `;
-
+  
   sidebarContent.innerHTML = html;
 }
 
@@ -119,7 +125,7 @@ function checkAdminSession() {
   if (session && session.username && session.password) {
     adminCredentials = session;
     isAdminLoggedIn = true;
-    console.log('[DEBUG] Admin session restored for:', session.username);
+    console.log('[DEBUG] Admin session restored for', session.username);
     showAdminUI();
     return true;
   }
@@ -129,27 +135,27 @@ function checkAdminSession() {
 async function adminLogin(username, password) {
   try {
     console.log('[DEBUG] Attempting login for username:', username);
-    
     const res = await fetch(`${API_BASE}/api/auth/verify`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ username, password })
     });
-
+    
     const data = await res.json();
     console.log('[DEBUG] Login response:', data);
-
+    
     if (!res.ok || !data.valid) {
       console.warn('[DEBUG] Login failed:', data.reason || 'Unknown reason');
       return false;
     }
-
+    
     const session = { username, password, loginTime: Date.now() };
     setCache(ADMIN_KEY, session, THIRTY_MINUTES_MS);
     adminCredentials = session;
     isAdminLoggedIn = true;
     console.log('[DEBUG] Login successful, credentials stored');
-    
     showAdminUI();
     closeLoginModal();
     return true;
@@ -174,28 +180,30 @@ async function verifyAdminBeforeAction() {
     adminLogout();
     return false;
   }
-
+  
   console.log('[DEBUG] Verifying credentials for:', adminCredentials.username);
-
+  
   try {
     const res = await fetch(`${API_BASE}/api/auth/verify`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         username: adminCredentials.username,
         password: adminCredentials.password
       })
     });
-
+    
     const data = await res.json();
     console.log('[DEBUG] Verification response:', data);
-
+    
     if (!res.ok || !data.valid) {
       console.warn('[DEBUG] Verification failed:', data.reason || 'Unknown');
       adminLogout();
       return false;
     }
-
+    
     return true;
   } catch (err) {
     console.warn('[DEBUG-WARNING] Credential verification failed:', err);
@@ -206,7 +214,9 @@ async function verifyAdminBeforeAction() {
 
 function showAdminUI() {
   const logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) logoutBtn.classList.remove('hidden');
+  if (logoutBtn) {
+    logoutBtn.classList.remove('hidden');
+  }
   
   // Show admin section in sidebar
   const adminSection = document.getElementById('admin-nav-section');
@@ -217,7 +227,7 @@ function showAdminUI() {
   }
   
   window.dispatchEvent(new Event('adminLoggedIn'));
-
+  
   // Show admin action buttons on all pet cards
   const adminActions = document.querySelectorAll('.pet-admin-actions');
   adminActions.forEach(el => el.classList.add('visible'));
@@ -225,7 +235,9 @@ function showAdminUI() {
 
 function hideAdminUI() {
   const logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) logoutBtn.classList.add('hidden');
+  if (logoutBtn) {
+    logoutBtn.classList.add('hidden');
+  }
   
   // Hide admin section in sidebar
   const adminSection = document.getElementById('admin-nav-section');
@@ -236,7 +248,7 @@ function hideAdminUI() {
   }
   
   window.dispatchEvent(new Event('adminLoggedOut'));
-
+  
   // Hide admin action buttons
   const adminActions = document.querySelectorAll('.pet-admin-actions');
   adminActions.forEach(el => el.classList.remove('visible'));
@@ -258,42 +270,47 @@ async function loadPets(forceRefresh = false) {
   }
   
   container.innerHTML = '<div class="pets-loading">Loading pets...</div>';
-
-  // Try cache first unless force refresh
+  
+  // Try cache first (unless force refresh)
   if (!forceRefresh) {
     const cached = getCache(CACHE_KEY);
     if (cached && Array.isArray(cached) && cached.length > 0) {
       allPets = cached;
       window.allPets = allPets;
       console.log('[DEBUG] Loaded', allPets.length, 'pets from cache');
-      // Explicitly set filter to 'all' and render immediately
-      currentRarityFilter = 'all';
-      renderPets('all');
+      // Explicitly set filter to "all" and render immediately
+      currentRarityFilter = "all";
+      renderPets("all");
       return;
     }
   }
-
+  
   // Fetch from backend with timestamp to prevent caching
   try {
     console.log('[DEBUG] Fetching pets from API...');
     const res = await fetch(`${API_BASE}/api/pets?t=${Date.now()}`, {
       method: 'GET',
-      headers: { 'Accept': 'application/json' }
+      headers: {
+        'Accept': 'application/json'
+      }
     });
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    
     const data = await res.json();
     console.log('[DEBUG] API returned data:', data);
     
     allPets = Array.isArray(data) ? data : [];
     window.allPets = allPets;
+    
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
     console.log('[DEBUG] Loaded', allPets.length, 'pets from API');
     
-    // Explicitly set filter to 'all' and render immediately
-    currentRarityFilter = 'all';
-    renderPets('all');
+    // Explicitly set filter to "all" and render immediately
+    currentRarityFilter = "all";
+    renderPets("all");
   } catch (err) {
     console.warn('[DEBUG-WARNING] Failed to load pets:', err);
     container.innerHTML = '<div class="pets-loading">Failed to load pets. Try refreshing.</div>';
@@ -304,9 +321,8 @@ async function loadPets(forceRefresh = false) {
 function updateWelcomeMessage(filterRarity) {
   const welcomeDiv = document.querySelector('.welcome');
   if (!welcomeDiv) return;
-
+  
   let title, subtitle;
-
   if (!filterRarity || filterRarity === 'all') {
     title = 'Tap Simulator Value List';
     subtitle = 'Browse all pets and their current values';
@@ -314,17 +330,15 @@ function updateWelcomeMessage(filterRarity) {
     title = `${filterRarity} Pets`;
     subtitle = `Viewing ${filterRarity} rarity pets`;
   }
-
-  welcomeDiv.innerHTML = `
-    <h2>${title}</h2>
-    <p>${subtitle}</p>
-  `;
+  
+  welcomeDiv.innerHTML = `<h2>${title}</h2><p>${subtitle}</p>`;
 }
 
 // Helper function to get numeric value from pet property
 function getPetNumericValue(pet, property) {
   const value = pet[property];
   if (value == null) return 0;
+  
   if (typeof value === 'number') return value;
   
   // Parse string value (supports "1B", "500M", etc.)
@@ -338,12 +352,12 @@ function getPetNumericValue(pet, property) {
 // Filter and sort pets based on current state (no API calls)
 function filterAndSortPets() {
   let filteredPets = [...allPets];
-
+  
   // Apply rarity filter from sidebar
   if (currentRarityFilter && currentRarityFilter !== 'all') {
     filteredPets = filteredPets.filter(pet => pet.rarity === currentRarityFilter);
   }
-
+  
   // Apply search query
   if (currentSearchQuery.trim()) {
     const query = currentSearchQuery.toLowerCase();
@@ -351,12 +365,12 @@ function filterAndSortPets() {
       pet.name && pet.name.toLowerCase().includes(query)
     );
   }
-
+  
   // NEW: Apply advanced filters from filter panel
   if (typeof applyAdvancedFilters === 'function') {
     filteredPets = applyAdvancedFilters(filteredPets);
   }
-
+  
   // Apply sort mode
   switch (currentSortMode) {
     case 'newest':
@@ -366,7 +380,6 @@ function filterAndSortPets() {
         return dateB - dateA;
       });
       break;
-    
     case 'oldest':
       filteredPets.sort((a, b) => {
         const dateA = new Date(a.updated_at || a.created_at || 0);
@@ -374,7 +387,6 @@ function filterAndSortPets() {
         return dateA - dateB;
       });
       break;
-    
     case 'highest':
       // Debug warning: Sort by value_normal descending using value translator
       filteredPets.sort((a, b) => {
@@ -383,7 +395,6 @@ function filterAndSortPets() {
         return valueB - valueA;
       });
       break;
-    
     case 'default':
     default:
       // Debug warning: Default sort by value_normal descending using value translator
@@ -394,7 +405,7 @@ function filterAndSortPets() {
       });
       break;
   }
-
+  
   renderPetsToGrid(filteredPets);
 }
 
@@ -406,7 +417,6 @@ function renderPets(filterRarity = null) {
   }
   
   console.log('[DEBUG] Rendering pets with filter:', currentRarityFilter, 'Total pets:', allPets.length);
-  
   updateWelcomeMessage(currentRarityFilter);
   filterAndSortPets();
 }
@@ -418,25 +428,24 @@ function renderPetsToGrid(pets) {
     console.warn('[DEBUG-WARNING] pets-container not found in renderPetsToGrid');
     return;
   }
-
+  
   // Apply current view density to grid
   applyViewDensity();
-
+  
   if (!pets || pets.length === 0) {
     container.innerHTML = '<div class="pets-loading">No pets found matching your criteria.</div>';
     return;
   }
-
+  
   console.log('[DEBUG] Rendering', pets.length, 'pets to grid');
-
   const html = pets.map(pet => createPetCard(pet)).join('');
   container.innerHTML = html;
-
+  
   // Re-apply visual effects
   if (typeof applyAllCardEffects === 'function') {
     applyAllCardEffects();
   }
-
+  
   // Show admin buttons if logged in
   if (isAdminLoggedIn) {
     const adminActions = document.querySelectorAll('.pet-admin-actions');
@@ -455,7 +464,7 @@ window.renderPets = renderPets;
 function applyViewDensity() {
   const container = document.getElementById('pets-container');
   if (!container) return;
-
+  
   // Remove existing density classes
   container.classList.remove('density-7', 'density-9', 'density-11');
   
@@ -474,46 +483,22 @@ function setViewDensity(density) {
   
   currentViewDensity = density;
   applyViewDensity();
-  
   console.log('[DEBUG] View density changed to:', density);
 }
 
 // =======================
-// Imgur Image Handling
+// jsDelivr Image Handling
 // =======================
 
-// Debug warning: Extract Imgur ID from various input formats
-function extractImgurId(input) {
-  if (!input) return null;
+// Debug warning: Construct jsDelivr CDN URL from pet image ID
+function buildImageUrl(imageId) {
+  if (!imageId) return null;
   
-  // Remove whitespace
-  input = input.trim();
+  // Clean the image ID (remove any whitespace or extensions)
+  const cleanId = imageId.trim().replace(/\.(png|jpg|jpeg|gif|webp)$/i, '');
   
-  // If it's just the ID (e.g., "7Tmh0q5")
-  if (/^[a-zA-Z0-9]{7}$/.test(input)) {
-    return input;
-  }
-  
-  // If it's a full URL (e.g., "https://imgur.com/7Tmh0q5" or "https://i.imgur.com/7Tmh0q5.png")
-  const urlMatch = input.match(/imgur\.com\/([a-zA-Z0-9]{7})/);
-  if (urlMatch) {
-    return urlMatch[1];
-  }
-  
-  // If it's an embed code, extract the data-id
-  const embedMatch = input.match(/data-id="([a-zA-Z0-9]{7})"/);
-  if (embedMatch) {
-    return embedMatch[1];
-  }
-  
-  return null;
-}
-
-// Debug warning: Convert Imgur ID to direct image URL (tries multiple extensions)
-function imgurIdToUrl(imgurId) {
-  if (!imgurId) return null;
-  // Try .jpg first (most common), fallback handled in img onerror
-  return `https://i.imgur.com/${imgurId}.jpg`;
+  // Construct jsDelivr URL with .png extension
+  return `${JSDELIVR_BASE}/${cleanId}.png`;
 }
 
 // =======================
@@ -524,29 +509,28 @@ function imgurIdToUrl(imgurId) {
 function createPetCard(pet) {
   const rarityClass = getRarityClass(pet.rarity);
   
-  // Debug warning: Check if image_url exists and extract ID
+  // Debug warning: Build jsDelivr CDN URL from image_url field
   let imageUrl = null;
   if (pet.image_url) {
-    const imgurId = extractImgurId(pet.image_url);
-    if (imgurId) {
-      imageUrl = imgurIdToUrl(imgurId);
-      console.log('[DEBUG] Pet', pet.name, '- Imgur ID:', imgurId, '- URL:', imageUrl);
-    } else {
-      console.warn('[DEBUG-WARNING] Pet', pet.name, '- Could not extract Imgur ID from:', pet.image_url);
-    }
+    imageUrl = buildImageUrl(pet.image_url);
+    console.log('[DEBUG] Pet:', pet.name, '- Image ID:', pet.image_url, '- URL:', imageUrl);
+  } else {
+    console.warn('[DEBUG-WARNING] Pet:', pet.name, '- No image ID provided');
   }
   
   const lastUpdated = formatLastUpdated(pet.updated_at);
   
-  // Add percentage symbol if stats_type is 'percentage'
-  const statsDisplay = pet.stats_type === 'percentage' ? `${pet.stats || '0'}%` : (pet.stats || '0');
-
+  // Add percentage symbol if stats_type is "percentage"
+  const statsDisplay = pet.stats_type === 'percentage' 
+    ? `${pet.stats || 0}%` 
+    : (pet.stats || 0);
+  
   return `
     <div class="pet-card" data-pet-id="${pet.id}">
       <div class="pet-image">
-        ${imageUrl ? 
-          `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" loading="lazy" onerror="this.onerror=null; this.src='https://i.imgur.com/${extractImgurId(pet.image_url)}.png'; this.onerror=function(){ this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);\\'>No Image</div>'; };">` :
-          `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">No Image</div>`
+        ${imageUrl 
+          ? `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3)\\'>No Image</div>';">` 
+          : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3)">No Image</div>`
         }
       </div>
       <div class="pet-info">
@@ -560,22 +544,22 @@ function createPetCard(pet) {
         </div>
         <div class="pet-stat-row">
           <span class="pet-stat-label pet-normal-label">Normal</span>
-          <span class="pet-stat-value pet-normal-value">${pet.value_normal || '0'}</span>
+          <span class="pet-stat-value pet-normal-value">${pet.value_normal || 0}</span>
         </div>
         <div class="pet-stat-row">
           <span class="pet-stat-label pet-golden-label">Golden</span>
-          <span class="pet-stat-value pet-golden-value">${pet.value_golden || '0'}</span>
+          <span class="pet-stat-value pet-golden-value">${pet.value_golden || 0}</span>
         </div>
         <div class="pet-stat-row">
           <span class="pet-stat-label pet-rainbow-label">Rainbow</span>
-          <span class="pet-stat-value pet-rainbow-value">${pet.value_rainbow || '0'}</span>
+          <span class="pet-stat-value pet-rainbow-value">${pet.value_rainbow || 0}</span>
         </div>
         <div class="pet-stat-row">
           <span class="pet-stat-label pet-void-label">Void</span>
-          <span class="pet-stat-value pet-void-value">${pet.value_void || '0'}</span>
+          <span class="pet-stat-value pet-void-value">${pet.value_void || 0}</span>
         </div>
       </div>
-      <div class="pet-updated">Updated: ${lastUpdated}</div>
+      <div class="pet-updated">Updated ${lastUpdated}</div>
       <div class="pet-admin-actions">
         <button class="btn-edit" onclick="editPet(${pet.id})">Edit</button>
         <button class="btn-delete" onclick="deletePet(${pet.id})">Delete</button>
@@ -641,22 +625,22 @@ function parseValueToNumber(value) {
   if (!isNaN(str)) return parseFloat(str);
   
   // Extract number and suffix
-  const match = str.match(/^([\d.]+)([KMBTQ]|QA|QN|SX|SP)?$/);
+  const match = str.match(/^([\d.]+)([KMBTQQAQNSXSP])?$/);
   if (!match) return 0;
   
   const num = parseFloat(match[1]);
-  const suffix = match[2] || '';
+  const suffix = match[2];
   
   // Multiplier map
   const multipliers = {
-    'K': 1e3,           // Thousand
-    'M': 1e6,           // Million
-    'B': 1e9,           // Billion
-    'T': 1e12,          // Trillion
-    'QA': 1e15,         // Quadrillion
-    'QN': 1e18,         // Quintillion
-    'SX': 1e21,         // Sextillion
-    'SP': 1e24          // Septillion
+    'K': 1e3,      // Thousand
+    'M': 1e6,      // Million
+    'B': 1e9,      // Billion
+    'T': 1e12,     // Trillion
+    'QA': 1e15,    // Quadrillion
+    'QN': 1e18,    // Quintillion
+    'SX': 1e21,    // Sextillion
+    'SP': 1e24     // Septillion
   };
   
   return num * (multipliers[suffix] || 1);
@@ -668,11 +652,10 @@ window.parseValueToNumber = parseValueToNumber;
 // =======================
 // CRUD Operations
 // =======================
-async function addPet(petData) {
-  if (!await verifyAdminBeforeAction()) {
-    return false;
-  }
 
+async function addPet(petData) {
+  if (!await verifyAdminBeforeAction()) return false;
+  
   try {
     const res = await fetch(`${API_BASE}/api/pets`, {
       method: 'POST',
@@ -683,21 +666,22 @@ async function addPet(petData) {
       },
       body: JSON.stringify(petData)
     });
-
+    
     if (res.status === 401) {
       console.warn('[DEBUG] Unauthorized - logging out');
       adminLogout();
       return false;
     }
-
+    
     if (!res.ok) {
       console.warn('[DEBUG] Failed to add pet:', res.status);
       return false;
     }
-
+    
     const newPet = await res.json();
     allPets.push(newPet);
     window.allPets = allPets; // Update global reference
+    
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
     renderPets(currentRarityFilter);
     console.log('[DEBUG] Pet added:', newPet.name);
@@ -709,10 +693,8 @@ async function addPet(petData) {
 }
 
 async function updatePet(petId, petData) {
-  if (!await verifyAdminBeforeAction()) {
-    return false;
-  }
-
+  if (!await verifyAdminBeforeAction()) return false;
+  
   try {
     const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
       method: 'PUT',
@@ -723,26 +705,27 @@ async function updatePet(petId, petData) {
       },
       body: JSON.stringify(petData)
     });
-
+    
     if (res.status === 401) {
       console.warn('[DEBUG] Unauthorized - logging out');
       adminLogout();
       return false;
     }
-
+    
     if (!res.ok) {
       console.warn('[DEBUG] Failed to update pet:', res.status);
       return false;
     }
-
+    
     const updatedPet = await res.json();
     const index = allPets.findIndex(p => p.id === petId);
     if (index !== -1) {
       allPets[index] = updatedPet;
-      window.allPets = allPets; // Update global reference
-      setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
-      renderPets(currentRarityFilter);
     }
+    window.allPets = allPets; // Update global reference
+    
+    setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
+    renderPets(currentRarityFilter);
     console.log('[DEBUG] Pet updated:', updatedPet.name);
     return true;
   } catch (err) {
@@ -752,14 +735,10 @@ async function updatePet(petId, petData) {
 }
 
 async function deletePet(petId) {
-  if (!confirm('Are you sure you want to delete this pet?')) {
-    return;
-  }
-
-  if (!await verifyAdminBeforeAction()) {
-    return;
-  }
-
+  if (!confirm('Are you sure you want to delete this pet?')) return;
+  
+  if (!await verifyAdminBeforeAction()) return;
+  
   try {
     const res = await fetch(`${API_BASE}/api/pets/${petId}`, {
       method: 'DELETE',
@@ -768,21 +747,22 @@ async function deletePet(petId) {
         'X-Admin-Password': adminCredentials.password
       }
     });
-
+    
     if (res.status === 401) {
       console.warn('[DEBUG] Unauthorized - logging out');
       adminLogout();
       return;
     }
-
+    
     if (!res.ok) {
       console.warn('[DEBUG] Failed to delete pet:', res.status);
       alert('Failed to delete pet. Please try again.');
       return;
     }
-
+    
     allPets = allPets.filter(p => p.id !== petId);
     window.allPets = allPets; // Update global reference
+    
     setCache(CACHE_KEY, allPets, THIRTY_MINUTES_MS);
     renderPets(currentRarityFilter);
     console.log('[DEBUG] Pet deleted:', petId);
@@ -832,7 +812,7 @@ function closeLoginModal() {
   }
 }
 
-// Debug warning: Updated to handle Imgur ID input instead of file upload
+// Debug warning: Updated to handle image ID input (for jsDelivr CDN)
 function openPetModal(pet = null) {
   const modal = document.getElementById('pet-modal');
   const form = document.getElementById('pet-form');
@@ -847,32 +827,32 @@ function openPetModal(pet = null) {
   if (pet) {
     // Edit mode
     currentEditingPetId = pet.id;
+    
     if (modalTitle) modalTitle.textContent = 'Edit Pet';
     
     // Populate form fields
-    document.getElementById('pet-name').value = pet.name || '';
-    document.getElementById('pet-rarity').value = pet.rarity || '';
+    document.getElementById('pet-name').value = pet.name;
+    document.getElementById('pet-rarity').value = pet.rarity;
     document.getElementById('pet-stats-type').value = pet.stats_type || 'value';
-    document.getElementById('pet-stats').value = pet.stats || '';
-    document.getElementById('pet-value-normal').value = pet.value_normal || '';
-    document.getElementById('pet-value-golden').value = pet.value_golden || '';
-    document.getElementById('pet-value-rainbow').value = pet.value_rainbow || '';
-    document.getElementById('pet-value-void').value = pet.value_void || '';
+    document.getElementById('pet-stats').value = pet.stats;
+    document.getElementById('pet-value-normal').value = pet.value_normal;
+    document.getElementById('pet-value-golden').value = pet.value_golden;
+    document.getElementById('pet-value-rainbow').value = pet.value_rainbow;
+    document.getElementById('pet-value-void').value = pet.value_void;
     
-    // Extract and populate Imgur ID (store whatever is in database as-is)
-    document.getElementById('pet-imgur-id').value = pet.image_url || '';
+    // Populate image ID field (store whatever is in database as-is)
+    document.getElementById('pet-image-id').value = pet.image_url || '';
     
     // Show image preview if exists
     if (pet.image_url && imagePreview) {
-      const imgurId = extractImgurId(pet.image_url);
-      if (imgurId) {
-        const imageUrl = imgurIdToUrl(imgurId);
+      const imageUrl = buildImageUrl(pet.image_url);
+      if (imageUrl) {
         document.getElementById('preview-img').src = imageUrl;
         imagePreview.classList.remove('hidden');
       }
     }
   } else {
-    // Add mode - set default stats_type to 'value'
+    // Add mode - set default stats_type to "value"
     currentEditingPetId = null;
     if (modalTitle) modalTitle.textContent = 'Add Pet';
     document.getElementById('pet-stats-type').value = 'value';
@@ -902,19 +882,19 @@ function initEventListeners() {
   if (adminIconBtn) {
     adminIconBtn.addEventListener('click', openLoginModal);
   }
-
+  
   // Logout button
   const logoutBtn = document.getElementById('logout-btn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', adminLogout);
   }
-
+  
   // Login modal close
   const loginModalClose = document.getElementById('login-modal-close');
   if (loginModalClose) {
     loginModalClose.addEventListener('click', closeLoginModal);
   }
-
+  
   const loginModal = document.getElementById('login-modal');
   if (loginModal) {
     const backdrop = loginModal.querySelector('.modal-backdrop');
@@ -922,12 +902,13 @@ function initEventListeners() {
       backdrop.addEventListener('click', closeLoginModal);
     }
   }
-
+  
   // Login form
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      
       const username = document.getElementById('login-username').value;
       const password = document.getElementById('login-password').value;
       const message = document.getElementById('login-message');
@@ -946,18 +927,18 @@ function initEventListeners() {
       }
     });
   }
-
+  
   // Pet modal close
   const modalClose = document.getElementById('modal-close');
   if (modalClose) {
     modalClose.addEventListener('click', closePetModal);
   }
-
+  
   const cancelBtn = document.getElementById('cancel-btn');
   if (cancelBtn) {
     cancelBtn.addEventListener('click', closePetModal);
   }
-
+  
   const petModal = document.getElementById('pet-modal');
   if (petModal) {
     const backdrop = petModal.querySelector('.modal-backdrop');
@@ -965,17 +946,17 @@ function initEventListeners() {
       backdrop.addEventListener('click', closePetModal);
     }
   }
-
+  
   // Pet form submission
   const petForm = document.getElementById('pet-form');
   if (petForm) {
     petForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      
       const message = document.getElementById('pet-form-message');
       
-      // Get Imgur input and store as-is (just the ID or whatever admin entered)
-      const imgurInput = document.getElementById('pet-imgur-id').value.trim();
-      const imgurId = extractImgurId(imgurInput);
+      // Get image ID input (just the ID like "002")
+      const imageIdInput = document.getElementById('pet-image-id').value.trim();
       
       // Get values as text, not as integers
       const petData = {
@@ -987,69 +968,65 @@ function initEventListeners() {
         value_golden: document.getElementById('pet-value-golden').value || '0',
         value_rainbow: document.getElementById('pet-value-rainbow').value || '0',
         value_void: document.getElementById('pet-value-void').value || '0',
-        image_url: imgurId || null // Store just the extracted ID
+        image_url: imageIdInput || null // Store just the ID
       };
-
+      
       console.log('[DEBUG] Submitting pet data:', petData);
-
+      
       // Submit pet data
       await submitPet(petData, message);
     });
-
-    async function submitPet(petData, message) {
-      let success;
-      if (currentEditingPetId) {
-        success = await updatePet(currentEditingPetId, petData);
-      } else {
-        success = await addPet(petData);
-      }
-
-      if (success) {
-        message.textContent = 'Pet saved successfully!';
-        message.className = 'form-message success';
-        setTimeout(closePetModal, 1000);
-      } else {
-        message.textContent = 'Failed to save pet. Please try again.';
-        message.className = 'form-message error';
-      }
+  }
+  
+  async function submitPet(petData, message) {
+    let success;
+    if (currentEditingPetId) {
+      success = await updatePet(currentEditingPetId, petData);
+    } else {
+      success = await addPet(petData);
+    }
+    
+    if (success) {
+      message.textContent = 'Pet saved successfully!';
+      message.className = 'form-message success';
+      setTimeout(closePetModal, 1000);
+    } else {
+      message.textContent = 'Failed to save pet. Please try again.';
+      message.className = 'form-message error';
     }
   }
-
-  // Debug warning: Imgur ID input live preview
-  const imgurIdInput = document.getElementById('pet-imgur-id');
-  if (imgurIdInput) {
-    imgurIdInput.addEventListener('input', (e) => {
-      const imgurId = extractImgurId(e.target.value);
+  
+  // Debug warning: Image ID input live preview
+  const imageIdInput = document.getElementById('pet-image-id');
+  if (imageIdInput) {
+    imageIdInput.addEventListener('input', (e) => {
+      const imageId = e.target.value.trim();
       const imagePreview = document.getElementById('image-preview');
       const previewImg = document.getElementById('preview-img');
       
-      if (imgurId && imagePreview && previewImg) {
-        const imageUrl = imgurIdToUrl(imgurId);
+      if (imageId && imagePreview && previewImg) {
+        const imageUrl = buildImageUrl(imageId);
         previewImg.src = imageUrl;
         imagePreview.classList.remove('hidden');
-        console.log('[DEBUG] Preview Imgur ID:', imgurId, '- URL:', imageUrl);
+        console.log('[DEBUG] Preview Image ID:', imageId, '- URL:', imageUrl);
       } else if (imagePreview) {
         imagePreview.classList.add('hidden');
       }
     });
-    
-    // Handle image load error - try .png if .jpg fails
-    const previewImg = document.getElementById('preview-img');
-    if (previewImg) {
-      previewImg.addEventListener('error', function() {
-        if (this.src.endsWith('.jpg')) {
-          console.log('[DEBUG] .jpg failed, trying .png');
-          this.src = this.src.replace('.jpg', '.png');
-        } else {
-          const imagePreview = document.getElementById('image-preview');
-          if (imagePreview) {
-            imagePreview.classList.add('hidden');
-          }
-        }
-      });
-    }
   }
-
+  
+  // Handle image load error
+  const previewImg = document.getElementById('preview-img');
+  if (previewImg) {
+    previewImg.addEventListener('error', function() {
+      const imagePreview = document.getElementById('image-preview');
+      if (imagePreview) {
+        imagePreview.classList.add('hidden');
+      }
+      console.warn('[DEBUG-WARNING] Failed to load preview image');
+    });
+  }
+  
   // Search input - real-time filtering
   const searchInput = document.getElementById('search-input');
   if (searchInput) {
@@ -1058,13 +1035,12 @@ function initEventListeners() {
       renderPets(); // Re-render with search applied (no API call)
     });
   }
-
+  
   // Zoom Control Buttons - change view density
   const zoomButtons = document.querySelectorAll('.zoom-btn');
   zoomButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      
       const density = parseInt(btn.dataset.density);
       
       // Update active state on buttons
@@ -1073,11 +1049,10 @@ function initEventListeners() {
       
       // Apply density change
       setViewDensity(density);
-      
       console.log('[DEBUG] Zoom level changed to:', density);
     });
   });
-
+  
   // NEW: Filter Panel Button Click (opens advanced filter modal)
   const filterBtn = document.getElementById('filter-btn');
   if (filterBtn) {
@@ -1099,7 +1074,7 @@ function initEventListeners() {
       }
     });
   }
-
+  
   // Filter options - apply sort mode (keep existing dropdown functionality)
   const filterOptions = document.querySelectorAll('.filter-option');
   filterOptions.forEach(option => {
@@ -1121,11 +1096,10 @@ function initEventListeners() {
       
       // Re-render with new sort (no API call)
       renderPets();
-      
       console.log('[DEBUG] Sort mode changed to:', currentSortMode);
     });
   });
-
+  
   // Sidebar navigation (rarity filters and admin links)
   document.addEventListener('click', (e) => {
     const navLink = e.target.closest('.nav-link');
@@ -1166,9 +1140,9 @@ function initEventListeners() {
       }
       
       // Update active state
-      document.querySelectorAll('.nav-link[data-rarity]').forEach(link => {
-        link.classList.remove('active');
-      });
+      document.querySelectorAll('.nav-link[data-rarity]').forEach(link => 
+        link.classList.remove('active')
+      );
       navLink.classList.add('active');
       
       // Render pets with rarity filter
@@ -1182,6 +1156,7 @@ function initEventListeners() {
 // =======================
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('[DEBUG] Page loaded, initializing...');
+  
   clearOldCaches();
   generateSidebar();
   checkAdminSession();
@@ -1206,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Make functions globally accessible
 window.setViewDensity = setViewDensity;
 window.filterAndSortPets = filterAndSortPets;
-window.extractImgurId = extractImgurId;
+window.buildImageUrl = buildImageUrl;
 
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /main.js
