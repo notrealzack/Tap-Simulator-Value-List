@@ -876,6 +876,7 @@ function openPetModal(pet = null) {
     document.getElementById('pet-value-void').value = pet.value_void;
     
     // Populate image ID field (store whatever is in database as-is)
+    document.getElementById('pet-description').value = pet.description
     document.getElementById('pet-image-id').value = pet.image_url || '';
     
     // Show image preview if exists
