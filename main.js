@@ -1011,16 +1011,18 @@ function initEventListeners() {
       
       // Get values as text, not as integers
       const petData = {
-        name: document.getElementById('pet-name').value,
-        rarity: document.getElementById('pet-rarity').value,
-        stats_type: document.getElementById('pet-stats-type').value,
-        stats: document.getElementById('pet-stats').value || '0',
-        value_normal: document.getElementById('pet-value-normal').value || '0',
-        value_golden: document.getElementById('pet-value-golden').value || '0',
-        value_rainbow: document.getElementById('pet-value-rainbow').value || '0',
-        value_void: document.getElementById('pet-value-void').value || '0',
-        image_url: imageIdInput || null // Store ID with or without extension
-      };
+  name: document.getElementById('pet-name').value,
+  rarity: document.getElementById('pet-rarity').value,
+  stats_type: document.getElementById('pet-stats-type').value,
+  stats: document.getElementById('pet-stats').value || '0',
+  value_normal: document.getElementById('pet-value-normal').value || '0',
+  value_golden: document.getElementById('pet-value-golden').value || '0',
+  value_rainbow: document.getElementById('pet-value-rainbow').value || '0',
+  value_void: document.getElementById('pet-value-void').value || '0',
+  description: document.getElementById('pet-description').value || '', 
+  image_url: imageIdInput || null
+};
+
       
       console.log('[DEBUG] Submitting pet data:', petData);
       
