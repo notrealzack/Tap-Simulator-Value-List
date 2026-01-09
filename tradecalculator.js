@@ -4,12 +4,12 @@
 // Debug warning: Trade calculator logic - displays inline in content area
 // Debug warning: Supports Void variant, allows multiple pets with quantity tracking
 
-// ===========================
+// =======================
 // Configuration
-// ===========================
-const TRADE_CACHE_KEY = 'rpv_trade_state_v4'; // Updated version for void support
+// =======================
+const TRADE_CACHE_KEY = "rpv_trade_state_v4"; // Updated version for void support
 
-// Track which side is being searched ('you'/'them')
+// Track which side is being searched (you/them)
 let currentSearchSide = null;
 
 // Track if trade calculator is open
@@ -27,9 +27,9 @@ let tradeState = {
   }
 };
 
-// ===========================
+// =======================
 // HELPER FUNCTIONS
-// ===========================
+// =======================
 
 // Debug warning: Use global value translator for accurate value comparisons
 function getNumericValue(textValue) {
@@ -53,43 +53,20 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-// Debug warning: Extract Imgur ID from various input formats (same as main.js)
-function extractImgurId(input) {
-  if (!input) return null;
-  
-  // Remove whitespace
-  input = input.trim();
-  
-  // If it's just the ID (e.g., "7Tmh0q5")
-  if (/^[a-zA-Z0-9]{7}$/.test(input)) {
-    return input;
+// Debug warning: Use global buildImageUrl function from main.js for jsDelivr CDN
+function getImageUrl(imageId) {
+  // Use the global buildImageUrl function from main.js
+  if (typeof window.buildImageUrl === 'function') {
+    return window.buildImageUrl(imageId);
   }
-  
-  // If it's a full URL (e.g., "https://imgur.com/7Tmh0q5" or "https://i.imgur.com/7Tmh0q5.png")
-  const urlMatch = input.match(/imgur\.com\/([a-zA-Z0-9]{7})/);
-  if (urlMatch) {
-    return urlMatch[1];
-  }
-  
-  // If it's an embed code, extract the data-id
-  const embedMatch = input.match(/data-id="([a-zA-Z0-9]{7})"/);
-  if (embedMatch) {
-    return embedMatch[1];
-  }
-  
+  // Fallback if function not available (shouldn't happen)
+  console.warn('[DEBUG-WARNING] buildImageUrl function not available');
   return null;
 }
 
-// Debug warning: Convert Imgur ID to direct image URL (same as main.js)
-function imgurIdToUrl(imgurId) {
-  if (!imgurId) return null;
-  // Try .jpg first (most common), fallback handled in img onerror
-  return `https://i.imgur.com/${imgurId}.jpg`;
-}
-
-// ===========================
+// =======================
 // CACHE MANAGEMENT
-// ===========================
+// =======================
 
 function saveTradeToCache() {
   try {
@@ -107,7 +84,10 @@ function loadTradeFromCache() {
     }
   } catch (err) {
     console.warn('[DEBUG-WARNING] Failed to load trade state:', err);
-    tradeState = { you: { pets: [], tokens: 0 }, them: { pets: [], tokens: 0 } };
+    tradeState = {
+      you: { pets: [], tokens: 0 },
+      them: { pets: [], tokens: 0 }
+    };
   }
 }
 
@@ -119,9 +99,9 @@ function clearTradeCache() {
   }
 }
 
-// ===========================
+// =======================
 // PET MANAGEMENT WITH VARIANTS AND QUANTITY
-// ===========================
+// =======================
 
 // Add pet to side with variant (normal, golden, rainbow, void)
 function addPetToSide(pet, variant, side) {
@@ -129,7 +109,7 @@ function addPetToSide(pet, variant, side) {
     console.warn('[DEBUG-WARNING] Invalid pet, variant, or side');
     return;
   }
-
+  
   // Get the value based on variant (including void)
   let value;
   switch (variant) {
@@ -145,16 +125,13 @@ function addPetToSide(pet, variant, side) {
     default: // 'normal'
       value = pet.value_normal || 0;
   }
-
-  // Debug warning: Convert image_url to full Imgur URL
+  
+  // Debug warning: Use global buildImageUrl function for jsDelivr CDN
   let imageUrl = null;
   if (pet.image_url) {
-    const imgurId = extractImgurId(pet.image_url);
-    if (imgurId) {
-      imageUrl = imgurIdToUrl(imgurId);
-    }
+    imageUrl = getImageUrl(pet.image_url);
   }
-
+  
   // Check if pet with same variant already exists
   const existingPet = tradeState[side].pets.find(p => p.id === pet.id && p.variant === variant);
   
@@ -169,12 +146,12 @@ function addPetToSide(pet, variant, side) {
       name: pet.name,
       variant: variant, // 'normal', 'golden', 'rainbow', 'void'
       value: value,
-      imageUrl: imageUrl, // Now converted to full URL
+      imageUrl: imageUrl, // Now converted to jsDelivr URL
       rarity: pet.rarity,
       quantity: 1 // Start with 1
     });
   }
-
+  
   saveTradeToCache();
   renderTradePanel();
   closeSearchDropdown();
@@ -186,8 +163,9 @@ function removePetFromSide(uniqueId, side) {
     console.warn('[DEBUG-WARNING] Invalid unique ID or side');
     return;
   }
-
+  
   tradeState[side].pets = tradeState[side].pets.filter(p => p.uniqueId !== uniqueId);
+  
   saveTradeToCache();
   renderTradePanel();
 }
@@ -198,47 +176,49 @@ function changePetQuantity(uniqueId, side, delta) {
     console.warn('[DEBUG-WARNING] Invalid unique ID or side');
     return;
   }
-
+  
   const pet = tradeState[side].pets.find(p => p.uniqueId === uniqueId);
   if (!pet) return;
-
+  
   pet.quantity = Math.max(1, (pet.quantity || 1) + delta);
+  
   saveTradeToCache();
   renderTradePanel();
 }
 
-// ===========================
+// =======================
 // TOKEN MANAGEMENT
-// ===========================
+// =======================
 
 function updateTokenValue(value, side) {
   if (!side) {
     console.warn('[DEBUG-WARNING] Invalid side for token update');
     return;
   }
-
+  
   const tokenValue = parseInt(value) || 0;
   tradeState[side].tokens = Math.max(0, tokenValue);
+  
   saveTradeToCache();
   updateTotalDisplay();
   updateTradeResult();
 }
 
-// ===========================
+// =======================
 // VALUE CALCULATIONS
-// ===========================
+// =======================
 
 // Debug warning: Converts text values to numbers for accurate calculations
 function calculateTotalValue(side) {
   if (!side) return 0;
-
+  
   // Calculate pets total (value * quantity)
   const petsTotal = tradeState[side].pets.reduce((sum, pet) => {
     const petValue = getNumericValue(pet.value);
     const quantity = pet.quantity || 1;
     return sum + (petValue * quantity);
   }, 0);
-
+  
   const total = petsTotal + tradeState[side].tokens;
   return total;
 }
@@ -246,43 +226,35 @@ function calculateTotalValue(side) {
 function compareTrades() {
   const youTotal = calculateTotalValue('you');
   const themTotal = calculateTotalValue('them');
-
+  
   // Handle edge cases
   if (themTotal === 0 && youTotal === 0) {
     return { status: 'neutral', text: 'Add pets to compare', class: 'neutral' };
   }
-
+  
   if (themTotal === 0) {
     return { status: 'win', text: 'You Win! (They offer nothing)', class: 'win' };
   }
-
+  
   // Calculate difference
   const difference = youTotal - themTotal;
-  const percentageDiff = (Math.abs(difference) / themTotal) * 100;
-
+  const percentageDiff = Math.abs(difference / themTotal) * 100;
+  
   // Fair trade threshold (within 5%)
   if (percentageDiff <= 5) {
     return { status: 'fair', text: 'Fair Trade ✓', class: 'fair' };
   }
-
+  
   if (difference > 0) {
-    return {
-      status: 'lose',
-      text: `You Lose: -${formatNumber(Math.abs(difference))}`,
-      class: 'lose'
-    };
+    return { status: 'lose', text: `You Lose (-${formatNumber(Math.abs(difference))})`, class: 'lose' };
   }
-
-  return {
-    status: 'win',
-    text: `You Win! +${formatNumber(Math.abs(difference))}`,
-    class: 'win'
-  };
+  
+  return { status: 'win', text: `You Win! (+${formatNumber(Math.abs(difference))})`, class: 'win' };
 }
 
-// ===========================
+// =======================
 // RENDERING FUNCTIONS
-// ===========================
+// =======================
 
 function renderTradePanel() {
   renderSidePets('you');
@@ -292,13 +264,13 @@ function renderTradePanel() {
 }
 
 // Debug warning: Display keeps text format (15K, 1.5M) in pet cards, shows quantity
-// Debug warning: Now uses Imgur URL conversion for images
+// Debug warning: Now uses jsDelivr CDN URLs for images
 function renderSidePets(side) {
   const container = document.getElementById(`${side}-pets`);
   if (!container) return;
-
+  
   const pets = tradeState[side].pets;
-
+  
   // Add button at start
   let html = `
     <div class="trade-add-card" data-side="${side}">
@@ -306,13 +278,11 @@ function renderSidePets(side) {
       <div class="trade-add-text">Add Pet</div>
     </div>
   `;
-
+  
   // Render each pet with quantity controls
   pets.forEach(pet => {
     // Variant badge styling
-    let variantClass = '';
-    let variantLabel = '';
-    
+    let variantClass, variantLabel;
     if (pet.variant === 'golden') {
       variantClass = 'golden';
       variantLabel = 'G';
@@ -326,29 +296,30 @@ function renderSidePets(side) {
       variantClass = 'normal';
       variantLabel = 'N';
     }
-
+    
     const quantity = pet.quantity || 1;
-
-    // Debug warning: Image now uses converted Imgur URL with fallback handling
+    
+    // Debug warning: Image now uses jsDelivr CDN URL with fallback handling
     html += `
       <div class="trade-pet-card" data-unique-id="${pet.uniqueId}">
-        <button class="trade-remove-btn" data-unique-id="${pet.uniqueId}" data-side="${side}">×</button>
+        <button class="trade-remove-btn" data-unique-id="${pet.uniqueId}" data-side="${side}">&times;</button>
         <span class="trade-variant-badge ${variantClass}">${variantLabel}</span>
         ${pet.imageUrl 
-          ? `<img src="${pet.imageUrl}" alt="${escapeHtml(pet.name)}" class="trade-pet-img" onerror="this.onerror=null; this.src=this.src.replace('.jpg', '.png'); if(this.src.includes('.png')) this.style.display='none';">`
+          ? `<img src="${pet.imageUrl}" alt="${escapeHtml(pet.name)}" class="trade-pet-img" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+             <div class="trade-pet-placeholder" style="display:none;">?</div>`
           : `<div class="trade-pet-placeholder">?</div>`
         }
         <div class="trade-pet-name">${escapeHtml(pet.name)}</div>
         <div class="trade-pet-value">${pet.value || 0}</div>
         <div class="trade-quantity-controls">
           <button class="trade-qty-btn" data-unique-id="${pet.uniqueId}" data-side="${side}" data-delta="-1">−</button>
-          <span class="trade-quantity">×${quantity}</span>
+          <span class="trade-quantity">${quantity}</span>
           <button class="trade-qty-btn" data-unique-id="${pet.uniqueId}" data-side="${side}" data-delta="1">+</button>
         </div>
       </div>
     `;
   });
-
+  
   container.innerHTML = html;
 }
 
@@ -358,7 +329,7 @@ function updateTotalDisplay() {
   if (youTotalElement) {
     youTotalElement.textContent = formatNumber(youTotal);
   }
-
+  
   const themTotal = calculateTotalValue('them');
   const themTotalElement = document.getElementById('them-total');
   if (themTotalElement) {
@@ -370,16 +341,16 @@ function updateTradeResult() {
   const result = compareTrades();
   const resultElement = document.getElementById('trade-calc-result');
   const resultText = document.getElementById('trade-result-text');
-
+  
   if (!resultElement || !resultText) return;
-
+  
   resultText.textContent = result.text;
   resultElement.className = `trade-calc-result ${result.class}`;
 }
 
-// ===========================
+// =======================
 // PET SEARCH FUNCTIONS
-// ===========================
+// =======================
 
 function openSearchDropdown(side) {
   if (!window.allPets || !Array.isArray(window.allPets)) {
@@ -387,21 +358,20 @@ function openSearchDropdown(side) {
     alert('Pet data not loaded yet. Please wait.');
     return;
   }
-
+  
   currentSearchSide = side;
-
   const dropdown = document.getElementById('trade-pet-search-dropdown');
   const searchInput = document.getElementById('trade-pet-search-input');
-
+  
   if (!dropdown || !searchInput) {
     console.warn('[DEBUG-WARNING] Search dropdown elements not found');
     return;
   }
-
+  
   searchInput.value = '';
   dropdown.classList.remove('hidden');
   searchInput.focus();
-
+  
   // Show all pets initially
   renderSearchResults(window.allPets);
 }
@@ -416,11 +386,8 @@ function closeSearchDropdown() {
 
 function searchPets(query) {
   if (!window.allPets) return [];
-
-  if (!query || !query.trim()) {
-    return window.allPets;
-  }
-
+  if (!query || !query.trim()) return window.allPets;
+  
   const lowerQuery = query.toLowerCase();
   return window.allPets.filter(pet => 
     pet.name && pet.name.toLowerCase().includes(lowerQuery)
@@ -428,33 +395,31 @@ function searchPets(query) {
 }
 
 // Debug warning: Shows variant buttons (Normal/Golden/Rainbow/Void) for each pet
-// Debug warning: Now uses Imgur URL conversion for preview images
+// Debug warning: Now uses jsDelivr CDN URLs for preview images
 function renderSearchResults(pets) {
   const resultsContainer = document.getElementById('trade-search-results');
   if (!resultsContainer) return;
-
+  
   if (!pets || pets.length === 0) {
-    resultsContainer.innerHTML = `<div class="trade-no-results">No pets found</div>`;
+    resultsContainer.innerHTML = '<div class="trade-no-results">No pets found</div>';
     return;
   }
-
+  
   // Limit to first 50 results for performance
   const limitedPets = pets.slice(0, 50);
-
+  
   const html = limitedPets.map(pet => {
-    // Debug warning: Convert image_url to full Imgur URL for search results
+    // Debug warning: Use global buildImageUrl function for jsDelivr CDN
     let imageUrl = null;
     if (pet.image_url) {
-      const imgurId = extractImgurId(pet.image_url);
-      if (imgurId) {
-        imageUrl = imgurIdToUrl(imgurId);
-      }
+      imageUrl = getImageUrl(pet.image_url);
     }
-
+    
     return `
       <div class="trade-search-result-item" data-pet-id="${pet.id}">
         ${imageUrl 
-          ? `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" class="trade-result-pet-icon" onerror="this.onerror=null; this.src=this.src.replace('.jpg', '.png'); if(this.src.includes('.png')) this.parentElement.innerHTML='<div class=\\'trade-result-pet-icon-placeholder\\'>?</div>';">`
+          ? `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" class="trade-result-pet-icon" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+             <div class="trade-result-pet-icon-placeholder" style="display:none;">?</div>`
           : `<div class="trade-result-pet-icon-placeholder">?</div>`
         }
         <div class="trade-result-pet-info">
@@ -481,55 +446,61 @@ function renderSearchResults(pets) {
       </div>
     `;
   }).join('');
-
+  
   resultsContainer.innerHTML = html;
 }
 
-// ===========================
+// =======================
 // TRADE CALCULATOR DISPLAY
-// ===========================
+// =======================
 
 function openTradeCalculator() {
-  console.log('Trade Calculator Opening...');
+  console.log('Trade Calculator: Opening...');
+  
   if (isTradeCalculatorOpen) {
-    console.log('Trade Calculator Already open');
+    console.log('Trade Calculator: Already open');
     return;
   }
-
+  
   isTradeCalculatorOpen = true;
-
+  
   // Hide pets grid and welcome (don't remove them!)
   const petsContainer = document.getElementById('pets-container');
   const welcomeDiv = document.querySelector('.welcome');
+  
   if (petsContainer) petsContainer.style.display = 'none';
   if (welcomeDiv) welcomeDiv.style.display = 'none';
-
+  
   // Show trade calculator in content area
   renderTradeCalculatorInline();
 }
 
 function closeTradeCalculator() {
-  console.log('Trade Calculator Closing...');
+  console.log('Trade Calculator: Closing...');
+  
   if (!isTradeCalculatorOpen) {
-    console.log('Trade Calculator Already closed');
+    console.log('Trade Calculator: Already closed');
     return;
   }
-
+  
   isTradeCalculatorOpen = false;
-
+  
   // Remove trade calculator
   const contentArea = document.getElementById('content');
   if (contentArea) {
     const tradeCalc = contentArea.querySelector('.trade-calculator-inline');
-    if (tradeCalc) tradeCalc.remove();
+    if (tradeCalc) {
+      tradeCalc.remove();
+    }
   }
-
+  
   // Show pets grid and welcome
   const petsContainer = document.getElementById('pets-container');
   const welcomeDiv = document.querySelector('.welcome');
+  
   if (petsContainer) petsContainer.style.display = 'grid';
   if (welcomeDiv) welcomeDiv.style.display = 'block';
-
+  
   // Expose flag globally
   window.isTradeCalculatorOpen = false;
 }
@@ -538,21 +509,24 @@ function closeTradeCalculator() {
 function renderTradeCalculatorInline() {
   const contentArea = document.getElementById('content');
   if (!contentArea) return;
-
+  
   // Remove existing trade calculator if present
   const existing = contentArea.querySelector('.trade-calculator-inline');
-  if (existing) existing.remove();
-
+  if (existing) {
+    existing.remove();
+  }
+  
   // Create trade calculator element
   const tradeCalcDiv = document.createElement('div');
   tradeCalcDiv.className = 'trade-calculator-inline';
+  
   tradeCalcDiv.innerHTML = `
     <!-- Header -->
     <div class="trade-calc-header">
       <h2>Trade Calculator</h2>
-      <button id="trade-calc-close-btn" class="trade-calc-close-btn" title="Close">×</button>
+      <button id="trade-calc-close-btn" class="trade-calc-close-btn" title="Close">&times;</button>
     </div>
-
+    
     <!-- Trade Sides Container -->
     <div class="trade-sides-container">
       <!-- YOUR OFFER -->
@@ -565,7 +539,7 @@ function renderTradeCalculatorInline() {
         </div>
         <div class="trade-total">Total: <span id="you-total">0</span></div>
       </div>
-
+      
       <!-- THEIR OFFER -->
       <div class="trade-side-section" data-side="them">
         <h3 class="trade-side-title them-title">THEIR OFFER</h3>
@@ -577,17 +551,17 @@ function renderTradeCalculatorInline() {
         <div class="trade-total">Total: <span id="them-total">0</span></div>
       </div>
     </div>
-
+    
     <!-- Trade Result -->
     <div id="trade-calc-result" class="trade-calc-result neutral">
       <span id="trade-result-text">Add pets to compare</span>
     </div>
-
+    
     <!-- Actions -->
     <div class="trade-calc-actions">
       <button id="trade-calc-reset-btn" class="trade-calc-btn">Reset</button>
     </div>
-
+    
     <!-- Pet Search Dropdown (hidden by default) -->
     <div id="trade-pet-search-dropdown" class="trade-pet-search-dropdown hidden">
       <div class="trade-search-header">
@@ -596,18 +570,18 @@ function renderTradeCalculatorInline() {
       <div id="trade-search-results" class="trade-search-results"></div>
     </div>
   `;
-
+  
   // Insert at the beginning of content area
   contentArea.insertBefore(tradeCalcDiv, contentArea.firstChild);
-
+  
   // Render initial state
   renderTradePanel();
   attachTradeEventListeners();
 }
 
-// ===========================
+// =======================
 // EVENT LISTENERS
-// ===========================
+// =======================
 
 function attachTradeEventListeners() {
   // Close button
@@ -615,13 +589,16 @@ function attachTradeEventListeners() {
   if (closeBtn) {
     closeBtn.addEventListener('click', closeTradeCalculator);
   }
-
+  
   // Reset button
   const resetBtn = document.getElementById('trade-calc-reset-btn');
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
       if (confirm('Reset trade calculator? This will clear all pets and tokens.')) {
-        tradeState = { you: { pets: [], tokens: 0 }, them: { pets: [], tokens: 0 } };
+        tradeState = {
+          you: { pets: [], tokens: 0 },
+          them: { pets: [], tokens: 0 }
+        };
         clearTradeCache();
         renderTradePanel();
         
@@ -633,17 +610,23 @@ function attachTradeEventListeners() {
       }
     });
   }
-
+  
   // Token inputs
   const youTokensInput = document.getElementById('you-tokens');
   const themTokensInput = document.getElementById('them-tokens');
+  
   if (youTokensInput) {
-    youTokensInput.addEventListener('input', (e) => updateTokenValue(e.target.value, 'you'));
+    youTokensInput.addEventListener('input', (e) => {
+      updateTokenValue(e.target.value, 'you');
+    });
   }
+  
   if (themTokensInput) {
-    themTokensInput.addEventListener('input', (e) => updateTokenValue(e.target.value, 'them'));
+    themTokensInput.addEventListener('input', (e) => {
+      updateTokenValue(e.target.value, 'them');
+    });
   }
-
+  
   // Search input
   const searchInput = document.getElementById('trade-pet-search-input');
   if (searchInput) {
@@ -652,7 +635,7 @@ function attachTradeEventListeners() {
       renderSearchResults(results);
     });
   }
-
+  
   // Global click handler for add cards, remove buttons, variant buttons, and quantity controls
   document.addEventListener('click', (e) => {
     // Add pet card clicked
@@ -662,7 +645,7 @@ function attachTradeEventListeners() {
       openSearchDropdown(side);
       return;
     }
-
+    
     // Remove button clicked
     const removeBtn = e.target.closest('.trade-remove-btn');
     if (removeBtn) {
@@ -671,7 +654,7 @@ function attachTradeEventListeners() {
       removePetFromSide(uniqueId, side);
       return;
     }
-
+    
     // Quantity button clicked
     const qtyBtn = e.target.closest('.trade-qty-btn');
     if (qtyBtn) {
@@ -681,19 +664,20 @@ function attachTradeEventListeners() {
       changePetQuantity(uniqueId, side, delta);
       return;
     }
-
+    
     // Variant button clicked (Normal/Golden/Rainbow/Void)
     const variantBtn = e.target.closest('.trade-variant-btn');
     if (variantBtn && currentSearchSide) {
       const petId = parseInt(variantBtn.dataset.petId);
       const variant = variantBtn.dataset.variant;
       const pet = window.allPets.find(p => p.id === petId);
+      
       if (pet) {
         addPetToSide(pet, variant, currentSearchSide);
       }
       return;
     }
-
+    
     // Close dropdown if clicked outside
     const dropdown = document.getElementById('trade-pet-search-dropdown');
     if (dropdown && !dropdown.classList.contains('hidden')) {
@@ -704,24 +688,28 @@ function attachTradeEventListeners() {
   });
 }
 
-// ===========================
+// =======================
 // INITIALIZATION
-// ===========================
+// =======================
 
 function initTradeCalculator() {
   loadTradeFromCache();
-  
-  // Make globally accessible
-  window.openTradeCalculator = openTradeCalculator;
-  window.closeTradeCalculator = closeTradeCalculator;
-  window.initTradeCalculator = initTradeCalculator;
-  
-  // Expose flag globally
-  Object.defineProperty(window, 'isTradeCalculatorOpen', {
-    get: function() { return isTradeCalculatorOpen; },
-    set: function(value) { isTradeCalculatorOpen = value; }
-  });
 }
+
+// Make globally accessible
+window.openTradeCalculator = openTradeCalculator;
+window.closeTradeCalculator = closeTradeCalculator;
+window.initTradeCalculator = initTradeCalculator;
+
+// Expose flag globally
+Object.defineProperty(window, 'isTradeCalculatorOpen', {
+  get: function() {
+    return isTradeCalculatorOpen;
+  },
+  set: function(value) {
+    isTradeCalculatorOpen = value;
+  }
+});
 
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /tradecalculator.js
