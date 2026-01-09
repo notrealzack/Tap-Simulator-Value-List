@@ -11,18 +11,18 @@
     
     <meta name="description" content="Tap Simulator Pet Value List - Complete pet stats, values, and rarities">
     
-    <!-- Debug warning: Discord Embed Meta Tags -->
+    <!-- Debug warning: Discord Embed Meta Tags with Imgur direct image URL -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Tap Simulator Value List">
     <meta property="og:description" content="Maintained by Staff and Value list Admins">
-    <meta property="og:image" content="https://raw.githubusercontent.com/YOURUSERNAME/YOURREPO/main/assets/embed-image.png">
+    <meta property="og:image" content="https://i.imgur.com/KAahjPG.jpg">
     <meta property="og:url" content="https://YOURUSERNAME.github.io/YOURREPO">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Tap Simulator Value List">
     <meta name="twitter:description" content="Maintained by Staff and Value list Admins">
-    <meta name="twitter:image" content="https://raw.githubusercontent.com/YOURUSERNAME/YOURREPO/main/assets/embed-image.png">
+    <meta name="twitter:image" content="https://i.imgur.com/KAahjPG.jpg">
     
     <title>Tap Simulator Value List</title>
     
@@ -102,7 +102,7 @@
             <div class="header-actions">
                 <!-- Admin icon button (opens login modal) -->
                 <button id="admin-icon-btn" class="admin-icon-btn" aria-label="Admin Login" title="Admin Login"></button>
-                
+
                 <!-- Logout button (hidden by default) -->
                 <button id="logout-btn" class="logout-btn hidden" aria-label="Logout" title="Logout">Logout</button>
             </div>
@@ -228,9 +228,7 @@
                 <div class="form-group">
                     <label for="pet-imgur-id">Imgur Image ID</label>
                     <input type="text" id="pet-imgur-id" name="imgurid" placeholder="e.g., 7Tmh0q5 or paste full URL/embed code">
-                    <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">
-                        Enter just the ID (e.g., 7Tmh0q5), full Imgur URL, or paste the entire embed code
-                    </small>
+                    <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">Enter just the ID (e.g., 7Tmh0q5), full Imgur URL, or paste the entire embed code</small>
                 </div>
 
                 <!-- Image Preview -->
@@ -366,11 +364,15 @@
     <script src="sidebar.js"></script>
     <script src="content.js"></script>
     <script src="petcardeffects.js"></script>
+    
     <!-- IMPORTANT: Load virtualscroll.js BEFORE main.js -->
     <script src="virtualscroll.js"></script>
+    
     <!-- IMPORTANT: Load filterpanel.js BEFORE main.js -->
     <script src="filterpanel.js"></script>
+    
     <script src="main.js"></script>
+    
     <!-- Trade Calculator Script -->
     <script src="tradecalculator.js"></script>
 
@@ -378,13 +380,24 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize sidebar
-            if (typeof initSidebar === 'function') initSidebar();
+            if (typeof initSidebar === 'function') {
+                initSidebar();
+            }
+
             // Initialize particle effects
-            if (typeof initParticles === 'function') initParticles();
+            if (typeof initParticles === 'function') {
+                initParticles();
+            }
+
             // Initialize secret effects
-            if (typeof initSecretEffects === 'function') initSecretEffects();
+            if (typeof initSecretEffects === 'function') {
+                initSecretEffects();
+            }
+
             // Initialize text glimmer
-            if (typeof initTextGlimmer === 'function') initTextGlimmer();
+            if (typeof initTextGlimmer === 'function') {
+                initTextGlimmer();
+            }
         });
     </script>
 </body>
