@@ -556,7 +556,16 @@ function createPetCard(pet) {
     : (pet.stats || 0);
   
   return `
-    <div class="pet-card" data-pet-id="${pet.id}">
+  <div class="pet-card" data-pet-id="${pet.id}">
+    
+    ${pet.description ? `
+      <div class="pet-tooltip">
+        ?
+        <div class="pet-tooltip-text">
+          ${escapeHtml(pet.description)}
+        </div>
+      </div>
+    ` : ''}
       <div class="pet-image">
         ${imageHtml}
       </div>
