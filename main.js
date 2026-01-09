@@ -15,6 +15,9 @@ const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 // Debug warning: jsDelivr CDN configuration for pet images
 const JSDELIVR_BASE = "https://cdn.jsdelivr.net/gh/RealGoldAstro/Tap-Simulator-Value-List@main/assets/petImages";
 
+// Debug warning: Supported image formats in order of preference
+const IMAGE_FORMATS = ['webp', 'png', 'jpg', 'jpeg', 'gif'];
+
 // Track current rarity filter for dynamic welcome message - Initialize to "all" for first load
 let currentRarityFilter = "all";
 
@@ -487,18 +490,35 @@ function setViewDensity(density) {
 }
 
 // =======================
-// jsDelivr Image Handling
+// jsDelivr Image Handling with Multi-Format Support
 // =======================
 
-// Debug warning: Construct jsDelivr CDN URL from pet image ID
-function buildImageUrl(imageId) {
+// Debug warning: Construct jsDelivr CDN URL with format detection
+function buildImageUrl(imageId, format = null) {
   if (!imageId) return null;
   
-  // Clean the image ID (remove any whitespace or extensions)
-  const cleanId = imageId.trim().replace(/\.(png|jpg|jpeg|gif|webp)$/i, '');
+  // Clean the image ID and check if it already has an extension
+  const cleanId = imageId.trim();
+  const hasExtension = /\.(webp|png|jpg|jpeg|gif)$/i.test(cleanId);
   
-  // Construct jsDelivr URL with .png extension
-  return `${JSDELIVR_BASE}/${cleanId}.png`;
+  if (hasExtension) {
+    // If extension provided, use as-is
+    return `${JSDELIVR_BASE}/${cleanId}`;
+  }
+  
+  // If no extension, use provided format or default to webp
+  const extension = format || 'webp';
+  return `${JSDELIVR_BASE}/${cleanId}.${extension}`;
+}
+
+// Debug warning: Try multiple image formats with automatic fallback
+function buildImageUrlsWithFallback(imageId) {
+  if (!imageId) return [];
+  
+  const cleanId = imageId.trim().replace(/\.(webp|png|jpg|jpeg|gif)$/i, '');
+  
+  // Return array of URLs to try in order
+  return IMAGE_FORMATS.map(format => `${JSDELIVR_BASE}/${cleanId}.${format}`);
 }
 
 // =======================
@@ -509,12 +529,22 @@ function buildImageUrl(imageId) {
 function createPetCard(pet) {
   const rarityClass = getRarityClass(pet.rarity);
   
-  // Debug warning: Build jsDelivr CDN URL from image_url field
-  let imageUrl = null;
+  // Debug warning: Build jsDelivr CDN URLs with fallback support
+  let imageHtml;
   if (pet.image_url) {
-    imageUrl = buildImageUrl(pet.image_url);
-    console.log('[DEBUG] Pet:', pet.name, '- Image ID:', pet.image_url, '- URL:', imageUrl);
+    const imageUrls = buildImageUrlsWithFallback(pet.image_url);
+    const primaryUrl = imageUrls[0];
+    
+    // Generate fallback chain for onerror
+    const fallbackChain = imageUrls.slice(1).map((url, index) => 
+      `this.onerror=${index === imageUrls.length - 2 ? 'null' : 'function(){this.src=\\\''+imageUrls[index+2]+'\\\'}'};this.src='${url}'`
+    ).join(';');
+    
+    imageHtml = `<img src="${primaryUrl}" alt="${escapeHtml(pet.name)}" loading="lazy" onerror="${fallbackChain || 'this.onerror=null'};this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3)\\'>No Image</div>';">`;
+    
+    console.log('[DEBUG] Pet:', pet.name, '- Image ID:', pet.image_url, '- Primary URL:', primaryUrl);
   } else {
+    imageHtml = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3)">No Image</div>`;
     console.warn('[DEBUG-WARNING] Pet:', pet.name, '- No image ID provided');
   }
   
@@ -528,10 +558,7 @@ function createPetCard(pet) {
   return `
     <div class="pet-card" data-pet-id="${pet.id}">
       <div class="pet-image">
-        ${imageUrl 
-          ? `<img src="${imageUrl}" alt="${escapeHtml(pet.name)}" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3)\\'>No Image</div>';">` 
-          : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3)">No Image</div>`
-        }
+        ${imageHtml}
       </div>
       <div class="pet-info">
         <h3 class="pet-name">${escapeHtml(pet.name)}</h3>
@@ -812,7 +839,7 @@ function closeLoginModal() {
   }
 }
 
-// Debug warning: Updated to handle image ID input (for jsDelivr CDN)
+// Debug warning: Updated to handle image ID input (for jsDelivr CDN with multi-format support)
 function openPetModal(pet = null) {
   const modal = document.getElementById('pet-modal');
   const form = document.getElementById('pet-form');
@@ -847,7 +874,22 @@ function openPetModal(pet = null) {
     if (pet.image_url && imagePreview) {
       const imageUrl = buildImageUrl(pet.image_url);
       if (imageUrl) {
-        document.getElementById('preview-img').src = imageUrl;
+        const previewImg = document.getElementById('preview-img');
+        previewImg.src = imageUrl;
+        
+        // Setup fallback chain for preview
+        const imageUrls = buildImageUrlsWithFallback(pet.image_url);
+        let currentIndex = 0;
+        previewImg.onerror = function() {
+          currentIndex++;
+          if (currentIndex < imageUrls.length) {
+            this.src = imageUrls[currentIndex];
+          } else {
+            this.onerror = null;
+            imagePreview.classList.add('hidden');
+          }
+        };
+        
         imagePreview.classList.remove('hidden');
       }
     }
@@ -955,7 +997,7 @@ function initEventListeners() {
       
       const message = document.getElementById('pet-form-message');
       
-      // Get image ID input (just the ID like "002")
+      // Get image ID input (just the ID like "002" or "002.webp")
       const imageIdInput = document.getElementById('pet-image-id').value.trim();
       
       // Get values as text, not as integers
@@ -968,7 +1010,7 @@ function initEventListeners() {
         value_golden: document.getElementById('pet-value-golden').value || '0',
         value_rainbow: document.getElementById('pet-value-rainbow').value || '0',
         value_void: document.getElementById('pet-value-void').value || '0',
-        image_url: imageIdInput || null // Store just the ID
+        image_url: imageIdInput || null // Store ID with or without extension
       };
       
       console.log('[DEBUG] Submitting pet data:', petData);
@@ -996,7 +1038,7 @@ function initEventListeners() {
     }
   }
   
-  // Debug warning: Image ID input live preview
+  // Debug warning: Image ID input live preview with multi-format support
   const imageIdInput = document.getElementById('pet-image-id');
   if (imageIdInput) {
     imageIdInput.addEventListener('input', (e) => {
@@ -1007,23 +1049,26 @@ function initEventListeners() {
       if (imageId && imagePreview && previewImg) {
         const imageUrl = buildImageUrl(imageId);
         previewImg.src = imageUrl;
+        
+        // Setup fallback chain for preview
+        const imageUrls = buildImageUrlsWithFallback(imageId);
+        let currentIndex = 0;
+        previewImg.onerror = function() {
+          currentIndex++;
+          if (currentIndex < imageUrls.length) {
+            this.src = imageUrls[currentIndex];
+          } else {
+            this.onerror = null;
+            imagePreview.classList.add('hidden');
+            console.warn('[DEBUG-WARNING] Failed to load preview image with any format');
+          }
+        };
+        
         imagePreview.classList.remove('hidden');
-        console.log('[DEBUG] Preview Image ID:', imageId, '- URL:', imageUrl);
+        console.log('[DEBUG] Preview Image ID:', imageId, '- Primary URL:', imageUrl);
       } else if (imagePreview) {
         imagePreview.classList.add('hidden');
       }
-    });
-  }
-  
-  // Handle image load error
-  const previewImg = document.getElementById('preview-img');
-  if (previewImg) {
-    previewImg.addEventListener('error', function() {
-      const imagePreview = document.getElementById('image-preview');
-      if (imagePreview) {
-        imagePreview.classList.add('hidden');
-      }
-      console.warn('[DEBUG-WARNING] Failed to load preview image');
     });
   }
   
@@ -1182,6 +1227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 window.setViewDensity = setViewDensity;
 window.filterAndSortPets = filterAndSortPets;
 window.buildImageUrl = buildImageUrl;
+window.buildImageUrlsWithFallback = buildImageUrlsWithFallback;
 
 // File type: Client-side JavaScript (for GitHub Pages)
 // Path: /main.js
