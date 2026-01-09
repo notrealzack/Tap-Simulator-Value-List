@@ -559,13 +559,12 @@ function createPetCard(pet) {
   <div class="pet-card" data-pet-id="${pet.id}">
     
     ${pet.description ? `
-      <div class="pet-tooltip">
-        ?
-        <div class="pet-tooltip-text">
-          ${escapeHtml(pet.description)}
-        </div>
-      </div>
-    ` : ''}
+  <div class="pet-tooltip">
+    <span class="tooltip-icon">?</span>
+    <span class="tooltip-text">${escapeHtml(pet.description)}</span>
+  </div>
+` : ''}
+
       <div class="pet-image">
         ${imageHtml}
       </div>
