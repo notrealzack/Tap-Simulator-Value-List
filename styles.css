@@ -1122,5 +1122,48 @@ form {
   }
 }
 
+.pet-card {
+  position: relative;
+}
+
+/* so basically this si the icon I created test it and lmk*/
+.pet-tooltip {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #7b5cff;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 5;
+}
+
+/* this is the box of that icon */
+.pet-tooltip-text {
+  position: absolute;
+  top: 22px;
+  right: 0;
+  background: #0e0e14;
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.pet-tooltip:hover .pet-tooltip-text {
+  opacity: 1;
+  visibility: visible;
+}
 /* File type: CSS Stylesheet */
 /* Path: /styles.css */
